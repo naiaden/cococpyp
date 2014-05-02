@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
         ClassEncoder _class_encoder = ClassEncoder();
 		ClassDecoder _class_decoder = ClassDecoder();
-		IndexedPatternModel<uint32_t> _pattern_model = IndexedPatternModel<uint32_t>();
+
 		PatternModelOptions _pattern_model_options = PatternModelOptions();
 		_pattern_model_options.MAXLENGTH = 1;
 		_pattern_model_options.DOSKIPGRAMS = false;
@@ -83,11 +83,20 @@ int main(int argc, char** argv)
 
         _class_decoder.load("/tmp/tmpout/cpyp.colibri.cls");
 
+        IndexedCorpus _indexed_corpus = IndexedCorpus(dat_output_file);
+
+        PatternModel<uint32_t> _pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
         _pattern_model.train(dat_output_file, _pattern_model_options, nullptr);
 
+        int o = 0;
+        for(auto& it : _indexed_corpus)
+        {
+        	std::cout << it.ref.tostring() << std::endl;
+        	if (o++ > 5000)
+        		break;
+        }
 
-        std::cout << "Done for now" << std::endl;
-        exit(4);
+
 
         cerr << "Reading corpus...\n";
 //        ReadFromFile(train_file, &dict, &corpuse, &vocabe);
@@ -96,22 +105,26 @@ int main(int argc, char** argv)
                         << vocabe.size() << " word types)\n";
         vector<vector<unsigned> > test;
         ReadFromFile(test_file, &dict, &test, &tv);
+
+
         PYPLM<kORDER> lm(vocabe.size(), 1, 1, 1, 1);
         vector<unsigned> ctx(kORDER - 1, kSOS);
         for (int sample = 0; sample < samples; ++sample)
         {
-                for (const auto& s : corpuse)
-                {
-                        ctx.resize(kORDER - 1);
-                        for (unsigned i = 0; i <= s.size(); ++i)
-                        {
-                                unsigned w = (i < s.size() ? s[i] : kEOS);
-                                if (sample > 0)
-                                        lm.decrement(w, ctx, eng);
-                                lm.increment(w, ctx, eng);
-                                ctx.push_back(w);
-                        }
-                }
+        		for (auto& it: _indexed_corpus)
+        		{
+        			Pattern pattern = it.pattern();
+        			size_t p_size = pattern.size();
+
+        			Pattern context = Pattern(pattern, 0, p_size-1);
+        			Pattern focus = pattern[p_size-1];
+
+        			if(sample > 0) lm.decrement(focus, context, eng);
+        			lm.increment(focus, context, eng);
+
+        		}
+
+
                 if (sample % 10 == 9)
                 {
                         cerr << " [LLH=" << lm.log_likelihood() << "]" << endl;
@@ -123,30 +136,34 @@ int main(int argc, char** argv)
                         cerr << '.' << flush;
                 }
         }
+
+        std::cout << "Done for now" << std::endl;
+		exit(4);
+
         double llh = 0;
         unsigned cnt = 0;
         unsigned oovs = 0;
         for (auto& s : test)
         {
-                ctx.resize(kORDER - 1);
-                for (unsigned i = 0; i <= s.size(); ++i)
-                {
-                        unsigned w = (i < s.size() ? s[i] : kEOS);
-                        double lp = log(lm.prob(w, ctx)) / log(2);
-                        if (i < s.size() && vocabe.count(w) == 0)
-                        {
-                                cerr << "**OOV ";
-                                ++oovs;
-                                lp = 0;
-                        }
-                        cerr << "p(" << dict.Convert(w) << " |";
-                        for (unsigned j = ctx.size() + 1 - kORDER; j < ctx.size(); ++j)
-                                cerr << ' ' << dict.Convert(ctx[j]);
-                        cerr << ") = " << lp << endl;
-                        ctx.push_back(w);
-                        llh -= lp;
-                        cnt++;
-                }
+//                ctx.resize(kORDER - 1);
+//                for (unsigned i = 0; i <= s.size(); ++i)
+//                {
+//                        unsigned w = (i < s.size() ? s[i] : kEOS);
+//                        double lp = log(lm.prob(w, ctx)) / log(2);
+//                        if (i < s.size() && vocabe.count(w) == 0)
+//                        {
+//                                cerr << "**OOV ";
+//                                ++oovs;
+//                                lp = 0;
+//                        }
+//                        cerr << "p(" << dict.Convert(w) << " |";
+//                        for (unsigned j = ctx.size() + 1 - kORDER; j < ctx.size(); ++j)
+//                                cerr << ' ' << dict.Convert(ctx[j]);
+//                        cerr << ") = " << lp << endl;
+//                        ctx.push_back(w);
+//                        llh -= lp;
+//                        cnt++;
+//                }
         }
         cnt -= oovs;
         cerr << "  Log_10 prob: " << (-llh * log(2) / log(10)) << endl;
