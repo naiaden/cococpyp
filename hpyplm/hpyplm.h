@@ -36,7 +36,7 @@ template <unsigned N> struct PYPLM {
       backoff(vs, da, db, ss, sr),
       tr(da, db, ss, sr, 0.8, 0.0) {}
   template<typename Engine>
-  void increment(const Pattern& w, const Pattern& context, Engine& eng) {
+  void increment(Pattern w, Pattern context, Engine& eng) {
     const double bo = backoff.prob(w, context);
 
     Pattern pattern = Pattern(context);
@@ -65,7 +65,7 @@ template <unsigned N> struct PYPLM {
 
 
   template<typename Engine>
-  void decrement(const Pattern& w, const Pattern& context, Engine& eng) {
+  void decrement(Pattern w, Pattern context, Engine& eng) {
 	  Pattern pattern = Pattern(context);
 	  pattern.reverse();
 
@@ -81,7 +81,7 @@ template <unsigned N> struct PYPLM {
 //    if (it->second.decrement(w, eng))
 //      backoff.decrement(w, context, eng);
   }
-  double prob(const Pattern& w, const Pattern& context) const {
+  double prob(Pattern w, Pattern context) const {
 	  const double bo = backoff.prob(w, context);
 
 	  Pattern pattern = Pattern(context);
@@ -116,7 +116,7 @@ template <unsigned N> struct PYPLM {
 
   PYPLM<N-1> backoff;
   tied_parameter_resampler<crp<Pattern>> tr;
-  std::unordered_map<Pattern, crp<Pattern>, uvector_hash> p;  // .first = context .second = CRP
+  std::unordered_map<Pattern, crp<Pattern>, pattern_hash> p;  // .first = context .second = CRP
 };
 
 }

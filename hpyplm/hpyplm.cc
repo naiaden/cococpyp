@@ -99,12 +99,9 @@ int main(int argc, char** argv)
 
 
         cerr << "Reading corpus...\n";
-//        ReadFromFile(train_file, &dict, &corpuse, &vocabe);
+        cerr << "E-corpus size: " << _indexed_corpus.sentences() << " sentences\t ("
+        		<< _pattern_model.types() << " word types and " << _pattern_model.tokens() << " word tokens)\n";
 
-        cerr << "E-corpus size: " << corpuse.size() << " sentences\t ("
-                        << vocabe.size() << " word types)\n";
-        vector<vector<unsigned> > test;
-        ReadFromFile(test_file, &dict, &test, &tv);
 
 
         PYPLM<kORDER> lm(vocabe.size(), 1, 1, 1, 1);
@@ -139,6 +136,19 @@ int main(int argc, char** argv)
 
         std::cout << "Done for now" << std::endl;
 		exit(4);
+
+
+
+
+
+
+
+
+
+
+		vector<vector<unsigned> > test;
+		ReadFromFile(test_file, &dict, &test, &tv);
+
 
         double llh = 0;
         unsigned cnt = 0;

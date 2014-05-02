@@ -12,10 +12,10 @@ namespace cpyp {
 struct UniformVocabulary {
   UniformVocabulary(unsigned vs, double, double, double, double) : p0(1.0 / vs), draws() {}
   template<typename Engine>
-  void increment(Pattern, const Pattern&, Engine&) { ++draws; }
+  void increment(Pattern, Pattern, Engine&) { ++draws; }
   template<typename Engine>
-  void decrement(Pattern, const Pattern&, Engine&) { --draws; assert(draws >= 0); }
-  double prob(const Pattern&, const Pattern&) const { return p0; }
+  void decrement(Pattern, Pattern, Engine&) { --draws; assert(draws >= 0); }
+  double prob(Pattern, Pattern) const { return p0; }
   template<typename Engine>
   void resample_hyperparameters(Engine&) {}
   double log_likelihood() const { return draws * log(p0); }

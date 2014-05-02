@@ -2,6 +2,7 @@
 #define UVECTOR_H_
 
 #include <vector>
+#include <pattern.h>
 
 struct uvector_hash {
   size_t operator()(const std::vector<unsigned>& v) const {
@@ -9,6 +10,12 @@ struct uvector_hash {
     for (auto e : v)
       h ^= e + 0x9e3779b9 + (h<<6) + (h>>2);
     return h;
+  }
+};
+
+struct pattern_hash {
+  size_t operator()(const Pattern& p) const {
+    return p.hash();
   }
 };
 
