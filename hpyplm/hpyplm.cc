@@ -43,11 +43,11 @@ int main(int argc, char** argv)
 	ClassDecoder _class_decoder = ClassDecoder();
 
 	PatternModelOptions _pattern_model_options = PatternModelOptions();
-	_pattern_model_options.MAXLENGTH = kORDER;
+	_pattern_model_options.MAXLENGTH = 3; //kORDER;
 	_pattern_model_options.DOSKIPGRAMS = false;
 	_pattern_model_options.DOREVERSEINDEX = false;
 	_pattern_model_options.QUIET = true;
-	_pattern_model_options.MINTOKENS = 1;
+	_pattern_model_options.MINTOKENS = 0;
 
 
         boost::filesystem::path background_dir(train_input_directory);
@@ -65,7 +65,6 @@ int main(int argc, char** argv)
         std::cout << "Found " << train_input_files.size() << " files" << std::endl;
 
         _class_encoder.build(train_input_files, true);
-
         _class_encoder.save("/tmp/tmpout/cpyp.colibri.cls");
 
         std::string dat_output_file = "/tmp/tmpout/cpyp.colibri.dat";
@@ -82,20 +81,11 @@ int main(int argc, char** argv)
         PatternModel<uint32_t> _pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
         _pattern_model.train(dat_output_file, _pattern_model_options, nullptr);
 
-/*        int o = 0;
-        for(auto& it : _indexed_corpus)
-        {
-        	std::cout << it.ref.tostring() << std::endl;
-        	if (o++ > 5000)
-        		break;
-        }
-*/
-
-
+        std::cout << ">> maxn:" << _pattern_model.maxlength() << std::endl;
+    
         cerr << "Reading corpus...\n";
         cerr << "E-corpus size: " << _indexed_corpus.sentences() << " sentences\t ("
-        		<< _pattern_model.types() << " word types, " << _pattern_model.size() << " patterns and " << _pattern_model.tokens() << " word tokens)\n";
-
+        		<< _pattern_model.types() << " word types (bugged), " << _pattern_model.size() << " patterns types and " << _pattern_model.tokens() << " word tokens)\n";
 
 
         PYPLM<kORDER> lm(_pattern_model.size(), 1, 1, 1, 1);
@@ -106,12 +96,16 @@ int main(int argc, char** argv)
         			Pattern pattern = it.pattern();
         			size_t p_size = pattern.size();
 
+                                if(p_size > 1)
+                                {
+                                std::cout << pattern.tostring(_class_decoder) << "(" << p_size << ")" << std::endl;
+
         			Pattern context = Pattern(pattern, 0, p_size-1);
         			Pattern focus = pattern[p_size-1];
 
         			if(sample > 0) lm.decrement(focus, context, eng);
         			lm.increment(focus, context, eng);
-
+                                }
         		}
 
 
