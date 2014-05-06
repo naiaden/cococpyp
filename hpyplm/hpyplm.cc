@@ -46,8 +46,8 @@ int main(int argc, char** argv)
 	_pattern_model_options.MAXLENGTH = 3; //kORDER;
 	_pattern_model_options.DOSKIPGRAMS = false;
 	_pattern_model_options.DOREVERSEINDEX = false;
-	_pattern_model_options.QUIET = true;
-	_pattern_model_options.MINTOKENS = 0;
+	_pattern_model_options.QUIET = false;
+	_pattern_model_options.MINTOKENS = 1;
 
 
         boost::filesystem::path background_dir(train_input_directory);
