@@ -1,4 +1,5 @@
-all: hpyplm dhpyplm
+#all: hpyplm dhpyplm
+all: hpyplm
 
 COCO_INCLUDE=/home/louis/Software/colibri-core/include
 COCO_LIB=/home/louis/Software/colibri-core/src
@@ -8,8 +9,8 @@ BOOST_SERIALIZATION=$(BOOST_ROOT)/lib/libboost_serialization.a
 hpyplm: hpyplm.cc
 	$(CXX) -std=c++11 -O3 -Wall -I.. hpyplm.cc -o hpyplm -I$(COCO_INCLUDE) -lcolibricore -L$(COCO_LIB) -lboost_filesystem -lboost_system
 
-dhpyplm: dhpyplm.cc
-	$(CXX) -std=c++11 -O3 -g -Wall -I.. dhpyplm.cc -o dhpyplm
+#dhpyplm: dhpyplm.cc
+#	$(CXX) -std=c++11 -O3 -g -Wall -I.. dhpyplm.cc -o dhpyplm
 
 ## stuff below here is optional
 

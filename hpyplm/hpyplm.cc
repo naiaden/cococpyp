@@ -22,8 +22,6 @@
 using namespace std;
 using namespace cpyp;
 
-Dict dict;
-
 int main(int argc, char** argv)
 {
         if (argc != 4)
@@ -39,21 +37,17 @@ int main(int argc, char** argv)
         string test_file = argv[2];
         int samples = atoi(argv[3]);
 
-        vector<vector<unsigned> > corpuse;
-        set<unsigned> vocabe, tv;
-        const unsigned kSOS = dict.Convert("<s>");
-        const unsigned kEOS = dict.Convert("</s>");
 
 
         ClassEncoder _class_encoder = ClassEncoder();
-		ClassDecoder _class_decoder = ClassDecoder();
+	ClassDecoder _class_decoder = ClassDecoder();
 
-		PatternModelOptions _pattern_model_options = PatternModelOptions();
-		_pattern_model_options.MAXLENGTH = 1;
-		_pattern_model_options.DOSKIPGRAMS = false;
-		_pattern_model_options.DOREVERSEINDEX = false;
-		_pattern_model_options.QUIET = true;
-		_pattern_model_options.MINTOKENS = 1;
+	PatternModelOptions _pattern_model_options = PatternModelOptions();
+	_pattern_model_options.MAXLENGTH = kORDER;
+	_pattern_model_options.DOSKIPGRAMS = false;
+	_pattern_model_options.DOREVERSEINDEX = false;
+	_pattern_model_options.QUIET = true;
+	_pattern_model_options.MINTOKENS = 1;
 
 
         boost::filesystem::path background_dir(train_input_directory);
@@ -88,24 +82,23 @@ int main(int argc, char** argv)
         PatternModel<uint32_t> _pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
         _pattern_model.train(dat_output_file, _pattern_model_options, nullptr);
 
-        int o = 0;
+/*        int o = 0;
         for(auto& it : _indexed_corpus)
         {
         	std::cout << it.ref.tostring() << std::endl;
         	if (o++ > 5000)
         		break;
         }
-
+*/
 
 
         cerr << "Reading corpus...\n";
         cerr << "E-corpus size: " << _indexed_corpus.sentences() << " sentences\t ("
-        		<< _pattern_model.types() << " word types and " << _pattern_model.tokens() << " word tokens)\n";
+        		<< _pattern_model.types() << " word types, " << _pattern_model.size() << " patterns and " << _pattern_model.tokens() << " word tokens)\n";
 
 
 
-        PYPLM<kORDER> lm(vocabe.size(), 1, 1, 1, 1);
-        vector<unsigned> ctx(kORDER - 1, kSOS);
+        PYPLM<kORDER> lm(_pattern_model.size(), 1, 1, 1, 1);
         for (int sample = 0; sample < samples; ++sample)
         {
         		for (auto& it: _indexed_corpus)
@@ -144,7 +137,7 @@ int main(int argc, char** argv)
 
 
 
-
+/*
 
 		vector<vector<unsigned> > test;
 		ReadFromFile(test_file, &dict, &test, &tv);
@@ -182,6 +175,7 @@ int main(int argc, char** argv)
         cerr << "Cross-entropy: " << (llh / cnt) << endl;
         cerr << "   Perplexity: " << pow(2, llh / cnt) << endl;
         return 0;
+*/
 }
 
 

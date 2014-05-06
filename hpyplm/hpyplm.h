@@ -39,7 +39,7 @@ template <unsigned N> struct PYPLM {
   void increment(Pattern w, Pattern context, Engine& eng) {
     const double bo = backoff.prob(w, context);
 
-    Pattern pattern = Pattern(context);
+    Pattern pattern = Pattern(context, context.size()-1-(N-1), context.size()-1);
     pattern.reverse();
 
     auto it = p.find(pattern);
@@ -49,54 +49,28 @@ template <unsigned N> struct PYPLM {
     }
     if (it->second.increment(w, bo, eng))
     	backoff.increment(w, context, eng);
-
-//    for (unsigned i = 0; i < N-1; ++i)
-//      lookup[i] = context[context.size() - 1 - i]; ///// hhhhhhhhhhhhhhhhhhier
-//
-//
-//    auto it = p.find(lookup);
-//    if (it == p.end()) {
-//      it = p.insert(make_pair(lookup, crp<Pattern>(0.8,0))).first;
-//      tr.insert(&it->second);  // add to resampler
-//    }
-//    if (it->second.increment(w, bo, eng))
-//      backoff.increment(w, context, eng);
   }
-
 
   template<typename Engine>
   void decrement(Pattern w, Pattern context, Engine& eng) {
-	  Pattern pattern = Pattern(context);
+          Pattern pattern = Pattern(context, context.size()-1-(N-1), context.size()-1);
 	  pattern.reverse();
 
 	  auto it = p.find(pattern);
 	  assert(it != p.end());
 	  if(it->second.decrement(w, eng))
 		  backoff.decrement(w, context, eng);
-
-//    for (unsigned i = 0; i < N-1; ++i)
-//      lookup[i] = context[context.size() - 1 - i];
-//    auto it = p.find(lookup);
-//    assert(it != p.end());
-//    if (it->second.decrement(w, eng))
-//      backoff.decrement(w, context, eng);
   }
+
   double prob(Pattern w, Pattern context) const {
 	  const double bo = backoff.prob(w, context);
 
-	  Pattern pattern = Pattern(context);
+	  Pattern pattern = Pattern(context, context.size()-1-(N-1), context.size()-1);
 	  pattern.reverse();
 
 	  auto it = p.find(pattern);
 	  if(it == p.end()) return bo;
 	  return it->second.prob(w,bo);
-
-//    const double bo = backoff.prob(w, context);
-//    for (unsigned i = 0; i < N-1; ++i)
-//      lookup[i] = context[context.size() - 1 - i];
-//    auto it = p.find(lookup);
-//    if (it == p.end()) return bo;
-//    return it->second.prob(w, bo);
   }
 
   double log_likelihood() const {
