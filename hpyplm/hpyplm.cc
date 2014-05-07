@@ -43,10 +43,11 @@ int main(int argc, char** argv)
 	ClassDecoder _class_decoder = ClassDecoder();
 
 	PatternModelOptions _pattern_model_options = PatternModelOptions();
-	_pattern_model_options.MAXLENGTH = 3; //kORDER;
+	_pattern_model_options.MAXLENGTH = kORDER; //kORDER;
+	_pattern_model_options.MINLENGTH = kORDER;
 	_pattern_model_options.DOSKIPGRAMS = false;
 	_pattern_model_options.DOREVERSEINDEX = false;
-	_pattern_model_options.QUIET = false;
+	_pattern_model_options.QUIET = true;
 	_pattern_model_options.MINTOKENS = 1;
 
 
@@ -91,23 +92,24 @@ int main(int argc, char** argv)
         PYPLM<kORDER> lm(_pattern_model.size(), 1, 1, 1, 1);
         for (int sample = 0; sample < samples; ++sample)
         {
-        		for (auto& it: _indexed_corpus)
-        		{
-        			Pattern pattern = it.pattern();
-        			size_t p_size = pattern.size();
+        		for(IndexPattern it : _indexed_corpus) {
+        			for(Pattern p : _pattern_model.getreverseindex(it.ref)) {
+        				size_t p_size = p.size();
 
-                                if(p_size > 1)
-                                {
-                                std::cout << pattern.tostring(_class_decoder) << "(" << p_size << ")" << std::endl;
+						if(p_size == kORDER)
+						{
+//							std::cout << p.tostring(_class_decoder) << "(" << p_size << ")" << std::endl;
 
-        			Pattern context = Pattern(pattern, 0, p_size-1);
-        			Pattern focus = pattern[p_size-1];
+							Pattern context = Pattern(p, 0, p_size-1);
+							Pattern focus = p[p_size-1];
 
-        			if(sample > 0) lm.decrement(focus, context, eng);
-        			lm.increment(focus, context, eng);
-                                }
+							std::cout << context.tostring(_class_decoder) << " .. " << focus.tostring(_class_decoder) << std::endl;
+
+							if(sample > 0) lm.decrement(focus, context, eng);
+							lm.increment(focus, context, eng);
+						}
+        			}
         		}
-
 
                 if (sample % 10 == 9)
                 {
