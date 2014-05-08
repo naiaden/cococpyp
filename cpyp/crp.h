@@ -371,7 +371,7 @@ class crp {
  private:
   unsigned num_tables_;
   unsigned num_customers_;
-  std::unordered_map<Dish, crp_table_manager<1>, DishHash> dish_locs_;
+  std::unordered_map<const Dish, crp_table_manager<1>, DishHash> dish_locs_;
 
   double discount_;
   double strength_;

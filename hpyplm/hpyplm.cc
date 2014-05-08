@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 	ClassDecoder _class_decoder = ClassDecoder();
 
 	PatternModelOptions _pattern_model_options = PatternModelOptions();
-	_pattern_model_options.MAXLENGTH = kORDER; //kORDER;
+	_pattern_model_options.MAXLENGTH = 10; //kORDER;
 	_pattern_model_options.MINLENGTH = kORDER;
 	_pattern_model_options.DOSKIPGRAMS = false;
 	_pattern_model_options.DOREVERSEINDEX = false;
@@ -92,22 +92,33 @@ int main(int argc, char** argv)
         PYPLM<kORDER> lm(_pattern_model.size(), 1, 1, 1, 1);
         for (int sample = 0; sample < samples; ++sample)
         {
+        		int p_iter = 0;
         		for(IndexPattern it : _indexed_corpus) {
-        			for(Pattern p : _pattern_model.getreverseindex(it.ref)) {
+        			std::cout << p_iter++ << std::endl;
+                                std::vector<Pattern> result = _pattern_model.getreverseindex(it.ref);
+                                for(Pattern p : result) {
+        			//for(Pattern p : _pattern_model.getreverseindex(it.ref)) {
         				size_t p_size = p.size();
 
-						if(p_size == kORDER)
-						{
+//						if(p_size == kORDER)
+//						{
 //							std::cout << p.tostring(_class_decoder) << "(" << p_size << ")" << std::endl;
-
-							Pattern context = Pattern(p, 0, p_size-1);
-							Pattern focus = p[p_size-1];
-
-							std::cout << context.tostring(_class_decoder) << " .. " << focus.tostring(_class_decoder) << std::endl;
+                                                        Pattern context = Pattern();
+                                                        Pattern focus = Pattern();
+                                                        if(p_size > 0) {
+                                                        if(p_size == 1) {
+                                                            focus = p[0];
+                                                        } else
+                                                        {
+        							context = Pattern(p, 0, p_size-1);
+	        						focus = p[p_size-1];
+                                                        }
+//							std::cout << context.tostring(_class_decoder) << " .. " << focus.tostring(_class_decoder) << std::endl;
 
 							if(sample > 0) lm.decrement(focus, context, eng);
 							lm.increment(focus, context, eng);
-						}
+                                                        }
+//						}
         			}
         		}
 
