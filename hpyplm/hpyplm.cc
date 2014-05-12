@@ -98,10 +98,10 @@ int main(int argc, char** argv) {
 						focus = q[p_size - 1];
 					}
 
-					if (sample > 0) {
-						std::cout << ">>" << q.tostring(_class_decoder) << " c:[" << context.tostring(_class_decoder) << "] f:[" << focus.tostring(_class_decoder) << "]"
-								<< std::endl;
-					}
+//					if (sample > 0) {
+//						std::cout << ">>" << q.tostring(_class_decoder) << " c:[" << context.tostring(_class_decoder) << "] f:[" << focus.tostring(_class_decoder) << "]"
+//								<< std::endl;
+//					}
 
 					ClassDecoder* cd = nullptr;
 					if (sample > 0)
