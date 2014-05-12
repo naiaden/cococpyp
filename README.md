@@ -1,3 +1,9 @@
+This is a fork of cpyp (https://github.com/redpony/cpyp) which I enhanced with Colibri-core (https://github.com/proycon/colibri-core). See hpyplm.cc for the changes.
+
+I chose Colibri because it can also handle skipgrams and flexgrams, one of the ways in which I want to extend cpyp. However, currently there is a nasty segfault generated somewhere in Colibri, and I cannot figure out why this happens.
+
+So for the moment, this project is not under development, until this bug is fixed (either here or in Colibri).
+
 cpyp
 ====
 
