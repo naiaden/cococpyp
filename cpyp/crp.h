@@ -123,7 +123,7 @@ class crp {
 
   // returns +1 or 0 indicating whether a new table was opened
   template<typename F, typename Engine>
-  int increment(const Dish& dish, const F& p0, Engine& eng) {
+  int increment(const Dish& dish, const F& p0, Engine& eng, bool show = false) {
     crp_table_manager<1>& loc = dish_locs_[dish];
     bool share_table = false;
     if (loc.num_customers()) {
@@ -141,6 +141,12 @@ class crp {
       ++num_tables_;
     }
     ++num_customers_;
+
+    if(show)
+    {
+        std::cout << dish_locs_[dish].num_customers() << std::endl;
+    }
+
     return (share_table ? 0 : 1);
   }
 

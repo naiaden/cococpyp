@@ -32,7 +32,7 @@ int main(int argc, char** argv)
                                 << "-gram HPYP LM and report perplexity\n100 is usually sufficient for <nsamples>\n";
                 return 1;
         }
-        MT19937 eng;
+        MT19937 eng(123456);
         string train_input_directory = argv[1];
         string test_file = argv[2];
         int samples = atoi(argv[3]);
@@ -114,12 +114,16 @@ int main(int argc, char** argv)
 							}
 		//							std::cout << context.tostring(_class_decoder) << " .. " << focus.tostring(_class_decoder) << std::endl;
 
-							if(sample > 0) { std::cout << q.tostring(_class_decoder) << " c:[" << context.tostring(_class_decoder) << "] f:[" << focus.tostring(_class_decoder) << "]" << std::endl; }
-
+							if(sample > 0) { std::cout << ">>" << q.tostring(_class_decoder) << " c:[" << context.tostring(_class_decoder) << "] f:[" << focus.tostring(_class_decoder) << "]" << std::endl; }
+                     ClassDecoder* cd = nullptr;
+                     if (sample > 0) cd = &_class_decoder;
 							if (sample > 0)
-								lm.decrement(focus, context, eng);
-							lm.increment(focus, context, eng);
+								lm.decrement(focus, context, eng, cd);
+							lm.increment(focus, context, eng, &_class_decoder);
 						}
+                  else {
+                    std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;
+                  }
 		//						}
 					}
 				}
