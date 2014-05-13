@@ -42,10 +42,11 @@ template<unsigned N> struct PYPLM {
 	void increment(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder) {
 		const double bo = backoff.prob(w, context);
 
-		Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
-		pattern = pattern.reverse();
+		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
+		//pattern = pattern.reverse();
 
-
+                Pattern pattern = Pattern(context.reverse(), 0, N-1);
+                //Pattern pattern = context.reverse();
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
@@ -53,19 +54,22 @@ template<unsigned N> struct PYPLM {
 			tr.insert(&it->second); // add to resampler
 		}
 
-
-
 		if (it->second.increment(w, bo, eng, false/*cs == "o.a. uit" && fs == ":"*/)) {
 			backoff.increment(w, context, eng, decoder);
 		}
-
-
 	}
 
 	template<typename Engine>
 	void decrement(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder) {
-		Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
-		pattern = pattern.reverse();
+		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
+		//pattern = pattern.reverse();
+
+                Pattern pattern = Pattern(context.reverse(), 0, N-1);
+
+
+                std::cout << "\t\tD(" << N << ")[" << context.size() << "] ";
+                std::cout << pattern.tostring(*decoder);
+                std::cout << std::endl;
 
 		auto it = p.find(pattern);
 		assert(it != p.end());
@@ -78,8 +82,12 @@ template<unsigned N> struct PYPLM {
 	double prob(const Pattern& w, const Pattern& context) const {
 		const double bo = backoff.prob(w, context);
 
-		Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), context.size() - 1);
-		pattern.reverse();
+		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
+		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), context.size() - 1);
+		//pattern = pattern.reverse();
+
+                Pattern pattern = Pattern(context.reverse(), 0, N-1);
+                //Pattern pattern = context.reverse();
 
 		auto it = p.find(pattern);
 		if (it == p.end())

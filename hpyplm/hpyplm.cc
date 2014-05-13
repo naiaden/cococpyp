@@ -82,19 +82,19 @@ int main(int argc, char** argv) {
 			<< " patterns types and " << _pattern_model.tokens() << " word tokens)\n";
 
 
-    int decrements = 0;
+    int increments = 0;
 
 	PYPLM<kORDER> lm(/*_pattern_model.size()*/200, 1, 1, 1, 1);
 	for (int sample = 0; sample < samples; ++sample) {
+                int decrements = 0;
 		for (IndexPattern it : _indexed_corpus) {
-			for(Pattern q : _pattern_model.getreverseindex(it.ref)) {
+                        for(Pattern q : _pattern_model.getreverseindex(it.ref)) {
 				size_t p_size = q.size();
 
 				Pattern context = Pattern();
 				Pattern focus = Pattern();
-				//if (p_size > 0) {
-				if (p_size == kORDER) {
-                    //std::cout << "> " << q.tostring(_class_decoder) << std::endl;
+				
+                                if (p_size == kORDER) {
 					if (p_size == 1) {
 						focus = q[0];
 					} else {
@@ -102,20 +102,26 @@ int main(int argc, char** argv) {
 						focus = q[p_size - 1];
 					}
 
+
 					ClassDecoder* cd = nullptr;
 
 					if (sample > 0)
                                         {
+  					        std::cout << focus.tostring(_class_decoder) << " -- " << context.tostring(_class_decoder) << std::endl;
 						cd = &_class_decoder;
 						lm.decrement(focus, context, eng, cd);
-                        ++decrements;
+                                                ++decrements;
+                                                std::cout << "\tDecrementing: " << decrements << std::endl;
                                         }
 					lm.increment(focus, context, eng, &_class_decoder);
+                                                if (decrements > 342) goto onlyonce;
 				} else {
 					//std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;
 				}
 			}
 		}
+
+                onlyonce:
 
 		if (sample % 10 == 9) {
 			cerr << " [LLH=" << lm.log_likelihood() << "]" << endl;
