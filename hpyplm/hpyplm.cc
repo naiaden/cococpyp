@@ -48,11 +48,11 @@ int main(int argc, char** argv) {
 
 	std::vector<std::string> train_input_files;
 	BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(bit, beod)){
-            if(is_regular_file(p) && p.extension() == ".txt")
-            {
-                    train_input_files.push_back(p.string());
-            }
-        }
+	if(is_regular_file(p) && p.extension() == ".txt")
+	{
+		train_input_files.push_back(p.string());
+	}
+}
 
 	std::cout << "Found " << train_input_files.size() << " files" << std::endl;
 
@@ -72,29 +72,28 @@ int main(int argc, char** argv) {
 	PatternModel<uint32_t> _pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
 	_pattern_model.train(dat_output_file, _pattern_model_options, nullptr);
 
-    _pattern_model.computestats();
-    _pattern_model.computecoveragestats();
+	_pattern_model.computestats();
+	_pattern_model.computecoveragestats();
 
 	std::cout << ">> maxn:" << _pattern_model.maxlength() << std::endl;
 
 	cerr << "Reading corpus...\n";
-	cerr << "E-corpus size: " << _indexed_corpus.sentences() << " sentences\t (" << _pattern_model.types() << " word types, " << _pattern_model.size()
-			<< " patterns types and " << _pattern_model.tokens() << " word tokens)\n";
+	cerr << "E-corpus size: " << _indexed_corpus.sentences() << " sentences\t (" << _pattern_model.types() << " word types, " << _pattern_model.size() << " patterns types and "
+			<< _pattern_model.tokens() << " word tokens)\n";
 
-
-    int increments = 0;
+	int increments = 0;
 
 	PYPLM<kORDER> lm(/*_pattern_model.size()*/200, 1, 1, 1, 1);
 	for (int sample = 0; sample < samples; ++sample) {
-                int decrements = 0;
+		int decrements = 0;
 		for (IndexPattern it : _indexed_corpus) {
-                        for(Pattern q : _pattern_model.getreverseindex(it.ref)) {
+			for (Pattern q : _pattern_model.getreverseindex(it.ref)) {
 				size_t p_size = q.size();
 
 				Pattern context = Pattern();
 				Pattern focus = Pattern();
-				
-                                if (p_size == kORDER) {
+
+				if (p_size == kORDER) {
 					if (p_size == 1) {
 						focus = q[0];
 					} else {
@@ -102,33 +101,28 @@ int main(int argc, char** argv) {
 						focus = q[p_size - 1];
 					}
 
-
 					ClassDecoder* cd = nullptr;
 
-					if (sample > 0)
-                                        {
-  					        std::cout << focus.tostring(_class_decoder) << " -- " << context.tostring(_class_decoder) << std::endl;
+					if (sample > 0) {
+						std::cout << focus.tostring(_class_decoder) << " -- " << context.tostring(_class_decoder) << std::endl;
 						cd = &_class_decoder;
 						lm.decrement(focus, context, eng, cd);
-                                                ++decrements;
-                                                std::cout << "\tDecrementing: " << decrements << std::endl;
-                                        }
+						++decrements;
+						std::cout << "\tDecrementing: " << decrements << std::endl;
+					}
 					lm.increment(focus, context, eng, &_class_decoder);
-                                                if (decrements > 342) goto onlyonce;
 				} else {
 					//std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;
 				}
 			}
 		}
 
-                onlyonce:
-
 		if (sample % 10 == 9) {
 			cerr << " [LLH=" << lm.log_likelihood() << "]" << endl;
 			if (sample % 30u == 29)
 				lm.resample_hyperparameters(eng);
 		} else {
-            std::cerr << "(" << decrements << ")" << flush;
+			std::cerr << "(" << decrements << ")" << flush;
 			//cerr << '.' << flush;
 		}
 	}
@@ -136,22 +130,21 @@ int main(int argc, char** argv) {
 	std::cout << "Done for now" << std::endl;
 	exit(4);
 
-
-        // TESTING
+	// TESTING
 
 	boost::filesystem::path test_dir(test_input_directory);
 	boost::filesystem::directory_iterator test_bit(test_dir), test_beod;
 
 	std::vector<std::string> test_input_files;
 	BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(test_bit, test_beod)){
-            if(is_regular_file(p) && p.extension() == ".txt")
-            {
-                    test_input_files.push_back(p.string());
-            }
-        }
+	if(is_regular_file(p) && p.extension() == ".txt")
+	{
+		test_input_files.push_back(p.string());
+	}
+}
 
 	std::cout << "Found " << test_input_files.size() << " files" << std::endl;
-	
+
 //	_class_encoder.build(train_input_files, true);
 //	_class_encoder.save("/tmp/tmpout/cpyp.colibri.cls");
 
@@ -173,18 +166,8 @@ int main(int argc, char** argv) {
 	cerr << "Reading corpus...\n";
 	cerr << "E-corpus size: " << _test_indexed_corpus.sentences() << " sentences\t (" << _test_pattern_model.types() << " word types (bugged), " << _test_pattern_model.size()
 			<< " patterns types and " << _test_pattern_model.tokens() << " word tokens)\n";
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        /*
+
+	/*
 
 	 vector<vector<unsigned> > test;
 	 ReadFromFile(test_file, &dict, &test, &tv);
