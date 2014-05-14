@@ -82,10 +82,10 @@ int main(int argc, char** argv) {
 			<< _pattern_model.tokens() << " word tokens)\n";
 
 	int increments = 0;
+		int decrements = 0;
 
 	PYPLM<kORDER> lm(_pattern_model.types(), 1, 1, 1, 1);
 	for (int sample = 0; sample < samples; ++sample) {
-		int decrements = 0;
 		for (IndexPattern it : _indexed_corpus) {
 			for (Pattern q : _pattern_model.getreverseindex(it.ref)) {
 				size_t p_size = q.size();
@@ -104,13 +104,13 @@ int main(int argc, char** argv) {
 					ClassDecoder* cd = nullptr;
 
 					if (sample > 0) {
-						std::cout << focus.tostring(_class_decoder) << " -- " << context.tostring(_class_decoder) << std::endl;
+						//std::cout << focus.tostring(_class_decoder) << " -- " << context.tostring(_class_decoder) << std::endl;
 						cd = &_class_decoder;
-						std::cout << "\tDecrementing: " << decrements << std::endl;
+						//std::cout << "\tDecrementing: " << decrements << std::endl;
 						lm.decrement(focus, context, eng, cd);
 						++decrements;
 					}
-                                        std::cout << "\tIncrementing" << std::endl;
+                                        //std::cout << "\tIncrementing" << std::endl;
 					lm.increment(focus, context, eng, &_class_decoder);
 				} else {
 					//std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;
@@ -123,13 +123,10 @@ int main(int argc, char** argv) {
 			if (sample % 30u == 29)
 				lm.resample_hyperparameters(eng);
 		} else {
-			std::cerr << "(" << decrements << ")" << flush;
-			//cerr << '.' << flush;
+			//std::cerr << "(" << decrements << ")" << flush;
+			cerr << '.' << flush;
 		}
 	}
-
-	std::cout << "Done for now" << std::endl;
-	exit(4);
 
 	// TESTING
 
@@ -145,6 +142,9 @@ int main(int argc, char** argv) {
 }
 
 	std::cout << "Found " << test_input_files.size() << " files" << std::endl;
+
+	std::cout << "Done for now" << std::endl;
+	exit(4);
 
 //	_class_encoder.build(train_input_files, true);
 //	_class_encoder.save("/tmp/tmpout/cpyp.colibri.cls");

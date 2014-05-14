@@ -16,7 +16,7 @@ struct UniformVocabulary {
   void increment(Pattern, Pattern, Engine&, const ClassDecoder *const) { ++draws; }
   template<typename Engine>
   void decrement(Pattern, Pattern, Engine&, const ClassDecoder *const) { --draws; assert(draws >= 0); }
-  double prob(Pattern, Pattern) const { std::cout << "\t\t\tp(0) " << p0 << std::endl; return p0; }
+  double prob(Pattern, Pattern, const ClassDecoder *const) const { /*std::cout << "\t\t\tp(0) " << p0 << std::endl; */return p0; }
   template<typename Engine>
   void resample_hyperparameters(Engine&) {}
   double log_likelihood() const { return draws * log(p0); }
