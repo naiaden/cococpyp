@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
 
 	int increments = 0;
 
-	PYPLM<kORDER> lm(/*_pattern_model.size()*/200, 1, 1, 1, 1);
+	PYPLM<kORDER> lm(_pattern_model.types(), 1, 1, 1, 1);
 	for (int sample = 0; sample < samples; ++sample) {
 		int decrements = 0;
 		for (IndexPattern it : _indexed_corpus) {
@@ -106,10 +106,11 @@ int main(int argc, char** argv) {
 					if (sample > 0) {
 						std::cout << focus.tostring(_class_decoder) << " -- " << context.tostring(_class_decoder) << std::endl;
 						cd = &_class_decoder;
+						std::cout << "\tDecrementing: " << decrements << std::endl;
 						lm.decrement(focus, context, eng, cd);
 						++decrements;
-						std::cout << "\tDecrementing: " << decrements << std::endl;
 					}
+                                        std::cout << "\tIncrementing" << std::endl;
 					lm.increment(focus, context, eng, &_class_decoder);
 				} else {
 					//std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;

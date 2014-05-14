@@ -48,6 +48,11 @@ template<unsigned N> struct PYPLM {
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
                 //Pattern pattern = context.reverse();
 
+                std::cout << "\t\tI(" << N << ")[" << context.size() << "] ";
+                std::cout << pattern.tostring(*decoder) << " ";
+                std::cout << "backoff[" << bo << "]";
+                std::cout << std::endl;
+
 		auto it = p.find(pattern);
 		if (it == p.end()) {
 			it = p.insert(make_pair(pattern, crp<Pattern>(0.8, 0))).first;
@@ -85,6 +90,8 @@ template<unsigned N> struct PYPLM {
 		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
 		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), context.size() - 1);
 		//pattern = pattern.reverse();
+
+                std::cout << "\t\t\tp(" << N << ") " << bo << std::endl;
 
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
                 //Pattern pattern = context.reverse();
