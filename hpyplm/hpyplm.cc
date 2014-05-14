@@ -149,9 +149,9 @@ int main(int argc, char** argv) {
 	for (auto i : test_input_files) {
 		_class_encoder.encodefile(i, test_dat_output_file, true, true, false, true);
 	}
-	_class_encoder.save("/tmp/tmpout/cpyp.colibri.cls");
+	_class_encoder.save("/tmp/tmpout/cpyp.test.colibri.cls");
 
-	_class_decoder.load("/tmp/tmpout/cpyp.colibri.cls");
+	ClassDecoder _test_class_decoder("/tmp/tmpout/cpyp.test.colibri.cls");
 
 	IndexedCorpus _test_indexed_corpus = IndexedCorpus(test_dat_output_file);
 
@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
         unsigned cnt = 0;
         unsigned oovs = 0;
 
-        for (IndexPattern it : _indexed_corpus) {
+        for (IndexPattern it : _test_indexed_corpus) {
                 for (Pattern q : _test_pattern_model.getreverseindex(it.ref)) {
                         size_t p_size = q.size();
 
@@ -183,14 +183,15 @@ int main(int argc, char** argv) {
                                         focus = q[p_size - 1];
                                 }
 
-                                double lp = log(lm.prob(focus, context, &_class_decoder)) / log(2);
-                                if(!_pattern_model.has(focus)) // OOV if not in the train model
+                                double lp = log(lm.prob(focus, context, &_test_class_decoder)) / log(2);
+                                //if(!_pattern_model.has(focus)) // OOV if not in the train model
+                                if(!_pattern_model.occurrencecount(focus)) // but both do not work
                                 {
                                         ++oovs;
                                         lp = 0;
                                 }
-                                std::cerr << "p(" << focus.tostring(_class_decoder) << " |";
-                                std::cerr << context.tostring(_class_decoder) << ") = " << lp << std::endl;
+                                std::cerr << "p[" << _pattern_model.occurrencecount(focus) << "](" << focus.tostring(_class_decoder) << " |";
+                                std::cerr << context.tostring(_test_class_decoder) << ") = " << lp << std::endl;
                                 llh -= lp;
                                 ++cnt;
 
