@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 		cerr << argv[0] << " <training_dir> <test_dir> <nsamples>\n\nEstimate a " << kORDER << "-gram HPYP LM and report perplexity\n100 is usually sufficient for <nsamples>\n";
 		return 1;
 	}
-	MT19937 eng(123456);
+	MT19937 eng;
 	string train_input_directory = argv[1];
 	string test_input_directory = argv[2];
 	int samples = atoi(argv[3]);
@@ -134,26 +134,22 @@ int main(int argc, char** argv) {
 	boost::filesystem::directory_iterator test_bit(test_dir), test_beod;
 
 	std::vector<std::string> test_input_files;
-	BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(test_bit, test_beod)){
-	if(is_regular_file(p) && p.extension() == ".txt")
-	{
-		test_input_files.push_back(p.string());
-	}
-}
+	BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(test_bit, test_beod))
+        {
+                if(is_regular_file(p) && p.extension() == ".txt")
+                {
+                        test_input_files.push_back(p.string());
+                }
+        }
 
 	std::cout << "Found " << test_input_files.size() << " files" << std::endl;
 
-	std::cout << "Done for now" << std::endl;
-	exit(4);
-
-//	_class_encoder.build(train_input_files, true);
-//	_class_encoder.save("/tmp/tmpout/cpyp.colibri.cls");
-
 	std::string test_dat_output_file = "/tmp/tmpout/cpyp.test.colibri.dat";
 
-	for (auto i : train_input_files) {
-		_class_encoder.encodefile(i, test_dat_output_file, false, false, true, true);
+	for (auto i : test_input_files) {
+		_class_encoder.encodefile(i, test_dat_output_file, true, true, false, true);
 	}
+	_class_encoder.save("/tmp/tmpout/cpyp.colibri.cls");
 
 	_class_decoder.load("/tmp/tmpout/cpyp.colibri.cls");
 
@@ -165,47 +161,54 @@ int main(int argc, char** argv) {
 	std::cout << ">> maxn:" << _test_pattern_model.maxlength() << std::endl;
 
 	cerr << "Reading corpus...\n";
-	cerr << "E-corpus size: " << _test_indexed_corpus.sentences() << " sentences\t (" << _test_pattern_model.types() << " word types (bugged), " << _test_pattern_model.size()
+	cerr << "E-corpus size: " << _test_indexed_corpus.sentences() << " sentences\t (" << _test_pattern_model.types() << " word types, " << _test_pattern_model.size()
 			<< " patterns types and " << _test_pattern_model.tokens() << " word tokens)\n";
 
-	/*
+        double llh = 0;
+        unsigned cnt = 0;
+        unsigned oovs = 0;
 
-	 vector<vector<unsigned> > test;
-	 ReadFromFile(test_file, &dict, &test, &tv);
+        for (IndexPattern it : _indexed_corpus) {
+                for (Pattern q : _test_pattern_model.getreverseindex(it.ref)) {
+                        size_t p_size = q.size();
 
+                        Pattern context = Pattern();
+                        Pattern focus = Pattern();
 
-	 double llh = 0;
-	 unsigned cnt = 0;
-	 unsigned oovs = 0;
-	 for (auto& s : test)
-	 {
-	 //                ctx.resize(kORDER - 1);
-	 //                for (unsigned i = 0; i <= s.size(); ++i)
-	 //                {
-	 //                        unsigned w = (i < s.size() ? s[i] : kEOS);
-	 //                        double lp = log(lm.prob(w, ctx)) / log(2);
-	 //                        if (i < s.size() && vocabe.count(w) == 0)
-	 //                        {
-	 //                                cerr << "**OOV ";
-	 //                                ++oovs;
-	 //                                lp = 0;
-	 //                        }
-	 //                        cerr << "p(" << dict.Convert(w) << " |";
-	 //                        for (unsigned j = ctx.size() + 1 - kORDER; j < ctx.size(); ++j)
-	 //                                cerr << ' ' << dict.Convert(ctx[j]);
-	 //                        cerr << ") = " << lp << endl;
-	 //                        ctx.push_back(w);
-	 //                        llh -= lp;
-	 //                        cnt++;
-	 //                }
-	 }
-	 cnt -= oovs;
-	 cerr << "  Log_10 prob: " << (-llh * log(2) / log(10)) << endl;
-	 cerr << "        Count: " << cnt << endl;
-	 cerr << "         OOVs: " << oovs << endl;
-	 cerr << "Cross-entropy: " << (llh / cnt) << endl;
-	 cerr << "   Perplexity: " << pow(2, llh / cnt) << endl;
-	 return 0;
-	 */
+                        if (p_size == kORDER) {
+                                if (p_size == 1) {
+                                        focus = q[0];
+                                } else {
+                                        context = Pattern(q, 0, p_size - 1);
+                                        focus = q[p_size - 1];
+                                }
+
+                                double lp = log(lm.prob(focus, context, &_class_decoder)) / log(2);
+                                if(!_pattern_model.has(focus)) // OOV if not in the train model
+                                {
+                                        ++oovs;
+                                        lp = 0;
+                                }
+                                std::cerr << "p(" << focus.tostring(_class_decoder) << " |";
+                                std::cerr << context.tostring(_class_decoder) << ") = " << lp << std::endl;
+                                llh -= lp;
+                                ++cnt;
+
+                        } else {
+                                //std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;
+                        }
+                }
+        }
+
+        cnt -= oovs;
+        std::cerr << "  Log_10 prob: " << (-llh * log(2) / log(10)) << std::endl;
+        std::cerr << "        Count: " << cnt << std::endl;
+        std::cerr << "         OOVs: " << oovs << std::endl;
+        std::cerr << "Cross-Entropy: " << (llh / cnt) << std::endl;
+        std::cerr << "   Perplexity: " << pow(2, llh / cnt) << std::endl;
+
+	std::cout << "Done for now" << std::endl;
+	exit(4);
+
 }
 
