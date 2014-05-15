@@ -3,8 +3,6 @@
 #include <cstdlib>
 
 #include <vector>
-#include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 
 #include <classencoder.h>
 #include <classdecoder.h>
@@ -15,13 +13,9 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-	if (argc != 4) {
-		cerr << argv[0] << " <training_dir> <test_dir> <nsamples>\n\nEstimate a " << kORDER << "-gram HPYP LM and report perplexity\n100 is usually sufficient for <nsamples>\n";
-		return 1;
-	}
 	string train_input_file = argv[1];
 	string test_input_file = argv[2];
-	int samples = atoi(argv[3]);
+	int samples = 2;
 
 	ClassEncoder _class_encoder = ClassEncoder();
 	ClassDecoder _class_decoder = ClassDecoder();
@@ -32,7 +26,7 @@ int main(int argc, char** argv) {
 	_pattern_model_options.DOSKIPGRAMS = false;
 	_pattern_model_options.DOREVERSEINDEX = true;
 	_pattern_model_options.QUIET = true;
-	_pattern_model_options.MINTOKENS = 0;
+	_pattern_model_options.MINTOKENS = 1;
 
 	_class_encoder.build(train_input_file);
 	_class_encoder.save("/tmp/tmpout/cpyp.colibri.cls");
@@ -97,7 +91,7 @@ int main(int argc, char** argv) {
                         Pattern focus = Pattern();
 
                         if (p_size == kORDER) {
-                                std::cout << q.tostring(_test_class_decoder) << std::endl;
+                                std::cout << q.tostring(_class_decoder) << std::endl;
                                 //        context = Pattern(q, 0, p_size - 1);
                                 //        focus = q[p_size - 1];
 
