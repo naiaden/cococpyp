@@ -37,11 +37,11 @@ int main(int argc, char** argv) {
 
 	PatternModelOptions _pattern_model_options = PatternModelOptions();
 	_pattern_model_options.MAXLENGTH = 3; //kORDER;
-	_pattern_model_options.MINLENGTH = kORDER;
+	_pattern_model_options.MINLENGTH = 1;
 	_pattern_model_options.DOSKIPGRAMS = false;
 	_pattern_model_options.DOREVERSEINDEX = true;
 	_pattern_model_options.QUIET = true;
-	_pattern_model_options.MINTOKENS = 1;
+	_pattern_model_options.MINTOKENS = 0;
 
 	boost::filesystem::path background_dir(train_input_directory);
 	boost::filesystem::directory_iterator bit(background_dir), beod;
@@ -176,7 +176,12 @@ int main(int argc, char** argv) {
                         Pattern focus = Pattern();
 
                         if (p_size == kORDER) {
-                                if (p_size == 1) {
+                        std::cout << q.tostring(_class_decoder) << std::endl;
+                        context = Pattern(q, 0, p_size - 1);
+                        focus = q[p_size - 1];
+
+                        std::cout << "\t" << context.tostring(_class_decoder) << " " << focus.tostring(_class_decoder) << std::endl;
+                        /*        if (p_size == 1) {
                                         focus = q[0];
                                 } else {
                                         context = Pattern(q, 0, p_size - 1);
@@ -194,7 +199,7 @@ int main(int argc, char** argv) {
                                 std::cerr << context.tostring(_test_class_decoder) << ") = " << lp << std::endl;
                                 llh -= lp;
                                 ++cnt;
-
+                        */
                         } else {
                                 //std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;
                         }
