@@ -176,12 +176,10 @@ int main(int argc, char** argv) {
                         Pattern focus = Pattern();
 
                         if (p_size == kORDER) {
-                        std::cout << q.tostring(_class_decoder) << std::endl;
                         context = Pattern(q, 0, p_size - 1);
                         focus = q[p_size - 1];
 
-                        std::cout << "\t" << context.tostring(_class_decoder) << " " << focus.tostring(_class_decoder) << std::endl;
-                        /*        if (p_size == 1) {
+                                if (p_size == 1) {
                                         focus = q[0];
                                 } else {
                                         context = Pattern(q, 0, p_size - 1);
@@ -199,7 +197,7 @@ int main(int argc, char** argv) {
                                 std::cerr << context.tostring(_test_class_decoder) << ") = " << lp << std::endl;
                                 llh -= lp;
                                 ++cnt;
-                        */
+                        
                         } else {
                                 //std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;
                         }

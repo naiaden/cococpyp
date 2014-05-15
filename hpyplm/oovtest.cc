@@ -91,15 +91,15 @@ int main(int argc, char** argv) {
                         Pattern focus = Pattern();
 
                         if (p_size == kORDER) {
-                                std::cout << q.tostring(_class_decoder) << std::endl;
-                                //        context = Pattern(q, 0, p_size - 1);
-                                //        focus = q[p_size - 1];
+                                //std::cout << q.tostring(_test_class_decoder) << std::endl;
+                                        context = Pattern(q, 0, p_size - 1);
+                                        focus = q[p_size - 1];
 
-                                ////if(!_pattern_model.has(focus)) // OOV if not in the train model
+                                if(!_pattern_model.has(focus)) // OOV if not in the train model
                                 //if(!_pattern_model.occurrencecount(focus)) // but both do not work
-                                //{
-                                //        ++oovs;
-                                //}
+                                {
+                                        ++oovs;
+                                }
                         }
                 }
         }
