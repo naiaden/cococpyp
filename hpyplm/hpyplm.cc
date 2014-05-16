@@ -24,13 +24,14 @@ using namespace cpyp;
 
 int main(int argc, char** argv) {
 	if (argc != 4) {
-		cerr << argv[0] << " <training_dir> <test_dir> <nsamples>\n\nEstimate a " << kORDER << "-gram HPYP LM and report perplexity\n100 is usually sufficient for <nsamples>\n";
+		cerr << argv[0] << " <training_dir> <test_dir> <output_dir> <nsamples>\n\nEstimate a " << kORDER << "-gram HPYP LM and report perplexity\n100 is usually sufficient for <nsamples>\n";
 		return 1;
 	}
 	MT19937 eng;
 	string train_input_directory = argv[1];
 	string test_input_directory = argv[2];
-	int samples = atoi(argv[3]);
+        string output_directory = argv[3];
+	int samples = atoi(argv[4]);
 
 	ClassEncoder _class_encoder = ClassEncoder();
 	ClassDecoder _class_decoder = ClassDecoder();
@@ -57,15 +58,15 @@ int main(int argc, char** argv) {
 	std::cout << "Found " << train_input_files.size() << " files" << std::endl;
 
 	_class_encoder.build(train_input_files, true);
-	_class_encoder.save("/tmp/tmpout/cpyp.colibri.cls");
+	_class_encoder.save(output_directory + "/cpyp.colibri.cls");
 
-	std::string dat_output_file = "/tmp/tmpout/cpyp.colibri.dat";
+	std::string dat_output_file = output_directory + "/cpyp.colibri.dat";
 
 	for (auto i : train_input_files) {
 		_class_encoder.encodefile(i, dat_output_file, false, false, true, true);
 	}
 
-	_class_decoder.load("/tmp/tmpout/cpyp.colibri.cls");
+	_class_decoder.load(output_directory + "/cpyp.colibri.cls");
 
 	IndexedCorpus _indexed_corpus = IndexedCorpus(dat_output_file);
 
@@ -144,14 +145,14 @@ int main(int argc, char** argv) {
 
 	std::cout << "Found " << test_input_files.size() << " files" << std::endl;
 
-	std::string test_dat_output_file = "/tmp/tmpout/cpyp.test.colibri.dat";
+	std::string test_dat_output_file = output_directory + "/cpyp.test.colibri.dat";
 
 	for (auto i : test_input_files) {
 		_class_encoder.encodefile(i, test_dat_output_file, true, true, false, true);
 	}
-	_class_encoder.save("/tmp/tmpout/cpyp.test.colibri.cls");
+	_class_encoder.save(output_directory + "/cpyp.test.colibri.cls");
 
-	ClassDecoder _test_class_decoder("/tmp/tmpout/cpyp.test.colibri.cls");
+	ClassDecoder _test_class_decoder(output_directory + "/cpyp.test.colibri.cls");
 
 	IndexedCorpus _test_indexed_corpus = IndexedCorpus(test_dat_output_file);
 
