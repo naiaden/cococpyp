@@ -17,13 +17,11 @@
 #include <classdecoder.h>
 #include <patternmodel.h>
 
-#define kORDER 3
-
 using namespace std;
 using namespace cpyp;
 
 int main(int argc, char** argv) {
-	if (argc != 4) {
+	if (argc != 7) {
 		cerr << argv[0] << " <training_dir> <test_dir> <output_dir> <nsamples>\n\nEstimate a " << kORDER << "-gram HPYP LM and report perplexity\n100 is usually sufficient for <nsamples>\n";
 		return 1;
 	}
@@ -32,24 +30,25 @@ int main(int argc, char** argv) {
 	string test_input_directory = argv[2];
         string output_directory = argv[3];
 	int samples = atoi(argv[4]);
+        int mintokens = atoi(argv[5]);
 
 	ClassEncoder _class_encoder = ClassEncoder();
 	ClassDecoder _class_decoder = ClassDecoder();
 
 	PatternModelOptions _pattern_model_options = PatternModelOptions();
-	_pattern_model_options.MAXLENGTH = 3; //kORDER;
+	_pattern_model_options.MAXLENGTH = kORDER;
 	_pattern_model_options.MINLENGTH = 1;
 	_pattern_model_options.DOSKIPGRAMS = false;
 	_pattern_model_options.DOREVERSEINDEX = true;
 	_pattern_model_options.QUIET = true;
-	_pattern_model_options.MINTOKENS = 0;
+	_pattern_model_options.MINTOKENS = mintokens;
 
 	boost::filesystem::path background_dir(train_input_directory);
 	boost::filesystem::directory_iterator bit(background_dir), beod;
 
 	std::vector<std::string> train_input_files;
 	BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(bit, beod)){
-	if(is_regular_file(p) && p.extension() == ".txt")
+	if(is_regular_file(p)/* && p.extension() == ".txt"*/)
 	{
 		train_input_files.push_back(p.string());
 	}
@@ -137,7 +136,7 @@ int main(int argc, char** argv) {
 	std::vector<std::string> test_input_files;
 	BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(test_bit, test_beod))
         {
-                if(is_regular_file(p) && p.extension() == ".txt")
+                if(is_regular_file(p)/* && p.extension() == ".txt"*/)
                 {
                         test_input_files.push_back(p.string());
                 }
