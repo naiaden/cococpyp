@@ -21,7 +21,7 @@ using namespace std;
 using namespace cpyp;
 
 int main(int argc, char** argv) {
-	if (argc != 6) {
+	if (argc != 7) {
 		cerr << argv[0] << " <training_dir> <test_dir> <output_dir> <nsamples>\n\nEstimate a " << kORDER
 				<< "-gram HPYP LM and report perplexity\n100 is usually sufficient for <nsamples>\n";
 		return 1;
