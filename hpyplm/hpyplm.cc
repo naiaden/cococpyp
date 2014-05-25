@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 	PatternModelOptions _pattern_model_options = PatternModelOptions();
 	_pattern_model_options.MAXLENGTH = kORDER;
 	_pattern_model_options.MINLENGTH = 1;
-	_pattern_model_options.DOSKIPGRAMS = do_skipgrams;
+	_pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = do_skipgrams;
 	_pattern_model_options.DOREVERSEINDEX = true;
 	_pattern_model_options.QUIET = false;
 	_pattern_model_options.MINTOKENS = mintokens;
