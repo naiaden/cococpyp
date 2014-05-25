@@ -32,6 +32,9 @@ int main(int argc, char** argv) {
 	string output_directory = argv[3];
 	int samples = atoi(argv[4]);
 	int mintokens = atoi(argv[5]);
+	bool do_skipgrams = (atoi(argv[6]) != 0);
+
+	if(do_skipgrams) { std::cerr << "THIS IS THE SKIPGRAM VERSION"; }
 
 	ClassEncoder _class_encoder = ClassEncoder();
 	ClassDecoder _class_decoder = ClassDecoder();
@@ -39,10 +42,18 @@ int main(int argc, char** argv) {
 	PatternModelOptions _pattern_model_options = PatternModelOptions();
 	_pattern_model_options.MAXLENGTH = kORDER;
 	_pattern_model_options.MINLENGTH = 1;
-	_pattern_model_options.DOSKIPGRAMS = false;
+	_pattern_model_options.DOSKIPGRAMS = do_skipgrams;
 	_pattern_model_options.DOREVERSEINDEX = true;
 	_pattern_model_options.QUIET = false;
 	_pattern_model_options.MINTOKENS = mintokens;
+
+	PatternModelOptions _test_pattern_model_options = PatternModelOptions();
+	_test_pattern_model_options.MAXLENGTH = kORDER;
+	_test_pattern_model_options.MINLENGTH = 1;
+	_test_pattern_model_options.DOSKIPGRAMS = do_skipgrams;
+	_test_pattern_model_options.DOREVERSEINDEX = true;
+	_test_pattern_model_options.QUIET = false;
+	_test_pattern_model_options.MINTOKENS = 1;
 
 	boost::filesystem::path background_dir(train_input_directory);
 	boost::filesystem::directory_iterator bit(background_dir), beod;
@@ -57,7 +68,8 @@ int main(int argc, char** argv) {
 
 	std::cout << "Found " << train_input_files.size() << " files" << std::endl;
 
-	std::string basename = std::string("cpyp-n") + std::to_string(_pattern_model_options.MAXLENGTH) + "-mint" + std::to_string(mintokens) + ".colibri";;
+	std::string basename = std::string("cpyp-n") + std::to_string(_pattern_model_options.MAXLENGTH) + "-mint" + std::to_string(mintokens) + ".colibri";
+	;
 //			basename += std::string(_pattern_model_options.MAXLENGTH) + "-mint" + std::string(mintokens) + ".colibri";
 
 	_class_encoder.build(train_input_files, true);
@@ -163,7 +175,7 @@ int main(int argc, char** argv) {
 	IndexedCorpus _test_indexed_corpus = IndexedCorpus(test_dat_output_file);
 
 	PatternModel<uint32_t> _test_pattern_model = PatternModel<uint32_t>(&_test_indexed_corpus);
-	_test_pattern_model.train(test_dat_output_file, _pattern_model_options, nullptr);
+	_test_pattern_model.train(test_dat_output_file, _test_pattern_model_options, nullptr);
 
 	std::cout << ">> maxn:" << _test_pattern_model.maxlength() << std::endl;
 
