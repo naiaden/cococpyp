@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 	PatternModelOptions _test_pattern_model_options = PatternModelOptions();
 	_test_pattern_model_options.MAXLENGTH = kORDER;
 	_test_pattern_model_options.MINLENGTH = 1;
-	_test_pattern_model_options.DOSKIPGRAMS = do_skipgrams;
+	_test_pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = do_skipgrams;
 	_test_pattern_model_options.DOREVERSEINDEX = true;
 	_test_pattern_model_options.QUIET = false;
 	_test_pattern_model_options.MINTOKENS = 1;
@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
 	}
 }
 
-	std::cout << "Found " << train_input_files.size() << " files" << std::endl;
+	std::cerr << "Found " << train_input_files.size() << " files" << std::endl;
 
 	std::string basename = std::string("cpyp-n") + std::to_string(_pattern_model_options.MAXLENGTH) + "-mint" + std::to_string(mintokens) + ".colibri";
 	;
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
 	_pattern_model.computestats();
 	_pattern_model.computecoveragestats();
 
-	std::cout << ">> maxn:" << _pattern_model.maxlength() << std::endl;
+	std::cerr << ">> maxn:" << _pattern_model.maxlength() << std::endl;
 
 	cerr << "Reading corpus...\n";
 	cerr << "E-corpus size: " << _indexed_corpus.sentences() << " sentences\t (" << _pattern_model.types() << " word types, " << _pattern_model.size() << " patterns types and "
@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
 	}
 }
 
-	std::cout << "Found " << test_input_files.size() << " files" << std::endl;
+	std::cerr << "Found " << test_input_files.size() << " files" << std::endl;
 
 	std::string test_basename = "cpyp-n" + std::to_string(_pattern_model_options.MAXLENGTH) + "-mint" + std::to_string(mintokens) + ".test.colibri";
 
@@ -177,7 +177,7 @@ int main(int argc, char** argv) {
 	PatternModel<uint32_t> _test_pattern_model = PatternModel<uint32_t>(&_test_indexed_corpus);
 	_test_pattern_model.train(test_dat_output_file, _test_pattern_model_options, nullptr);
 
-	std::cout << ">> maxn:" << _test_pattern_model.maxlength() << std::endl;
+	std::cerr << ">> maxn:" << _test_pattern_model.maxlength() << std::endl;
 
 	cerr << "Reading corpus...\n";
 	cerr << "E-corpus size: " << _test_indexed_corpus.sentences() << " sentences\t (" << _test_pattern_model.types() << " word types, " << _test_pattern_model.size()
@@ -212,8 +212,8 @@ int main(int argc, char** argv) {
 					++oovs;
 					lp = 0;
 				}
-				std::cerr << "p[" << _pattern_model.occurrencecount(focus) << "](" << focus.tostring(_class_decoder) << " |";
-				std::cerr << context.tostring(_test_class_decoder) << ") = " << lp << std::endl;
+				std::cout << "p[" << _pattern_model.occurrencecount(focus) << "](" << focus.tostring(_class_decoder) << " |";
+				std::cout << context.tostring(_test_class_decoder) << ") = " << lp << std::endl;
 				llh -= lp;
 				++cnt;
 
