@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 	int mintokens = atoi(argv[5]);
 	bool do_skipgrams = (atoi(argv[6]) != 0);
 
-	if(do_skipgrams) { std::cerr << "THIS IS THE SKIPGRAM VERSION"; }
+	if(do_skipgrams) { std::cerr << "THIS IS THE SKIPGRAM VERSION" << std::endl; }
 
 	ClassEncoder _class_encoder = ClassEncoder();
 	ClassDecoder _class_decoder = ClassDecoder();
@@ -69,8 +69,6 @@ int main(int argc, char** argv) {
 	std::cerr << "Found " << train_input_files.size() << " files" << std::endl;
 
 	std::string basename = std::string("cpyp-n") + std::to_string(_pattern_model_options.MAXLENGTH) + "-mint" + std::to_string(mintokens) + ".colibri";
-	;
-//			basename += std::string(_pattern_model_options.MAXLENGTH) + "-mint" + std::string(mintokens) + ".colibri";
 
 	_class_encoder.build(train_input_files, true);
 	_class_encoder.save(output_directory + "/" + basename + ".cls");
@@ -89,6 +87,9 @@ int main(int argc, char** argv) {
 
 	PatternModel<uint32_t> _pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
 	_pattern_model.train(dat_output_file, _pattern_model_options, nullptr);
+
+        _pattern_model.write(output_directory + "/" + basename + ".patternmodel");
+        std::cerr << "saved pattern model file to: " + output_directory + "/" + basename + ".patternmodel" << std::endl;
 
 	_pattern_model.computestats();
 	_pattern_model.computecoveragestats();
@@ -122,7 +123,7 @@ int main(int argc, char** argv) {
 					ClassDecoder* cd = nullptr;
 
 					if (sample > 0) {
-						//std::cout << focus.tostring(_class_decoder) << " -- " << context.tostring(_class_decoder) << std::endl;
+//						std::cout << focus.tostring(_class_decoder) << " -- " << context.tostring(_class_decoder) << std::endl;
 						cd = &_class_decoder;
 						//std::cout << "\tDecrementing: " << decrements << std::endl;
 						lm.decrement(focus, context, eng, cd);
@@ -230,7 +231,7 @@ int main(int argc, char** argv) {
 	std::cerr << "Cross-Entropy: " << (llh / cnt) << std::endl;
 	std::cerr << "   Perplexity: " << pow(2, llh / cnt) << std::endl;
 
-	std::cout << "Done for now" << std::endl;
+	std::cerr << "Done for now" << std::endl;
 	exit(4);
 
 }
