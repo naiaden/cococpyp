@@ -88,6 +88,7 @@ int main(int argc, char** argv) {
 	} else
 	{
 		_class_encoder.load(loaded_classfile);
+		std::cerr << "Loaded class file" << std::endl;
 	}
 
 	std::string dat_output_file = loaded_datfile;
@@ -99,6 +100,10 @@ int main(int argc, char** argv) {
 			_class_encoder.encodefile(i, dat_output_file, false, false, true, false);
 		}
 		_class_decoder.load(output_directory + "/" + basename + ".cls");
+
+	} else {
+		_class_decoder.load(loaded_datfile);
+				std::cerr << "Loaded class decoder" << std::endl;
 	}
 
 
