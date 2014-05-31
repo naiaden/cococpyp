@@ -21,11 +21,13 @@ using namespace std;
 using namespace cpyp;
 
 int main(int argc, char** argv) {
-	if (argc != 7) {
-		cerr << argv[0] << " <training_dir> <test_dir> <output_dir> <nsamples>\n\nEstimate a " << kORDER
-				<< "-gram HPYP LM and report perplexity\n100 is usually sufficient for <nsamples>\n";
-		return 1;
-	}
+//	if (argc != 7) {
+//		cerr << argv[0] << " <training_dir> <test_dir> <output_dir> <nsamples>\n\nEstimate a " << kORDER
+//				<< "-gram HPYP LM and report perplexity\n100 is usually sufficient for <nsamples>\n";
+//		return 1;
+//	}
+	std::cerr << "argc: " << argc << std::endl;
+
 	MT19937 eng;
 	string train_input_directory = argv[1];
 	string test_input_directory = argv[2];
@@ -33,8 +35,25 @@ int main(int argc, char** argv) {
 	int samples = atoi(argv[4]);
 	int mintokens = atoi(argv[5]);
 	bool do_skipgrams = (atoi(argv[6]) != 0);
+	string loaded_classfile = "";
+	if (argc > 7) {
+		loaded_classfile = argv[7];
+		std::cerr << "Going to load class file: " << loaded_classfile << std::endl;
+	}
+	string loaded_datfile = "";
+	if (argc > 8) {
+		loaded_datfile = argv[8];
+		std::cerr << "Going to load dat file: " << loaded_datfile << std::endl;
+	}
+	string loaded_patternmodel = "";
+	if (argc > 9) {
+		loaded_patternmodel = argv[9];
+		std::cerr << "Going to load pattern model: " << loaded_patternmodel << std::endl;
+	}
 
-	if(do_skipgrams) { std::cerr << "THIS IS THE SKIPGRAM VERSION" << std::endl; }
+	if (do_skipgrams) {
+		std::cerr << "THIS IS THE SKIPGRAM VERSION" << std::endl;
+	}
 
 	ClassEncoder _class_encoder = ClassEncoder();
 	ClassDecoder _class_decoder = ClassDecoder();
@@ -68,31 +87,55 @@ int main(int argc, char** argv) {
 	}
 }
 
-	std::cerr << "Found " << train_input_files.size() << " files" << std::endl;
-
 	std::string basename = std::string("cpyp-n") + std::to_string(_pattern_model_options.MAXLENGTH) + "-mint" + std::to_string(mintokens) + ".colibri";
 
-	_class_encoder.build(train_input_files, true);
-	_class_encoder.save(output_directory + "/" + basename + ".cls");
+	if (loaded_classfile.empty()) {
 
-	std::cerr << "saved class file to: " + output_directory + "/" + basename + ".cls";
+		std::cerr << "Found " << train_input_files.size() << " files" << std::endl;
 
-	std::string dat_output_file = output_directory + "/" + basename + ".dat";
+		_class_encoder.build(train_input_files, true);
+		_class_encoder.save(output_directory + "/" + basename + ".cls");
 
-	for (auto i : train_input_files) {
-		_class_encoder.encodefile(i, dat_output_file, false, false, true, false);
+		std::cerr << "saved class file to: " + output_directory + "/" + basename + ".cls";
+	} else {
+		_class_encoder.load(loaded_classfile);
+		std::cerr << "Loaded class file" << std::endl;
 	}
 
-	_class_decoder.load(output_directory + "/" + basename + ".cls");
+	std::string dat_output_file = loaded_datfile;
+	if (loaded_datfile.empty()) {
+		dat_output_file = output_directory + "/" + basename + ".dat";
 
+		for (auto i : train_input_files) {
+			_class_encoder.encodefile(i, dat_output_file, false, false, true, false);
+		}
+		_class_decoder.load(output_directory + "/" + basename + ".cls");
+		std::cerr << "Created class decoder" << std::endl;
+
+	} else {
+		_class_decoder.load(loaded_datfile);
+		std::cerr << "Loaded class decoder" << std::endl;
+	}
+
+	std::cerr << "dat output file: " << dat_output_file << std::endl;
+	std::cerr << "Creating indexed corpus" << std::endl;
 	IndexedCorpus _indexed_corpus = IndexedCorpus(dat_output_file);
+	std::cerr << "Created indexed corpus" << std::endl;
 
-	PatternModel<uint32_t> _pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
-	_pattern_model.train(dat_output_file, _pattern_model_options, nullptr);
+	PatternModel<uint32_t> _pattern_model;
+	if (loaded_patternmodel.empty()) {
+		std::cerr << "Going to learn pattern model" << std::endl;
+		_pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
+		_pattern_model.train(dat_output_file, _pattern_model_options, nullptr);
 
-        _pattern_model.write(output_directory + "/" + basename + ".patternmodel");
-        std::cerr << "saved pattern model file to: " + output_directory + "/" + basename + ".patternmodel" << std::endl;
-
+		_pattern_model.write(output_directory + "/" + basename + ".patternmodel");
+		std::cerr << "saved pattern model file to: " + output_directory + "/" + basename + ".patternmodel" << std::endl;
+	} else {
+		//_pattern_model.load(loaded_patternmodel, _pattern_model_options, nullptr);
+		std::cerr << "Going to train pattern model from dat file" << std::endl;
+		_pattern_model.train(loaded_datfile, _pattern_model_options, nullptr);
+		std::cerr << "Trained pattern model from dat file" << std::endl;
+	}
 	_pattern_model.computestats();
 	_pattern_model.computecoveragestats();
 
@@ -237,4 +280,3 @@ int main(int argc, char** argv) {
 	exit(4);
 
 }
-
