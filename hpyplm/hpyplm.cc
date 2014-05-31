@@ -36,17 +36,17 @@ int main(int argc, char** argv) {
 	int mintokens = atoi(argv[5]);
 	bool do_skipgrams = (atoi(argv[6]) != 0);
 	string loaded_classfile = "";
-	if (argc >= 7) {
+	if (argc > 7) {
 		loaded_classfile = argv[7];
 		std::cerr << "Going to load class file: " << loaded_classfile << std::endl;
 	}
 	string loaded_datfile = "";
-	if (argc >= 8) {
+	if (argc > 8) {
 		loaded_datfile = argv[8];
 		std::cerr << "Going to load dat file: " << loaded_datfile << std::endl;
 	}
 	string loaded_patternmodel = "";
-	if (argc >= 9) {
+	if (argc > 9) {
 		loaded_patternmodel = argv[9];
 		std::cerr << "Going to load pattern model: " << loaded_patternmodel << std::endl;
 	}
@@ -108,23 +108,31 @@ int main(int argc, char** argv) {
 			_class_encoder.encodefile(i, dat_output_file, false, false, true, false);
 		}
 		_class_decoder.load(output_directory + "/" + basename + ".cls");
+		std::cerr << "Created class decoder" << std::endl;
 
 	} else {
 		_class_decoder.load(loaded_datfile);
 		std::cerr << "Loaded class decoder" << std::endl;
 	}
 
+	std::cerr << "dat output file: " << dat_output_file << std::endl;
+	std::cerr << "Creating indexed corpus" << std::endl;
 	IndexedCorpus _indexed_corpus = IndexedCorpus(dat_output_file);
+	std::cerr << "Created indexed corpus" << std::endl;
 
 	PatternModel<uint32_t> _pattern_model;
 	if (loaded_patternmodel.empty()) {
+		std::cerr << "Going to learn pattern model" << std::endl;
 		_pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
 		_pattern_model.train(dat_output_file, _pattern_model_options, nullptr);
 
 		_pattern_model.write(output_directory + "/" + basename + ".patternmodel");
 		std::cerr << "saved pattern model file to: " + output_directory + "/" + basename + ".patternmodel" << std::endl;
 	} else {
-		_pattern_model.load(loaded_patternmodel, _pattern_model_options, nullptr);
+		//_pattern_model.load(loaded_patternmodel, _pattern_model_options, nullptr);
+		std::cerr << "Going to train pattern model from dat file" << std::endl;
+		_pattern_model.train(loaded_datfile, _pattern_model_options, nullptr);
+		std::cerr << "Trained pattern model from dat file" << std::endl;
 	}
 	_pattern_model.computestats();
 	_pattern_model.computecoveragestats();
@@ -270,4 +278,3 @@ int main(int argc, char** argv) {
 	exit(4);
 
 }
-
