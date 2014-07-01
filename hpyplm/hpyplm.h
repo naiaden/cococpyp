@@ -39,7 +39,7 @@ template<unsigned N> struct PYPLM {
 			backoff(vs, da, db, ss, sr), tr(da, db, ss, sr, 0.8, 0.0) {
 	}
 	template<typename Engine>
-	void increment(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder) {
+	void increment(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
 		const double bo = backoff.prob(w, context, decoder);
 
 		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
@@ -65,7 +65,7 @@ template<unsigned N> struct PYPLM {
 	}
 
 	template<typename Engine>
-	void decrement(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder) {
+	void decrement(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
 		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
 		//pattern = pattern.reverse();
 
@@ -84,7 +84,7 @@ template<unsigned N> struct PYPLM {
 		}
 	}
 
-	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder) const {
+	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const {
 		const double bo = backoff.prob(w, context, decoder);
 
 		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
@@ -107,6 +107,7 @@ template<unsigned N> struct PYPLM {
 	}
 
 	double log_likelihood() const {
+                //std::cerr << "[" << N << "] BO: " << backoff.log_likelihood() << " TR: " << tr.log_likelihood() << std::endl;
 		return backoff.log_likelihood() + tr.log_likelihood();
 	}
 
