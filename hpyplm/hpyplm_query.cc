@@ -104,10 +104,7 @@ int main(int argc, char** argv) {
     }
 
 
-
-
   PYPLM<kORDER> lm;
-  //vector<unsigned> ctx(kORDER - 1, kSOS);
 
   cerr << "Reading LM from " << lm_file << " ...\n";
   ifstream ifile(lm_file.c_str(), ios::in | ios::binary);
@@ -125,29 +122,8 @@ int main(int argc, char** argv) {
   set<unsigned> tv;
   vector<vector<unsigned> > test;
   ReadFromFile(test_file, &dict, &test, &tv);
-  double llh = 0;
-  unsigned cnt = 0;
-  unsigned oovs = 0;
-  vector<unsigned> ctx(kORDER - 1, kSOS);
-  for (auto& s : test) {
-    ctx.resize(kORDER - 1);
-    for (unsigned i = 0; i <= s.size(); ++i) {
-      unsigned w = (i < s.size() ? s[i] : kEOS);
-      double lp = log(lm.prob(w, ctx)) / log(2);
-      if (w >= max_iv) {
-        cerr << "**OOV ";
-        ++oovs;
-        lp = 0;
-      }
-      cerr << "p(" << dict.Convert(w) << " |";
-      for (unsigned j = ctx.size() + 1 - kORDER; j < ctx.size(); ++j)
-        cerr << ' ' << dict.Convert(ctx[j]);
-      cerr << ") = " << lp << endl;
-      ctx.push_back(w);
-      llh -= lp;
-      cnt++;
-    }
-  }
+  
+  
   cnt -= oovs;
   cerr << "  Log_10 prob: " << (-llh * log(2) / log(10)) << endl;
   cerr << "        Count: " << cnt << endl;

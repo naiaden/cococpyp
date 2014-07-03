@@ -10,18 +10,22 @@
 #include <boost/config.hpp>
 
 #include <new>
+#include <memory>
 
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/collections_save_imp.hpp>
 #include <boost/serialization/collections_load_imp.hpp>
 #include <boost/serialization/split_free.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/serialization/assume_abstract.hpp>
 
 #include <patternmodel.h>
 
 namespace boost { 
 namespace serialization {
 
-
+/*
 
 template<class Archive>
 inline void serialize(
@@ -35,8 +39,10 @@ inline void serialize(
 template<class Archive>
 inline void save(Archive & ar, const Pattern & p, const unsigned int file_version)
 {
-    ar << p.size();
-    ar << &p.data;
+    //ar << p.size();
+    //ar << &(p.data);
+    ar & p.toByteString();
+    std::cerr << "<~ " << p.toByteString().size() << std::endl;
 }
 
 //template<class Archive>
@@ -65,23 +71,30 @@ inline void serialize(
 template<class Archive>
 inline void save(Archive & ar, Pattern & p, const unsigned int file_version)
 {
-    ar << p.size();
-    ar << &p.data;
+    //ar << p.size();
+    //ar << p.data;
+    ar << p.toByteString();
+    std::cerr << "<~ " << p.toByteString().size() << std::endl;
 }
 
 template<class Archive>
 inline void load(Archive & ar, Pattern & p, const unsigned int file_version)
 {
-    int size;
-    ar >> size;
-    
-    unsigned char* dataptr;
-    ar >> dataptr;
+//    int size;
+//    ar >> size;
+//    
+//    unsigned char dataptr;
+//    ar >> dataptr;
 
-    p.set(dataptr, size);
-
+//    p.set(&dataptr, size);
+//
     //::new(p)Pattern(dataptr, size);
+    std::string byteString;
+
+//    ar >> byteString;
+//   p.set(byteString);
 }
+*/
 
 template<class Archive, class Type, class Key, class Compare, class Allocator >
 inline void save(

@@ -124,7 +124,7 @@ template<unsigned N> struct PYPLM {
 
 	PYPLM<N - 1> backoff;
 	tied_parameter_resampler<crp<Pattern>> tr;
-	std::unordered_map<const Pattern, crp<Pattern>> p;  // .first = context .second = CRP
+	std::unordered_map<Pattern, crp<Pattern>> p;  // .first = context .second = CRP
 };
 
 }

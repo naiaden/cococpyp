@@ -11,7 +11,8 @@
 
 #include "cpyp/boost_serializers.h"
 #include <boost/serialization/vector.hpp>
-#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
@@ -20,6 +21,8 @@
 #include <classencoder.h>
 #include <classdecoder.h>
 #include <patternmodel.h>
+
+#include "hpyplm/uniform_vocab.h"
 
 /*
     1. Directory with training instances
@@ -150,8 +153,47 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    boost::archive::binary_oarchive oa(ofile);
-    //oa & lm;
+{
+    boost::archive::text_oarchive oa(ofile);
+    std::string someString = "hoi";
+    cpyp::UniformVocabulary uv(100,1,1,1,1);
+    cpyp::PYPLM<0> nlm(200,1,1,1,1);
+    cpyp::PYPLM<1> olm(400,1,1,1,1);
+
+    std::cerr << ">   " << nlm.log_likelihood() << std::endl;
+    std::cerr << ">>  " << olm.log_likelihood() << std::endl;
+    std::cerr << ">>> " << lm.log_likelihood() << std::endl;
+    std::cerr << ">>> " << lm.log_likelihood() << std::endl;
+
+    oa << someString;
+    oa << uv;
+    oa << nlm;
+    oa << olm;
+    oa << lm;
+}
+    std::string anotherString;
+    cpyp::UniformVocabulary uv1(425,1,1,1,1);
+    cpyp::PYPLM<0> nlm1(11,1,1,1,1);
+    cpyp::PYPLM<1> olm1;
+    cpyp::PYPLM<kORDER> lm1;
+
+    std::cerr << "-   " << nlm1.log_likelihood() << std::endl;
+    std::cerr << "--  " << olm1.log_likelihood() << std::endl;
+    std::cerr << "--- " << lm1.log_likelihood() << std::endl;
+
+    std::cerr << "Reading from " << _output_file << std::endl;
+    std::ifstream ifs(_output_file);
+    boost::archive::text_iarchive ia(ifs);
+
+    ia >> anotherString;
+    ia >> uv1;
+    ia >> nlm1;
+    ia >> olm1;
+    ia >> lm1;
+
+    std::cerr << "+   " << nlm1.log_likelihood() << std::endl;
+    std::cerr << "++  " << olm1.log_likelihood() << std::endl;
+    std::cerr << "+++ " << lm1.log_likelihood() << std::endl;
 
     return 0;
 }
