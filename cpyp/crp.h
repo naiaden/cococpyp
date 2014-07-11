@@ -121,7 +121,7 @@ public:
 
 	// returns +1 or 0 indicating whether a new table was opened
 	template<typename F, typename Engine>
-	int increment(const Dish& dish, const F& p0, Engine& eng, bool show = false) {
+	int increment(Dish& dish, const F& p0, Engine& eng, bool show = false) {
 		crp_table_manager<1>& loc = dish_locs_[dish];
 		bool share_table = false;
 		if (loc.num_customers()) {
@@ -153,7 +153,7 @@ public:
 	// logq = probability with which the particular table was selected
 	// use this to implement Metropolis-Hastings samplers
 	template<typename Engine>
-	int increment_no_base(const Dish& dish, Engine& eng, double* logq) {
+	int increment_no_base(Dish& dish, Engine& eng, double* logq) {
 		crp_table_manager<1>& loc = dish_locs_[dish];
 		bool share_table = false;
 		if (loc.num_customers()) {
@@ -183,7 +183,7 @@ public:
 	// logq = probability that the selected table will be reselected if
 	//     increment_no_base is called with dish [optional]
 	template<typename Engine>
-	int decrement(const Dish& dish, Engine& eng, double* logq = nullptr) {
+	int decrement(Dish& dish, Engine& eng, double* logq = nullptr) {
 		crp_table_manager<1>& loc = dish_locs_[dish];
 		assert(loc.num_customers());
 		if (loc.num_customers() == 1) {
@@ -217,7 +217,7 @@ public:
 	}
 
 	template<typename F>
-	F prob(const Dish& dish, const F& p0) const {
+	F prob(Dish& dish, const F& p0) const {
 		if (num_tables_ == 0)
 			return p0;
 		auto it = dish_locs_.find(dish);

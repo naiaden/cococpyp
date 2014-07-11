@@ -39,19 +39,10 @@ template<unsigned N> struct PYPLM {
 			backoff(vs, da, db, ss, sr), tr(da, db, ss, sr, 0.8, 0.0) {
 	}
 	template<typename Engine>
-	void increment(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
+	void increment(Pattern& w, Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
 		const double bo = backoff.prob(w, context, decoder);
 
-		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
-		//pattern = pattern.reverse();
-
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
-                //Pattern pattern = context.reverse();
-
-                //std::cout << "\t\tI(" << N << ")[" << context.size() << "] ";
-                //std::cout << pattern.tostring(*decoder) << " ";
-                //std::cout << "[" << bo << "]";
-                //std::cout << std::endl;
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
@@ -65,16 +56,8 @@ template<unsigned N> struct PYPLM {
 	}
 
 	template<typename Engine>
-	void decrement(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
-		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
-		//pattern = pattern.reverse();
-
+	void decrement(Pattern& w, Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
-
-
-                //std::cout << "\t\tD(" << N << ")[" << context.size() << "] ";
-                //std::cout << pattern.tostring(*decoder);
-                //std::cout << std::endl;
 
 		auto it = p.find(pattern);
 		assert(it != p.end());
@@ -84,30 +67,19 @@ template<unsigned N> struct PYPLM {
 		}
 	}
 
-	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const {
+	double prob(Pattern& w, Pattern& context, ClassDecoder * const decoder = nullptr) const {
 		const double bo = backoff.prob(w, context, decoder);
 
-		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
-		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), context.size() - 1);
-		//pattern = pattern.reverse();
-
-
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
-                //Pattern pattern = context.reverse();
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
-                        //std::cout << "\t\t\tp(" << N << ")" << pattern.tostring(*decoder) << " " << bo << std::endl;
 			return bo;
                         }
-                //double newbo = it->second.prob(w, bo);
-                //std::cout << "\t\t\tp(" << N << "] " << newbo << std::endl;
-                //return newbo;
 		return it->second.prob(w, bo);
 	}
 
 	double log_likelihood() const {
-                //std::cerr << "[" << N << "] BO: " << backoff.log_likelihood() << " TR: " << tr.log_likelihood() << std::endl;
 		return backoff.log_likelihood() + tr.log_likelihood();
 	}
 

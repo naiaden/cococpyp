@@ -14,7 +14,7 @@ struct uvector_hash {
 };
 
 struct pattern_hash {
-  size_t operator()(const Pattern& p) const {
+  size_t operator()(Pattern& p) const {
     return p.hash();
   }
 };

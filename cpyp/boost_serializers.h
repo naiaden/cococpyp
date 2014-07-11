@@ -21,44 +21,75 @@
 #include <boost/serialization/assume_abstract.hpp>
 
 #include <patternmodel.h>
+#include <pattern.h>
 
 namespace boost { 
 namespace serialization {
 
-/*
 
-template<class Archive>
-inline void serialize(
-    Archive & ar,
-    const Pattern & p,
-    const unsigned int file_version
-){
-    split_free(ar, p, file_version); 
-}
-
-template<class Archive>
-inline void save(Archive & ar, const Pattern & p, const unsigned int file_version)
-{
-    //ar << p.size();
-    //ar << &(p.data);
-    ar & p.toByteString();
-    std::cerr << "<~ " << p.toByteString().size() << std::endl;
-}
 
 //template<class Archive>
-//inline void load(Archive & ar, Pattern & p, const unsigned int file_version)
-//{
-//    int size;
-//    ar >> size;
-//    
-//    unsigned char* dataptr;
-//    ar >> dataptr;
+//inline void serialize(
+//    Archive & ar,
+//    const Pattern & p,
+//    const unsigned int file_version
+//){
+//    split_free(ar, p, file_version); 
+//}
 //
-//    //p.set(dataptr, size);
-//    ::new(p)Pattern(4);
-//    //::new(p)Pattern(dataptr, size);
+//template<class Archive>
+//inline void save(Archive & ar, const Pattern & p, const unsigned int file_version)
+//{
+//    //ar << p.size();
+//    //ar << &(p.data);
+//    std::string blabla = p.toByteString();
+//    ar & blabla; //p.toByteString();
+//
+//    std::cerr << "c~" << std::endl;
+//}
+//
+//template<class Archive>
+//inline void load(Archive & ar, const Pattern & p, const unsigned int file_version)
+//{
+//   // int size;
+//   // ar >> size;
+//   // 
+//   // unsigned char* dataptr;
+//   // ar >> dataptr;
+//
+//   // //p.set(dataptr, size);
+//   // ::new(p)Pattern(4);
+//   // //::new(p)Pattern(dataptr, size);
+//
+//    std::string byteString;
+//    ar >> byteString;
+//    p.set(byteString);
 //}
 
+/*
+template<class Archive>
+inline void save_construct_data(Archive & ar, const Pattern * p, const unsigned int file_version)
+{
+    std::cerr << "Saving the crap out of this pattern" << std::endl;
+    ar << p->toByteString();
+}
+
+template<class Archive>
+inline void load_construct_data(Archive & ar, Pattern * p, const unsigned int file_version)
+{
+    std::cerr << "Are getting here?" << std::endl;
+
+    std::string byteString;
+    ar >> byteString;
+
+    p->set(byteString);
+
+    //::new(p)Pattern(byteString);
+}
+*/
+
+
+/*
 template<class Archive>
 inline void serialize(
     Archive & ar,
@@ -73,10 +104,14 @@ inline void save(Archive & ar, Pattern & p, const unsigned int file_version)
 {
     //ar << p.size();
     //ar << p.data;
-    ar << p.toByteString();
-    std::cerr << "<~ " << p.toByteString().size() << std::endl;
-}
+    std::string blabla = p.toByteString();
+    ar << blabla;
 
+    std::cerr << " ~" << std::endl;
+}
+*/
+
+/*
 template<class Archive>
 inline void load(Archive & ar, Pattern & p, const unsigned int file_version)
 {
