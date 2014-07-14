@@ -7,6 +7,10 @@
 #include "slice_sampler.h"
 #include "m.h"
 
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/set.hpp>
+
 namespace cpyp {
 
 // tie together CRPs that are conditionally independent given their hyperparameters
@@ -69,6 +73,36 @@ struct tied_parameter_resampler {
     for (auto& crp : crps)
       crp->set_hyperparameters(discount, strength);
   }
+
+  template<class Archive>
+  void save(Archive & ar, const unsigned int version) {
+    //ar & crps;
+    ar & d_alpha;
+    ar & d_beta;
+    ar & s_shape;
+    ar & s_rate;
+
+    ar & discount;
+    ar & strength;
+  }
+
+  template<class Archive>
+  void load(Archive & ar, const unsigned int version) {
+    double _d_alpha, _d_beta, _s_shape, _s_rate;
+    double _discount, _strength;
+
+    ar & _d_alpha;
+    ar & _d_beta;
+    ar & _s_shape;
+    ar & _s_rate;
+
+    ar & _discount;
+    ar & _strength;
+
+    ::new(this)tied_parameter_resampler(_d_alpha, _d_beta, _s_shape, _s_rate, _discount, _strength);
+  }
+
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
  private:
   std::set<CRP*> crps;
   const double d_alpha, d_beta, s_shape, s_rate;

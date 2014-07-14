@@ -68,7 +68,16 @@ template<unsigned N> struct PYPLM {
 	}
 
 	double prob(Pattern& w, Pattern& context, ClassDecoder * const decoder = nullptr) const {
+                if(N == 3 && decoder != nullptr) {
+                    std::cerr << ">>\t[" << w.tostring(*decoder);
+                    std::cerr << ", " << context.tostring(*decoder);
+                    std::cerr << "]" << std::endl;
+                }
 		const double bo = backoff.prob(w, context, decoder);
+
+                if(/*N == 3 &&*/ decoder != nullptr) {
+                    std::cerr << "\t" << N << "\t" << bo << std::endl;
+                }
 
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
 
@@ -91,7 +100,8 @@ template<unsigned N> struct PYPLM {
 
 	template<class Archive> void serialize(Archive& ar, const unsigned int version) {
 		backoff.serialize(ar, version);
-		ar & p;
+		//ar & tr;
+                ar & p;
 	}
 
 	PYPLM<N - 1> backoff;
