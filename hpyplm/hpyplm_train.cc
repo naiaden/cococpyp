@@ -53,6 +53,8 @@ int main(int argc, char** argv) {
     ClassEncoder _class_encoder = ClassEncoder();
     ClassDecoder _class_decoder = ClassDecoder();
 
+    if(_do_skipgrams) { std::cerr << "Generating skipgrams, fwiw..." << std::endl; }
+
     PatternModelOptions _pattern_model_options = PatternModelOptions();
     _pattern_model_options.MAXLENGTH = kORDER;
     _pattern_model_options.MINLENGTH = 1; // kORDER - 1

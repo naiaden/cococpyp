@@ -43,6 +43,15 @@ hpyplm10: hpyplm.cc
 hpyplm_train: hpyplm_train.cc
 	$(CXX) -std=c++11 -DkORDER='3' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
 
+hpyplm_train3: hpyplm_train.cc
+	$(CXX) -std=c++11 -DkORDER='3' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
+
+hpyplm_train4: hpyplm_train.cc
+	$(CXX) -std=c++11 -DkORDER='4' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
+
+hpyplm_train5: hpyplm_train.cc
+	$(CXX) -std=c++11 -DkORDER='5' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
+
 hpyplm_query: hpyplm_query.cc
 	$(CXX) -std=c++11 -DkORDER='3' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
 #	//$(CXX) -std=c++11 -O3 -Wall -I$(BOOST_INCLUDE) -I.. $< -o $@ $(BOOST_SERIALIZATION)
