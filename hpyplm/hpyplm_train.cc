@@ -111,10 +111,12 @@ int main(int argc, char** argv) {
         << _pattern_model.types() << " word types\n" << _pattern_model.size() << " pattern types\n" 
         << _pattern_model.tokens() << " word tokens" << std::endl;
 
+    int cntr = 0;
 
     cpyp::PYPLM<kORDER> lm(_pattern_model.totalwordtypesingroup(0,1), 1, 1, 1, 1);
     //cpyp::PYPLM<kORDER> lm(_pattern_model.types(), 1, 1, 1, 1);
     for(int sample = 0; sample < _samples; ++sample) {
+        cntr = 0;
         for( IndexPattern indexPattern : _indexed_corpus) {
             for (Pattern pattern : _pattern_model.getreverseindex(indexPattern.ref)) {
                 size_t pattern_size = pattern.size();
@@ -130,7 +132,20 @@ int main(int argc, char** argv) {
                         focus = pattern[pattern_size - 1];
                     }
 
+                    //if(cntr++ < 5) {
+                    //    std::cerr << std::endl;
+                    //    std::cerr << "C: " << context.tostring(_class_decoder) << " -- " << context.hash() << std::endl;
+                    //    std::cerr << "F: " << focus.tostring(_class_decoder) << " -- " << focus.hash() << std::endl;
+                    //}
+
                     if(sample > 0) {
+                        //std::cerr << std::endl;
+                        //std::cerr << "c: " << context.tostring(_class_decoder) << " -- " << context.hash() << std::endl;
+                        //std::cerr << "f: " << focus.tostring(_class_decoder) << " -- " << focus.hash() << std::endl;
+
+                        //Pattern rev = context.reverse();
+                        //std::cerr << "De reverse: " << rev.tostring(_class_decoder) << std::endl;
+
                         lm.decrement(focus, context, _eng);
                     }
                     lm.increment(focus, context, _eng);

@@ -39,14 +39,18 @@ template<unsigned N> struct PYPLM {
 			backoff(vs, da, db, ss, sr), tr(da, db, ss, sr, 0.8, 0.0) {
 	}
 	template<typename Engine>
-	void increment(Pattern& w, Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
+	void increment(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
 		const double bo = backoff.prob(w, context, decoder);
 
-                Pattern pattern = Pattern(context.reverse(), 0, N-1);
+                Pattern rev = context.reverse();
+                Pattern pattern = Pattern(rev, 0, N-1);
+                //Pattern pattern = Pattern(context.reverse(), 0, N-1);
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
+                //        if(N==3 && p.size() < 5) std::cerr << "[" << p.size();
 			it = p.insert(make_pair(pattern, crp<Pattern>(0.8, 0))).first;
+                //        if(N==3 && p.size() < 6) std::cerr << " -> " << p.size() << "]: " << pattern.hash() << std::endl;
 			tr.insert(&it->second); // add to resampler
 		}
 
@@ -56,8 +60,14 @@ template<unsigned N> struct PYPLM {
 	}
 
 	template<typename Engine>
-	void decrement(Pattern& w, Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
-                Pattern pattern = Pattern(context.reverse(), 0, N-1);
+	void decrement(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
+                Pattern rev = context.reverse();
+                Pattern pattern = Pattern(rev, 0, N-1);
+                //Pattern pattern = Pattern(context.reverse(), 0, N-1);
+
+                //if(N==3) std::cerr << "c: " << context.hash() << "\nw: " << w.hash() << std::endl;
+                //if(N==3) std::cerr << "------ " << pattern.hash() << std::endl;
+
 
 		auto it = p.find(pattern);
 		assert(it != p.end());
@@ -67,17 +77,17 @@ template<unsigned N> struct PYPLM {
 		}
 	}
 
-	double prob(Pattern& w, Pattern& context, ClassDecoder * const decoder = nullptr) const {
-                if(N == 3 && decoder != nullptr) {
-                    std::cerr << ">>\t[" << w.tostring(*decoder);
-                    std::cerr << ", " << context.tostring(*decoder);
-                    std::cerr << "]" << std::endl;
-                }
+	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const {
+                //if(N == 3 && decoder != nullptr) {
+                //    std::cerr << ">>\t[" << w.tostring(*decoder);
+                //    std::cerr << ", " << context.tostring(*decoder);
+                //    std::cerr << "]" << std::endl;
+                //}
 		const double bo = backoff.prob(w, context, decoder);
 
-                if(/*N == 3 &&*/ decoder != nullptr) {
-                    std::cerr << "\t" << N << "\t" << bo << std::endl;
-                }
+                //if(/*N == 3 &&*/ decoder != nullptr) {
+                //    std::cerr << "\t" << N << "\t" << bo << std::endl;
+                //}
 
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
 
