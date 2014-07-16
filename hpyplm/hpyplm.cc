@@ -61,6 +61,7 @@ int main(int argc, char** argv) {
 	PatternModelOptions _pattern_model_options = PatternModelOptions();
 	_pattern_model_options.MAXLENGTH = kORDER;
 	_pattern_model_options.MINLENGTH = 1;
+        _pattern_model_options.DOSKIPGRAMS = do_skipgrams;
 	_pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = do_skipgrams;
 	_pattern_model_options.DOREVERSEINDEX = true;
 	_pattern_model_options.QUIET = false;
@@ -69,6 +70,7 @@ int main(int argc, char** argv) {
 	PatternModelOptions _test_pattern_model_options = PatternModelOptions();
 	_test_pattern_model_options.MAXLENGTH = kORDER;
 	_test_pattern_model_options.MINLENGTH = 1;
+        _test_pattern_model_options.DOSKIPGRAMS = do_skipgrams;
 	_test_pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = do_skipgrams;
 	_test_pattern_model_options.DOREVERSEINDEX = true;
 	_test_pattern_model_options.QUIET = false;
@@ -111,7 +113,7 @@ int main(int argc, char** argv) {
 		std::cerr << "Created class decoder" << std::endl;
 
 	} else {
-		_class_decoder.load(loaded_classfile);
+		_class_decoder.load(loaded_datfile);
 		std::cerr << "Loaded class decoder" << std::endl;
 	}
 

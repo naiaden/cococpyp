@@ -39,23 +39,18 @@ template<unsigned N> struct PYPLM {
 			backoff(vs, da, db, ss, sr), tr(da, db, ss, sr, 0.8, 0.0) {
 	}
 	template<typename Engine>
-	void increment(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder) {
+	void increment(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
 		const double bo = backoff.prob(w, context, decoder);
 
-		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
-		//pattern = pattern.reverse();
-
-                Pattern pattern = Pattern(context.reverse(), 0, N-1);
-                //Pattern pattern = context.reverse();
-
-                //std::cout << "\t\tI(" << N << ")[" << context.size() << "] ";
-                //std::cout << pattern.tostring(*decoder) << " ";
-                //std::cout << "[" << bo << "]";
-                //std::cout << std::endl;
+                Pattern rev = context.reverse();
+                Pattern pattern = Pattern(rev, 0, N-1);
+                //Pattern pattern = Pattern(context.reverse(), 0, N-1);
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
+                //        if(N==3 && p.size() < 5) std::cerr << "[" << p.size();
 			it = p.insert(make_pair(pattern, crp<Pattern>(0.8, 0))).first;
+                //        if(N==3 && p.size() < 6) std::cerr << " -> " << p.size() << "]: " << pattern.hash() << std::endl;
 			tr.insert(&it->second); // add to resampler
 		}
 
@@ -65,16 +60,14 @@ template<unsigned N> struct PYPLM {
 	}
 
 	template<typename Engine>
-	void decrement(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder) {
-		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
-		//pattern = pattern.reverse();
+	void decrement(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
+                Pattern rev = context.reverse();
+                Pattern pattern = Pattern(rev, 0, N-1);
+                //Pattern pattern = Pattern(context.reverse(), 0, N-1);
 
-                Pattern pattern = Pattern(context.reverse(), 0, N-1);
+                //if(N==3) std::cerr << "c: " << context.hash() << "\nw: " << w.hash() << std::endl;
+                //if(N==3) std::cerr << "------ " << pattern.hash() << std::endl;
 
-
-                //std::cout << "\t\tD(" << N << ")[" << context.size() << "] ";
-                //std::cout << pattern.tostring(*decoder);
-                //std::cout << std::endl;
 
 		auto it = p.find(pattern);
 		assert(it != p.end());
@@ -84,25 +77,24 @@ template<unsigned N> struct PYPLM {
 		}
 	}
 
-	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder) const {
+	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const {
+                //if(N == 3 && decoder != nullptr) {
+                //    std::cerr << ">>\t[" << w.tostring(*decoder);
+                //    std::cerr << ", " << context.tostring(*decoder);
+                //    std::cerr << "]" << std::endl;
+                //}
 		const double bo = backoff.prob(w, context, decoder);
 
-		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), N-1);
-		//Pattern pattern = Pattern(context, context.size() - 1 - (N - 1), context.size() - 1);
-		//pattern = pattern.reverse();
-
+                //if(/*N == 3 &&*/ decoder != nullptr) {
+                //    std::cerr << "\t" << N << "\t" << bo << std::endl;
+                //}
 
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
-                //Pattern pattern = context.reverse();
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
-                        //std::cout << "\t\t\tp(" << N << ")" << pattern.tostring(*decoder) << " " << bo << std::endl;
 			return bo;
                         }
-                //double newbo = it->second.prob(w, bo);
-                //std::cout << "\t\t\tp(" << N << "] " << newbo << std::endl;
-                //return newbo;
 		return it->second.prob(w, bo);
 	}
 
@@ -118,12 +110,13 @@ template<unsigned N> struct PYPLM {
 
 	template<class Archive> void serialize(Archive& ar, const unsigned int version) {
 		backoff.serialize(ar, version);
-		ar & p;
+		//ar & tr;
+                ar & p;
 	}
 
 	PYPLM<N - 1> backoff;
 	tied_parameter_resampler<crp<Pattern>> tr;
-	std::unordered_map<const Pattern, crp<Pattern>> p;  // .first = context .second = CRP
+	std::unordered_map<Pattern, crp<Pattern>> p;  // .first = context .second = CRP
 };
 
 }

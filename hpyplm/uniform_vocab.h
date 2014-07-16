@@ -11,15 +11,15 @@ namespace cpyp {
 
 // uniform distribution over a fixed vocabulary
 struct UniformVocabulary {
-  UniformVocabulary(unsigned vs, double, double, double, double) : p0(1.0 / vs), draws() {}
+  UniformVocabulary(unsigned vs, double, double, double, double) : p0(1.0 / vs), draws() {/*std::cerr << "[vs:" << vs << ",p0:" << p0 << "]";*/}
   template<typename Engine>
-  void increment(Pattern, Pattern, Engine&, const ClassDecoder *const) { ++draws; }
+  void increment(const Pattern&, const Pattern&, Engine&, const ClassDecoder *const) { ++draws; }
   template<typename Engine>
-  void decrement(Pattern, Pattern, Engine&, const ClassDecoder *const) { --draws; assert(draws >= 0); }
-  double prob(Pattern, Pattern, const ClassDecoder *const) const { /*std::cout << "\t\t\tp(0) " << p0 << std::endl; */return p0; }
+  void decrement(const Pattern&, const Pattern&, Engine&, const ClassDecoder *const) { --draws; assert(draws >= 0); }
+  double prob(const Pattern& , const Pattern&, const ClassDecoder *const) const { /*std::cout << "\t\t\tp(0) " << p0 << std::endl; */return p0; }
   template<typename Engine>
   void resample_hyperparameters(Engine&) {}
-  double log_likelihood() const { return draws * log(p0); }
+  double log_likelihood() const { /*std::cerr << "(draws:" << draws << ",log(p0):" << log(p0) << ")";*/ return draws * log(p0); }
   template<class Archive> void serialize(Archive& ar, const unsigned int) {
     ar & p0;
     ar & draws;
