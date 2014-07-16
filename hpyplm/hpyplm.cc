@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
 		std::cerr << "Created class decoder" << std::endl;
 
 	} else {
-		_class_decoder.load(loaded_datfile);
+		_class_decoder.load(loaded_classfile);
 		std::cerr << "Loaded class decoder" << std::endl;
 	}
 
