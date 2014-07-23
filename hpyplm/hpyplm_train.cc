@@ -30,12 +30,13 @@
     3. The number of samples
     4. The number of burnin samples (total samples = 4 + 5)
     5. Whether we perform skipgrams
-    6. The minimal number of tokens
+    6. The treshold for ngrams
     7. Name of the run
+    8. The treshold for skipgrams
     Optional:
-    8. Use this class file
-    9. Use this corpus file
-    10. Use this pattern model
+    9. Use this class file
+    10. Use this corpus file
+    11. Use this pattern model
 */
 
 int main(int argc, char** argv) {
@@ -49,6 +50,7 @@ int main(int argc, char** argv) {
     bool _do_skipgrams = (std::atoi(argv[5]) != 0);
     int _min_tokens = std::atoi(argv[6]);
     std::string _run_name = argv[7];
+    int _min_skip_tokens = std::atoi(argv[8]);
 
     ClassEncoder _class_encoder = ClassEncoder();
     ClassDecoder _class_decoder = ClassDecoder();
@@ -63,6 +65,10 @@ int main(int argc, char** argv) {
     _pattern_model_options.DOREVERSEINDEX = true;
     _pattern_model_options.QUIET = false;
     _pattern_model_options.MINTOKENS = _min_tokens;
+    _pattern_model_options.MINTOKENS_SKIPGRAMS = _min_skip_tokens;
+
+    std::cerr << "Min tokens: " << _pattern_model_options.MINTOKENS;
+    std::cerr << ", min skip tokens: " << _pattern_model_options.MINTOKENS_SKIPGRAMS << std::endl;
 
     boost::filesystem::path background_dir(_train_input_directory);
     //boost::filesystem::recursive_directory_iterator bit(background_dir), beod;

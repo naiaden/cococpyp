@@ -69,6 +69,7 @@ int main(int argc, char** argv) {
     std::string _output_corpus_file_name = _base_output_name + ".dat";
     std::string _output_patternmodel_file_name = _base_output_name + ".patternmodel";
     //std::string _output_serialised_file_name = _base_output_name + ".ser";
+    std::string _output_probabilities_file_name = _base_output_name + ".probs";
 
     _class_encoder.load(_input_class_file_name);
 
@@ -110,6 +111,9 @@ int main(int argc, char** argv) {
     cpyp::PYPLM<kORDER> lm;
     ia & lm;
 
+    std::ofstream _probs_file;
+    _probs_file.open(_output_probabilities_file_name);
+
     for(IndexPattern indexPattern : _test_indexed_corpus) {
         for(Pattern pattern : _test_pattern_model.getreverseindex(indexPattern.ref)) {
             size_t pattern_size = pattern.size();
@@ -140,34 +144,16 @@ int main(int argc, char** argv) {
                 }
                 //std::cerr << std::endl;
 
-                std::cout << "p[" << oc << "](" << focus.tostring(_class_decoder) << " |";
-                std::cout << context.tostring(_class_decoder) << ") = " << lp << std::endl;
+                _probs_file << "p[" << oc << "](" << focus.tostring(_class_decoder) << " |";
+                _probs_file << context.tostring(_class_decoder) << ") = " << lp << std::endl;
 
                 llh -= lp;
                 ++cnt;
             }
         }
     }
-/*
-    PYPLM<kORDER> lm;
-
-    cerr << "Reading LM from " << lm_file << " ...\n";
-    ifstream ifile(lm_file.c_str(), ios::in | ios::binary);
-    if (!ifile.good()) {
-    cerr << "Failed to open " << lm_file << " for reading\n";
-    return 1;
-    }
-    boost::archive::binary_iarchive ia(ifile);
-    Dict dict;
-    ia & dict;
-    ia & lm;
-    const unsigned max_iv = dict.max();
-    const unsigned kSOS = dict.Convert("<s>");
-    const unsigned kEOS = dict.Convert("</s>");
-    set<unsigned> tv;
-    vector<vector<unsigned> > test;
-    ReadFromFile(test_file, &dict, &test, &tv);
-*/
+    
+    _probs_file.close();
 
     cnt -= oovs;
     std::cerr << "  Log_10 prob: " << (-llh * log(2) / log(10)) << std::endl;
