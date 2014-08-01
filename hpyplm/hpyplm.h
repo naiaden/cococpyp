@@ -114,147 +114,233 @@ template<unsigned N> struct PYPLM {
         // |p| = 4
 
         // w5 | w1, w2, w3, w4
-        double j15(const Pattern& w, const Pattern& p, const Pattern& c) {
-            if(N > 4) return backoff.j15(w, p, c);
+        double j15(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 4) return backoff.j15(w, c, decoder);
 
-            double r7 = j7(w, Pattern(p, 1, 3), c);
-            double r11 = j11(w,p,c);
-            double r13 = j13(w,p,c);
-            double r14 = j14(w,p,c);
-            return prob(w, c) + 0.8*avg( {r7, r11, r13, r14} );
+            if(decoder != nullptr) { std::cerr << w.tostring(*decoder) << " | " << c.tostring(*decoder) << std::endl; }
+
+            double r7 = j7(w, c, decoder);
+            double r11 = j11(w,c, decoder);
+            double r13 = j13(w,c, decoder);
+            double r14 = j14(w,c, decoder);
+            return 0.8*prob(w, c) + 0.2*avg( {r7, r11, r13, r14} );
         }
         // w5 | w1, w2, w3, __
-        double j14(const Pattern& w, const Pattern& pp, const Pattern& c) {
-            if(N > 4) return backoff.j14(w, pp);
+        double j14(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 4) return backoff.j14(w, c, decoder);
 
-            Pattern p = pp.addskip(std::pair<int, int>(3,1));
-            double r6 = j6(w, Pattern(p, 1, 3), c);
-            double r10 = j10(w,p,c);
-            double r12 = j12(w,p,c);
-            return prob(w, c) + 0.8*avg( {r6, r10, r12} );
+            if(decoder != nullptr) { std::cerr << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = c.addskip(std::pair<int, int>(3,1));
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r6 = j6(w, c, decoder);
+            double r10 = j10(w,c,decoder);
+            double r12 = j12(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*avg( {r6, r10, r12} );
         }
         // w5 | w1, w2, __, w4
-        double j13(const Pattern& w, const Pattern& pp, const Pattern& c) {
-            if(N > 4) return backoff.j13(w, pp);
+        double j13(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 4) return backoff.j13(w, c, decoder);
 
-            Pattern p = pp.addskip(std::pair<int, int>(2,1));
-            double r5 = j5(w, Pattern(p, 1, 3), c);
-            double r9 = j9(w,p,c);
-            double r12 = j12(w,p,c);
-            return prob(w, c) + 0.8*avg( {r5, r9, r12} );
+            if(decoder != nullptr) { std::cerr << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = c.addskip(std::pair<int, int>(2,1));
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r5 = j5(w, c, decoder);
+            double r9 = j9(w,c,decoder);
+            double r12 = j12(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*avg( {r5, r9, r12} );
         }
         // w5 | w1, w2, __, __
-        double j12(const Pattern& w, const Pattern& pp, const Pattern& c) {
-            if(N > 4) return backoff.j12(w, pp);
+        double j12(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 4) return backoff.j12(w, c, decoder);
 
-            Pattern p = pp.addskip(std::pair<int, int>(3,2));
-            double r4 = j4(Pattern(p, 1, 3));
-            double r8 = j8(w,p,c);
-            return prob(w, c) + 0.8*avg( {r4, r8} );
+            if(decoder != nullptr) { std::cerr << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = c.addskip(std::pair<int, int>(3,2));
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r4 = j4(w,c,decoder);
+            double r8 = j8(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*avg( {r4, r8} );
         }
         // w5 | w1, __, w3, w4
-        double j11(const Pattern& w, const Pattern& pp, const Pattern& c) {
-            if(N > 4) return backoff.j11(w, pp);
+        double j11(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 4) return backoff.j11(w, c, decoder);
 
-            Pattern p = pp.addskip(std::pair<int, int>(1,1));
-            double r3 = j3(Pattern(p, 2, 2));
-            double r9 = j9(w,p,c);
-            double r10 = j10(w,p,c);
-            return prob(w, c) + 0.8*avg( {r3, r9, r10} );
+            if(decoder != nullptr) { std::cerr << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = c.addskip(std::pair<int, int>(1,1));
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r3 = j3(w,c,decoder);
+            double r9 = j9(w,c,decoder);
+            double r10 = j10(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*avg( {r3, r9, r10} );
         }
         // w5 | w1, __, w3, __
-        double j10(const Pattern& w, const Pattern& pp, const Pattern& c) {
-            if(N > 4) return backoff.j10(w, pp);
+        double j10(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 4) return backoff.j10(w, c, decoder);
+
+            if(decoder != nullptr) { std::cerr << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
 
             std::vector<std::pair<int, int> > skips;
             skips.push_back(std::pair<int, int>(1,1));
             skips.push_back(std::pair<int, int>(3,1));
-            Pattern p = pp.addskips(skips);
-            double r2 = j2(Pattern(p, 2, 2));
-            double r8 = j8(w,p,c);
-            return prob(w, c) + 0.8*avg( {r2, r8} );
+            Pattern p = c.addskips(skips);
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r2 = j2(w,c,decoder);
+            double r8 = j8(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*avg( {r2, r8} );
         }
         // w5 | w1, __, __, w4
-        double j9(const Pattern& w, const Pattern& pp, const Pattern& c) {
-            if(N > 4) return backoff.j9(w, pp);
+        double j9(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 4) return backoff.j9(w, c, decoder);
 
-            Pattern p = pp.addskip(std::pair<int, int>(1,2));
-            double r1 = j1(Pattern(p, 3, 1));
-            double r8 = j8(w,p,c);
-            return prob(w, c) + 0.8*avg( {r1, r8} );
+            if(decoder != nullptr) { std::cerr << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = c.addskip(std::pair<int, int>(1,2));
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r1 = j1(w,c,decoder);
+            double r8 = j8(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*avg( {r1, r8} );
         }
         // w5 | w1, __, __, __
-        double j8(const Pattern& w, const Pattern& pp, const Pattern& c) {
-            if(N > 4) return backoff.j8(w, pp);
+        double j8(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 4) return backoff.j8(w, c, decoder);
 
-            Pattern p = pp.addskip(std::pair<int, int>(1,3));
-            double r0 = j0(Pattern());
-            return prob(w, c) + 0.8*r0;
+            if(decoder != nullptr) { std::cerr << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = c.addskip(std::pair<int, int>(1,3));
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r0 = j0(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*r0;
         }
+
 
         // w5 |     w2, w3, w4
-        double j7(const Pattern& w, const Pattern& p, const Pattern& c) {
-            if(N > 3) return backoff.j7(w, p);
+        double j7(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 3) return backoff.j7(w, c, decoder);
 
-            double r3 = j3(Pattern(p, 1, 2));
-            double r5 = j5(w,p,c);
-            double r6 = j6(w,p,c);
-            return prob(w, c) + 0.8*avg( {r3, r5, r6} );
+            if(decoder != nullptr) { std::cerr << "[" << N << "]j7: " <<  w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = Pattern(c, kORDER-4,3);
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r3 = j3(w,c,decoder);
+            double r5 = j5(w,c,decoder);
+            double r6 = j6(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*avg( {r3, r5, r6} );
         }
         // w5 |     w2, w3, __
-        double j6(const Pattern& w, const Pattern& pp, const Pattern& c) {
-            if(N > 3) return backoff.j6(w, pp);
+        double j6(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 3) return backoff.j6(w, c, decoder);
 
-            Pattern p = pp.addskip(std::pair<int, int>(2,1));
-            double r2 = j2(Pattern(p, 1, 2));
-            double r4 = j4(w,p,c);
-            return prob(w, c) + 0.8*avg( {r2, r4} );
+            if(decoder != nullptr) { std::cerr << "[" << N << "]j6: " << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = Pattern(c, kORDER-4,3).addskip(std::pair<int, int>(2,1));
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r2 = j2(w,c,decoder);
+            double r4 = j4(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*avg( {r2, r4} );
         }
         // w5 |     w2, __, w4
-        double j5(const Pattern& w, const Pattern& pp, const Pattern& c) {
-            if(N > 3) return backoff.j5(w, pp);
+        double j5(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 3) return backoff.j5(w, c, decoder);
 
-            Pattern p = pp.addskip(std::pair<int, int>(1,1));
-            double r1 = j1(Pattern(p, 2, 1));
-            double r4 = j4(w,p,c);
-            return prob(w, c) + 0.8*avg( {r1, r4} );
+            if(decoder != nullptr) { std::cerr << "[" << N << "]j5: " << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = Pattern(c, kORDER-4, 3).addskip(std::pair<int, int>(1,1));
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r1 = j1(w,c,decoder);
+            double r4 = j4(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*avg( {r1, r4} );
         }
         // w5 |     w2, __, __
-        double j4(const Pattern& w, const Pattern& pp, const Pattern& c) {
-            if(N > 3) return backoff.j4(w, pp);
+        double j4(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 3) return backoff.j4(w, c, decoder);
 
-            Pattern p = pp.addskip(std::pair<int, int>(1,2));
-            double r0 = j0(Pattern());
-            return prob(w, c) + 0.8*r0;
+            if(decoder != nullptr) { std::cerr << "[" << N << "]j4: " << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = Pattern(c, kORDER-4, 3).addskip(std::pair<int, int>(1,2));
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r0 = j0(w,c,decoder);
+            return 0.8*prob(w, c) + 0.2*r0;
         }
+
 
         // w5 |         w3, w4
-        double j3(const Pattern& w, const Pattern& p, const Pattern& c) {
-            if(N > 2) return backoff.j3(w, p);
+        double j3(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 2) return backoff.j3(w, c, decoder);
 
-            double r1 = j1(Pattern(p, 1, 1));
-            double r2 = j2(w,p,c);
-            return prob(w, c) + 0.8*avg( {r1, r2} );
+            if(decoder != nullptr) { std::cerr << "[" << N << "]j3: " << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = Pattern(c, kORDER-4+1, 2);
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r1 = j1(w,c,decoder);
+            double r2 = j2(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*avg( {r1, r2} );
         }
         // w5 |         w3, __
-        double j2(const Pattern& w, const Pattern& pp, const Pattern& c) {
-            if(N > 2) return backoff.j2(w, pp);
+        double j2(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 2) return backoff.j2(w, c, decoder);
 
-            Pattern p = pp.addskip(std::pair<int, int>(1,1));
-            double r0 = j0(Pattern());
-            return prob(w, c) + 0.8*r0;
+            if(decoder != nullptr) { std::cerr << "[" << N << "]j2: " << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = Pattern(c, kORDER-4+1, 2).addskip(std::pair<int, int>(1,1));
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r0 = j0(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*r0;
         }
         // w5 |             w4
-        double j1(const Pattern& w, const Pattern& p, const Pattern& c) {
-            if(N > 2) return backoff.j1(w, p);
-            double r0 = j0(Pattern());
-            return prob(w, c) + 0.8*r0;
+        double j1(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 2) return backoff.j1(w, c, decoder);
+
+            if(decoder != nullptr) { std::cerr << "[" << N << "]j1: " << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = Pattern(c, kORDER-4+2, 1);
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            double r0 = j0(w,c,decoder);
+            return 0.8*prob(w, p) + 0.2*r0;
         }
 
+
         // w5 |
-        double j0(const Pattern& w, const Pattern& p, const Pattern& c) {
-            if(N > 1) return backoff.j0(w,p,c);
-            return backoff.prob(w, p);
+        double j0(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
+            if(N > 1) return backoff.j0(w,c,decoder);
+
+            if(decoder != nullptr) { std::cerr << "[" << N << "]j0: " << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
+
+            Pattern p = Pattern();
+
+            if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
+
+            return prob(w, p);
         }
 
         double glm_prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const {

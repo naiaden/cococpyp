@@ -134,9 +134,10 @@ int main(int argc, char** argv) {
 
                 unsigned oc = _test_pattern_model.occurrencecount(focus);
 
-                //double lp = log(lm.prob(focus, context, &_class_decoder)) / log(2);
+//                double lp = log(lm.prob(focus, context, &_class_decoder)) / log(2);
 //                double lp = log(lm.glm_prob(focus, context, &_class_decoder)) / log(2);
-                double lp = log(lm.j7(focus, context, context)) / log(2);
+//                double lp = log(lm.j7(focus, context, &_class_decoder)) / log(2);
+                double lp = log(lm.j7(focus, context)) / log(2);
                 //std::cerr << " --- " << lp;
                 if(!oc) {
                     ++oovs;

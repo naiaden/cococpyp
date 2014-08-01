@@ -27,6 +27,24 @@ struct UniformVocabulary {
   }
   double p0;
   int draws;
+
+
+  double j0(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j1(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j2(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j3(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j4(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j5(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j6(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j7(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j8(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j9(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j10(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j11(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j12(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j13(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j14(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j15(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
 };
 
 }
