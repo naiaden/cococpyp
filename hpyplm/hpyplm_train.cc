@@ -154,7 +154,8 @@ int main(int argc, char** argv) {
 
                         lm.decrement(focus, context, _eng);
                     }
-                    lm.increment(focus, context, _eng);
+                    lm.increment(focus, context, _eng, &_class_decoder);
+                    std::cout << "=========================" << std::endl;
                 }
            }
        }

@@ -30,6 +30,21 @@ template<> struct PYPLM<0> : public UniformVocabulary {
 	}
 };
 
+std::vector<Pattern> generateSkips(const Pattern& p) {
+    std::vector<Pattern> skip_patterns = std::vector<Pattern>();
+
+    if(p.size() >= 1) {
+        for(int i = 1; i < p.size(); ++i) {
+            Pattern q = p.addskip(std::pair<int, int>(i,1));
+            if(q!=p) {
+                skip_patterns.push_back(q);
+            }
+        }
+    }
+
+    return skip_patterns;
+}
+
 // represents an N-gram LM
 template<unsigned N> struct PYPLM {
 	PYPLM() :
@@ -40,34 +55,50 @@ template<unsigned N> struct PYPLM {
 	}
 	template<typename Engine>
 	void increment(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
-		const double bo = backoff.prob(w, context, decoder);
 
                 Pattern rev = context.reverse();
                 Pattern pattern = Pattern(rev, 0, N-1);
-                //Pattern pattern = Pattern(context.reverse(), 0, N-1);
+                Pattern shortened_context = pattern.reverse();
+
+                std::string indentation = std::string(kORDER-N, '\t');
+                if(decoder != nullptr) {
+                    std::cout << N << indentation << "I: " << w.tostring(*decoder) << " | " << shortened_context.tostring(*decoder) << std::endl;
+                }
+
+		const double bo = backoff.prob(w, context, decoder);
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
-                //        if(N==3 && p.size() < 5) std::cerr << "[" << p.size();
 			it = p.insert(make_pair(pattern, crp<Pattern>(0.8, 0))).first;
-                //        if(N==3 && p.size() < 6) std::cerr << " -> " << p.size() << "]: " << pattern.hash() << std::endl;
 			tr.insert(&it->second); // add to resampler
 		}
 
 		if (it->second.increment(w, bo, eng, false/*cs == "o.a. uit" && fs == ":"*/)) {
 			backoff.increment(w, context, eng, decoder);
 		}
+
+                
+                std::vector<Pattern> skipped_patterns = generateSkips(shortened_context);
+                for(Pattern skipped_context : skipped_patterns) {
+                    const double s_bo = backoff.prob(w, skipped_context, decoder);
+                    auto s_rev = skipped_context.reverse();
+
+                    auto s_it = p.find(s_rev);
+                    if(s_it == p.end()) {
+                        s_it = p.insert(make_pair(s_rev, crp<Pattern>(0.8, 0))).first;
+                        tr.insert(&s_it->second);
+                    }
+                    if(s_it->second.increment(w, bo, eng, false)) {
+                        backoff.increment(w, skipped_context, eng, decoder);
+                    }
+                }
 	}
 
 	template<typename Engine>
 	void decrement(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
                 Pattern rev = context.reverse();
                 Pattern pattern = Pattern(rev, 0, N-1);
-                //Pattern pattern = Pattern(context.reverse(), 0, N-1);
-
-                //if(N==3) std::cerr << "c: " << context.hash() << "\nw: " << w.hash() << std::endl;
-                //if(N==3) std::cerr << "------ " << pattern.hash() << std::endl;
-
+                Pattern shortened_context = pattern.reverse();
 
 		auto it = p.find(pattern);
 		assert(it != p.end());
@@ -75,21 +106,31 @@ template<unsigned N> struct PYPLM {
 		if (it->second.decrement(w, eng)) {
 			backoff.decrement(w, context, eng, decoder);
 		}
+
+                std::vector<Pattern> skipped_patterns = generateSkips(shortened_context);
+                for(Pattern skipped_context : skipped_patterns) {
+                    Pattern s_rev = skipped_context.reverse();
+
+                    auto s_it = p.find(s_rev);
+                    assert(s_it != p.end());
+
+                    if(s_it->second.decrement(w, eng)) {
+                        backoff.decrement(w, skipped_context, eng, decoder);
+                    }
+                }
 	}
 
 	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const {
-                //if(N == 3 && decoder != nullptr) {
-                //    std::cerr << ">>\t[" << w.tostring(*decoder);
-                //    std::cerr << ", " << context.tostring(*decoder);
-                //    std::cerr << "]" << std::endl;
-                //}
 		const double bo = backoff.prob(w, context, decoder);
 
-                //if(/*N == 3 &&*/ decoder != nullptr) {
-                //    std::cerr << "\t" << N << "\t" << bo << std::endl;
-                //}
-
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
+                Pattern shortened_context = pattern.reverse();
+
+                std::string indentation = std::string(kORDER-N, '\t');
+                if(decoder != nullptr) {
+                    std::cout << N << indentation << "P: " << w.tostring(*decoder) << " | " << shortened_context.tostring(*decoder) << std::endl;
+                }
+
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
