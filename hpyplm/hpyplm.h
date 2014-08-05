@@ -77,7 +77,7 @@ template<unsigned N> struct PYPLM {
 			backoff.increment(w, context, eng, decoder);
 		}
 
-                
+  /*              
                 std::vector<Pattern> skipped_patterns = generateSkips(shortened_context);
                 for(Pattern skipped_context : skipped_patterns) {
                     const double s_bo = backoff.prob(w, skipped_context, decoder);
@@ -92,6 +92,7 @@ template<unsigned N> struct PYPLM {
                         backoff.increment(w, skipped_context, eng, decoder);
                     }
                 }
+    */
 	}
 
 	template<typename Engine>
@@ -106,7 +107,7 @@ template<unsigned N> struct PYPLM {
 		if (it->second.decrement(w, eng)) {
 			backoff.decrement(w, context, eng, decoder);
 		}
-
+/*
                 std::vector<Pattern> skipped_patterns = generateSkips(shortened_context);
                 for(Pattern skipped_context : skipped_patterns) {
                     Pattern s_rev = skipped_context.reverse();
@@ -118,11 +119,10 @@ template<unsigned N> struct PYPLM {
                         backoff.decrement(w, skipped_context, eng, decoder);
                     }
                 }
+*/
 	}
 
 	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const {
-		const double bo = backoff.prob(w, context, decoder);
-
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
                 Pattern shortened_context = pattern.reverse();
 
@@ -130,6 +130,8 @@ template<unsigned N> struct PYPLM {
                 if(decoder != nullptr) {
                     std::cout << N << indentation << "P: " << w.tostring(*decoder) << " | " << shortened_context.tostring(*decoder) << std::endl;
                 }
+
+		const double bo = backoff.prob(w, context, decoder);
 
 
 		auto it = p.find(pattern);
