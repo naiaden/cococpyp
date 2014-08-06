@@ -133,12 +133,40 @@ template<unsigned N> struct PYPLM {
 
 		const double bo = backoff.prob(w, context, decoder);
 
-
 		auto it = p.find(pattern);
 		if (it == p.end()) {
-			return bo;
-                        }
-		return it->second.prob(w, bo);
+
+                    double average;
+
+
+                    // okay, ngram is not available
+                    // time for some backoff
+                    std::vector<Pattern> skipped_patterns = generateSkips(shortened_context);
+                    for(Pattern skipped_context : skipped_patterns) {
+                        Pattern s_rev = skipped_context.reverse();
+
+                        average += ((prob(w, skipped_context,decoder))/(skipped_patterns.size()+1));
+                    }
+                    average += bo/(skipped_patterns.size()+1);
+
+                    if(decoder != nullptr) {
+                        std::cout << indentation << "BO: " << average << " (original bo: " << bo << ")" << std::endl;
+                    }
+
+
+
+                    return average;
+                }
+
+
+                double ret = it->second.prob(w, bo);
+                 
+                if(decoder != nullptr) {
+                    std::cout << N << indentation << "CRP: " << ret << std::endl;
+                }
+
+                return ret;
+		//return it->second.prob(w, bo);
 	}
 
         double avg( std::initializer_list<double> list )
