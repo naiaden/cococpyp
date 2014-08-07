@@ -122,7 +122,7 @@ template<unsigned N> struct PYPLM {
 */
 	}
 
-	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const {
+	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false) const {
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
                 Pattern shortened_context = pattern.reverse();
 
@@ -131,31 +131,36 @@ template<unsigned N> struct PYPLM {
                     std::cout << N << indentation << "P: " << w.tostring(*decoder) << " | " << shortened_context.tostring(*decoder) << std::endl;
                 }
 
-		const double bo = backoff.prob(w, context, decoder);
+		const double bo = backoff.prob(w, context, decoder, backoff_to_skips);
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
 
                     double average;
+                    
+                    if(backoff_to_skips) {
+
+                        // okay, ngram is not available
+                        // time for some backoff
+                        std::vector<Pattern> skipped_patterns = generateSkips(shortened_context);
+                        for(Pattern skipped_context : skipped_patterns) {
+                            Pattern s_rev = skipped_context.reverse();
+
+                            average += ((prob(w, skipped_context,decoder,backoff_to_skips))/(skipped_patterns.size()+1));
+                        }
+                        average += bo/(skipped_patterns.size()+1);
+
+                        if(decoder != nullptr) {
+                            std::cout << indentation << "BO: " << average << " (original bo: " << bo << ")" << std::endl;
+                        }
 
 
-                    // okay, ngram is not available
-                    // time for some backoff
-                    std::vector<Pattern> skipped_patterns = generateSkips(shortened_context);
-                    for(Pattern skipped_context : skipped_patterns) {
-                        Pattern s_rev = skipped_context.reverse();
 
-                        average += ((prob(w, skipped_context,decoder))/(skipped_patterns.size()+1));
+                        return average;
+ 
+                    } else {
+                        return bo;
                     }
-                    average += bo/(skipped_patterns.size()+1);
-
-                    if(decoder != nullptr) {
-                        std::cout << indentation << "BO: " << average << " (original bo: " << bo << ")" << std::endl;
-                    }
-
-
-
-                    return average;
                 }
 
 
@@ -194,7 +199,7 @@ template<unsigned N> struct PYPLM {
             double r11 = j11(w,c, decoder);
             double r13 = j13(w,c, decoder);
             double r14 = j14(w,c, decoder);
-            return 0.8*prob(w, c) + 0.2*avg( {r7, r11, r13, r14} );
+            return avg( {prob(w,c),r7, r11, r13, r14} );
         }
         // w5 | w1, w2, w3, __
         double j14(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -209,7 +214,7 @@ template<unsigned N> struct PYPLM {
             double r6 = j6(w, c, decoder);
             double r10 = j10(w,c,decoder);
             double r12 = j12(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*avg( {r6, r10, r12} );
+            return avg( {prob(w,p), r6, r10, r12} );
         }
         // w5 | w1, w2, __, w4
         double j13(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -224,7 +229,7 @@ template<unsigned N> struct PYPLM {
             double r5 = j5(w, c, decoder);
             double r9 = j9(w,c,decoder);
             double r12 = j12(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*avg( {r5, r9, r12} );
+            return avg( {prob(w,p), r5, r9, r12} );
         }
         // w5 | w1, w2, __, __
         double j12(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -232,13 +237,13 @@ template<unsigned N> struct PYPLM {
 
             if(decoder != nullptr) { std::cerr << w.tostring(*decoder) << " | " << c.tostring(*decoder); }
 
-            Pattern p = c.addskip(std::pair<int, int>(3,2));
+            Pattern p = c.addskip(std::pair<int, int>(2,2));
 
             if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
 
             double r4 = j4(w,c,decoder);
             double r8 = j8(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*avg( {r4, r8} );
+            return avg( {prob(w,p), r4, r8} );
         }
         // w5 | w1, __, w3, w4
         double j11(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -253,7 +258,7 @@ template<unsigned N> struct PYPLM {
             double r3 = j3(w,c,decoder);
             double r9 = j9(w,c,decoder);
             double r10 = j10(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*avg( {r3, r9, r10} );
+            return avg( {prob(w,p), r3, r9, r10} );
         }
         // w5 | w1, __, w3, __
         double j10(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -270,7 +275,7 @@ template<unsigned N> struct PYPLM {
 
             double r2 = j2(w,c,decoder);
             double r8 = j8(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*avg( {r2, r8} );
+            return avg( {prob(w,p), r2, r8} );
         }
         // w5 | w1, __, __, w4
         double j9(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -284,7 +289,7 @@ template<unsigned N> struct PYPLM {
 
             double r1 = j1(w,c,decoder);
             double r8 = j8(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*avg( {r1, r8} );
+            return avg( {prob(w,p), r1, r8} );
         }
         // w5 | w1, __, __, __
         double j8(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -297,7 +302,7 @@ template<unsigned N> struct PYPLM {
             if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
 
             double r0 = j0(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*r0;
+            return avg( {prob(w, p) ,r0} );
         }
 
 
@@ -314,7 +319,7 @@ template<unsigned N> struct PYPLM {
             double r3 = j3(w,c,decoder);
             double r5 = j5(w,c,decoder);
             double r6 = j6(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*avg( {r3, r5, r6} );
+            return avg( {prob(w,p), r3, r5, r6} );
         }
         // w5 |     w2, w3, __
         double j6(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -328,7 +333,7 @@ template<unsigned N> struct PYPLM {
 
             double r2 = j2(w,c,decoder);
             double r4 = j4(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*avg( {r2, r4} );
+            return avg( {prob(w,p), r2, r4} );
         }
         // w5 |     w2, __, w4
         double j5(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -342,7 +347,7 @@ template<unsigned N> struct PYPLM {
 
             double r1 = j1(w,c,decoder);
             double r4 = j4(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*avg( {r1, r4} );
+            return avg( {prob(w,p), r1, r4} );
         }
         // w5 |     w2, __, __
         double j4(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -355,7 +360,7 @@ template<unsigned N> struct PYPLM {
             if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
 
             double r0 = j0(w,c,decoder);
-            return 0.8*prob(w, c) + 0.2*r0;
+            return avg( { prob(w, c) , r0 } );
         }
 
 
@@ -371,7 +376,7 @@ template<unsigned N> struct PYPLM {
 
             double r1 = j1(w,c,decoder);
             double r2 = j2(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*avg( {r1, r2} );
+            return avg( {prob(w,p), r1, r2} );
         }
         // w5 |         w3, __
         double j2(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -384,7 +389,7 @@ template<unsigned N> struct PYPLM {
             if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
 
             double r0 = j0(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*r0;
+            return avg( { prob(w, p), r0 } );
         }
         // w5 |             w4
         double j1(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
@@ -397,7 +402,7 @@ template<unsigned N> struct PYPLM {
             if(decoder != nullptr) { std::cerr << " --> " << p.tostring(*decoder) << std::endl; }
 
             double r0 = j0(w,c,decoder);
-            return 0.8*prob(w, p) + 0.2*r0;
+            return avg( { prob(w, p) , r0 } );
         }
 
 

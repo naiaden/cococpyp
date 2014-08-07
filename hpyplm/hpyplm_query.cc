@@ -26,6 +26,21 @@
     6. Name of the output run
  */
 
+enum class Backoff { GLM, BOBACO, NGRAM };
+
+Backoff fromString(const std::string& s) {
+    if(s.compare("glm") == 0) return Backoff::GLM;
+    else if(s.compare("bobaco") == 0) return Backoff::BOBACO;
+    else return Backoff::NGRAM;
+}
+
+std::string toString(Backoff b) {
+    if(b == Backoff::GLM) return "GLM";
+    if(b == Backoff::BOBACO) return "bobaco";
+    if(b == Backoff::NGRAM) return "ngram";
+    return "unknown backoff method";
+}
+
 int main(int argc, char** argv) {
     cpyp::MT19937 eng;
 
@@ -35,6 +50,9 @@ int main(int argc, char** argv) {
     bool _do_skipgrams = (std::atoi(argv[4]) != 0);
     std::string _input_run_name = argv[5];
     std::string _output_run_name = argv[6];
+    Backoff _backoff_method = fromString(argv[7]);
+
+    std::cerr << "Using backoff method: " << toString(_backoff_method) << std::endl;
 
     ClassEncoder _class_encoder = ClassEncoder();
     ClassDecoder _class_decoder = ClassDecoder();
@@ -134,10 +152,20 @@ int main(int argc, char** argv) {
 
                 unsigned oc = _test_pattern_model.occurrencecount(focus);
 
-                double lp = log(lm.prob(focus, context, &_class_decoder)) / log(2);
-//                double lp = log(lm.glm_prob(focus, context, &_class_decoder)) / log(2);
-//                double lp = log(lm.j7(focus, context, &_class_decoder)) / log(2);
-//                double lp = log(lm.j7(focus, context)) / log(2);
+                double lp;
+
+                if(_backoff_method == Backoff::BOBACO) {
+                    lp = log(lm.prob(focus, context, nullptr, true)) / log(2);
+                } else if(_backoff_method == Backoff::GLM) {
+                         if(kORDER == 5) lp = log(lm.j15(focus, context)) / log(2);
+                    else if(kORDER == 4) lp = log(lm.j7(focus, context)) / log(2);
+                    else if(kORDER == 3) lp = log(lm.j3(focus, context)) / log(2);
+                    else lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
+                } else {
+                    // baco
+                    lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
+                }
+
                 //std::cerr << " --- " << lp;
                 if(!oc) {
                     ++oovs;
