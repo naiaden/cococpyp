@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
     std::string _input_patternmodel_file_name = _base_input_name + ".patternmodel";
     std::string _input_serialised_file_name = _base_input_name + ".ser";
 
-    std::string _base_output_name = _output_directory + "/" + _output_run_name;
+    std::string _base_output_name = _output_directory + "/" + _output_run_name + "_" + toString(_backoff_method);
     std::string _output_class_file_name = _base_output_name + ".cls";
     std::string _output_corpus_file_name = _base_output_name + ".dat";
     std::string _output_patternmodel_file_name = _base_output_name + ".patternmodel";

@@ -23,6 +23,7 @@
 #include <patternmodel.h>
 
 #include "hpyplm/uniform_vocab.h"
+#include "cmdline.h"
 
 /*
     1. Directory with training instances
@@ -41,16 +42,34 @@
 
 int main(int argc, char** argv) {
     cpyp::MT19937 _eng;
+   
+    cmdline::parser clp;
+
+    clp.add<std::string>("traininput", 'i', "train input directory", true);
+    clp.add<std::string>("trainoutput", 'o', "train output directory", true);
     
-    std::string _train_input_directory = argv[1];
-    std::string _output_directory = argv[2];
-    int _samples = atoi(argv[3]);
-    assert(_samples > 0);
-    int _burnin = std::atoi(argv[4]);
-    bool _do_skipgrams = (std::atoi(argv[5]) != 0);
-    int _min_tokens = std::atoi(argv[6]);
-    std::string _run_name = argv[7];
-    int _min_skip_tokens = std::atoi(argv[8]);
+    clp.add<int>("samples", 's', "samples", false, 50);
+    clp.add<int>("burnin", 'b', "burnin", false, 0);
+
+    clp.add("skipgram", 'S', "train with skipgrams");
+    clp.add<int>("streshold", 'T', "treshold for skipgrams", false, 1);
+    clp.add<int>("treshold", 't', "treshold for ngrams", false, 1);
+
+    clp.add<std::string>("modelname", 'm', "the name of the training model", true);
+
+    clp.parse_check(argc, argv);
+
+    std::string _train_input_directory = clp.get<std::string>("traininput");
+    std::string _output_directory = clp.get<std::string>("trainoutput");
+
+    int _samples = clp.get<int>("samples");
+    int _burnin = clp.get<int>("burnin");
+
+    bool _do_skipgrams = clp.exist("skipgram");
+    int _min_skip_tokens = clp.get<int>("streshold");
+    int _min_tokens = clp.get<int>("treshold");
+
+    std::string _run_name = clp.get<std::string>("modelname");
 
     ClassEncoder _class_encoder = ClassEncoder();
     ClassDecoder _class_decoder = ClassDecoder();
@@ -138,19 +157,7 @@ int main(int argc, char** argv) {
                         focus = pattern[pattern_size - 1];
                     }
 
-                    //if(cntr++ < 5) {
-                    //    std::cerr << std::endl;
-                    //    std::cerr << "C: " << context.tostring(_class_decoder) << " -- " << context.hash() << std::endl;
-                    //    std::cerr << "F: " << focus.tostring(_class_decoder) << " -- " << focus.hash() << std::endl;
-                    //}
-
                     if(sample > 0) {
-                        //std::cerr << std::endl;
-                        //std::cerr << "c: " << context.tostring(_class_decoder) << " -- " << context.hash() << std::endl;
-                        //std::cerr << "f: " << focus.tostring(_class_decoder) << " -- " << focus.hash() << std::endl;
-
-                        //Pattern rev = context.reverse();
-                        //std::cerr << "De reverse: " << rev.tostring(_class_decoder) << std::endl;
 
                         lm.decrement(focus, context, _eng);
                     }
@@ -186,76 +193,4 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-/*
-    {
-        std::cerr << "Writing LM to " << _output_file << " ...\n";
-        std::ofstream ofile(_output_file.c_str(), std::ios::binary);
-        if (!ofile.good()) {
-            std::cerr << "Failed to open " << _output_file << " for writing\n";
-            return 1;
-        }
-
-        boost::archive::binary_oarchive oa(ofile);
-        std::string someString = "hoi";
-        cpyp::UniformVocabulary uv(100,1,1,1,1);
-        cpyp::PYPLM<0> nlm(200,1,1,1,1);
-        cpyp::PYPLM<1> olm(400,1,1,1,1);
-
-        std::cerr << ">   " << nlm.log_likelihood() << std::endl;
-        std::cerr << ">>  " << olm.log_likelihood() << std::endl;
-        std::cerr << ">>> " << lm.log_likelihood() << std::endl;
-        std::cerr << ">>> " << lm.log_likelihood() << std::endl;
-
-        oa << someString;
-        oa << uv;
-        oa << nlm;
-        std::cerr << "olm ---------------------------------------" << std::endl;
-        oa << olm;
-        std::cerr << " lm ---------------------------------------" << std::endl;
-        oa << lm;
-
-        ofile.close();
-    }
-
-    std::string anotherString;
-    cpyp::UniformVocabulary uv1(425,1,1,1,1);
-    cpyp::PYPLM<0> nlm1(11,1,1,1,1);
-    cpyp::PYPLM<1> olm1;
-    cpyp::PYPLM<kORDER> lm1;
-
-    {
-        std::cerr << "-   " << nlm1.log_likelihood() << std::endl;
-        std::cerr << "--  " << olm1.log_likelihood() << std::endl;
-        std::cerr << "--- " << lm1.log_likelihood() << std::endl;
-
-        std::cerr << "Reading from " << _output_file << std::endl;
-        std::ifstream ifs(_output_file.c_str(), std::ios::binary);
-
-        if(ifs.good()) {
-            std::cerr << "The file was open, or has been opened succesfully!" << std::endl;
-        } else {
-            std::cerr << "The input archive has not been opened correctly..." << std::endl;
-        }
-
-        boost::archive::binary_iarchive ia(ifs);
-
-        std::cerr << "... and that went great. Next step is riskier though..." << std::endl;
-   
-        std::cerr << "Reading string... ";
-        ia >> anotherString;
-        std::cerr << "done!\nReading uv1... ";
-        ia >> uv1;
-        std::cerr << "done!\nReading nlm1... ";
-        ia >> nlm1;
-        std::cerr << "done!\nReading olm1... ";
-        ia >> olm1;
-        std::cerr << "done!\nReading lm1... ";
-        ia >> lm1;
-        std::cerr << "done!\n";
-
-        std::cerr << "+   " << nlm1.log_likelihood() << std::endl;
-        std::cerr << "++  " << olm1.log_likelihood() << std::endl;
-        std::cerr << "+++ " << lm1.log_likelihood() << std::endl;
-    }
-    */
 
