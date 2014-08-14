@@ -17,14 +17,7 @@
 #include <classdecoder.h>
 #include <patternmodel.h>
 
-/*
-    1. Directory with test instances
-    2. Directory from which we read all stuff, except for the input model
-    3. Directory in which we put all stuff, except for the output model
-    4. Whether we perform skipgrams
-    5. Name of the input run
-    6. Name of the output run
- */
+#include "cmdline.h"
 
 enum class Backoff { GLM, BOBACO, NGRAM };
 
@@ -44,13 +37,25 @@ std::string toString(Backoff b) {
 int main(int argc, char** argv) {
     cpyp::MT19937 eng;
 
-    std::string _test_input_directory = argv[1];
-    std::string _input_directory = argv[2];
-    std::string _output_directory = argv[3];
-    bool _do_skipgrams = (std::atoi(argv[4]) != 0);
-    std::string _input_run_name = argv[5];
-    std::string _output_run_name = argv[6];
-    Backoff _backoff_method = fromString(argv[7]);
+    cmdline::parser clp;
+
+    clp.add<std::string>("testinput", 'I', "test input directory", true);
+    clp.add<std::string>("testoutput", 'o', "test output directory", true);
+    clp.add<std::string>("trainoutput", 'O', "train output directory", true);
+
+    clp.add("skipgram", 'S', "test with skipgrams");
+    clp.add<std::string>("trainmodel", 'm', "the name of the training model", true);
+    clp.add<std::string>("testmodel", 'M', "the name of the testing model", true);
+
+    clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram", cmdline::oneof<std::string>("glm", "bobaco", "ngram"));
+
+    std::string _test_input_directory = clp.get<std::string>("testinput");
+    std::string _input_directory = clp.get<std::string>("trainoutput");
+    std::string _output_directory = clp.get<std::string>("testoutput");
+    bool _do_skipgrams = clp.exist("skipgram");
+    std::string _input_run_name = clp.get<std::string>("trainmodel");
+    std::string _output_run_name = clp.get<std::string>("testmodel");
+    Backoff _backoff_method = fromString(clp.get<std::string>("backoff"));
 
     std::cerr << "Using backoff method: " << toString(_backoff_method) << std::endl;
 
@@ -111,14 +116,11 @@ int main(int argc, char** argv) {
 
     std::cerr << ">" << _test_pattern_model.totalwordtypesingroup(0,1) << "<";
 
-    
-
     _test_pattern_model.write(_output_patternmodel_file_name);
 
     double llh = 0;
     unsigned cnt = 0;
     unsigned oovs = 0;
-
     
     std::ifstream ifs(_input_serialised_file_name, std::ios::binary);
     if(!ifs.good()) {
@@ -166,13 +168,10 @@ int main(int argc, char** argv) {
                     lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
                 }
 
-                //std::cerr << " --- " << lp;
                 if(!oc) {
                     ++oovs;
-                    //std::cerr << " --- NO OC";
                     lp = 0;
                 }
-                //std::cerr << std::endl;
 
                 _probs_file << "p[" << oc << "](" << focus.tostring(_class_decoder) << " |";
                 _probs_file << context.tostring(_class_decoder) << ") = " << lp << std::endl;

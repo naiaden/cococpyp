@@ -25,21 +25,6 @@
 #include "hpyplm/uniform_vocab.h"
 #include "cmdline.h"
 
-/*
-    1. Directory with training instances
-    2. Directory in which we put all stuff, except for the output model
-    3. The number of samples
-    4. The number of burnin samples (total samples = 4 + 5)
-    5. Whether we perform skipgrams
-    6. The treshold for ngrams
-    7. Name of the run
-    8. The treshold for skipgrams
-    Optional:
-    9. Use this class file
-    10. Use this corpus file
-    11. Use this pattern model
-*/
-
 int main(int argc, char** argv) {
     cpyp::MT19937 _eng;
    
