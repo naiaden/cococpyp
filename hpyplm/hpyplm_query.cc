@@ -49,6 +49,8 @@ int main(int argc, char** argv) {
 
     clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram", cmdline::oneof<std::string>("glm", "bobaco", "ngram"));
 
+    clp.parse_check(argc, argv);
+
     std::string _test_input_directory = clp.get<std::string>("testinput");
     std::string _input_directory = clp.get<std::string>("trainoutput");
     std::string _output_directory = clp.get<std::string>("testoutput");

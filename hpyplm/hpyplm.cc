@@ -17,266 +17,344 @@
 #include <classdecoder.h>
 #include <patternmodel.h>
 
-using namespace std;
-using namespace cpyp;
+#include "cmdline.h"
+
+enum class Backoff { GLM, BOBACO, NGRAM };
+
+Backoff fromString(const std::string& s) {
+    if(s.compare("glm") == 0) return Backoff::GLM;
+    else if(s.compare("bobaco") == 0) return Backoff::BOBACO;
+    else return Backoff::NGRAM;
+}
+
+std::string toString(Backoff b) {
+    if(b == Backoff::GLM) return "GLM";
+    if(b == Backoff::BOBACO) return "bobaco";
+    if(b == Backoff::NGRAM) return "ngram";
+    return "unknown backoff method";
+}
 
 int main(int argc, char** argv) {
-//	if (argc != 7) {
-//		cerr << argv[0] << " <training_dir> <test_dir> <output_dir> <nsamples>\n\nEstimate a " << kORDER
-//				<< "-gram HPYP LM and report perplexity\n100 is usually sufficient for <nsamples>\n";
-//		return 1;
-//	}
-	std::cerr << "argc: " << argc << std::endl;
+    cpyp::MT19937 _eng;
+   
+    cmdline::parser clp;
 
-	MT19937 eng;
-	string train_input_directory = argv[1];
-	string test_input_directory = argv[2];
-	string output_directory = argv[3];
-	int samples = atoi(argv[4]);
-	int mintokens = atoi(argv[5]);
-	bool do_skipgrams = (atoi(argv[6]) != 0);
-	string loaded_classfile = "";
-	if (argc > 7) {
-		loaded_classfile = argv[7];
-		std::cerr << "Going to load class file: " << loaded_classfile << std::endl;
-	}
-	string loaded_datfile = "";
-	if (argc > 8) {
-		loaded_datfile = argv[8];
-		std::cerr << "Going to load dat file: " << loaded_datfile << std::endl;
-	}
-	string loaded_patternmodel = "";
-	if (argc > 9) {
-		loaded_patternmodel = argv[9];
-		std::cerr << "Going to load pattern model: " << loaded_patternmodel << std::endl;
-	}
+    clp.add<std::string>("traininput", 'i', "train input directory", true);
+    clp.add<std::string>("testinput", 'I', "test input directory", true);
+    clp.add<std::string>("output", 'o', "output directory", true);
+ 
+    clp.add<int>("samples", 's', "samples", false, 50);
+    clp.add<int>("burnin", 'b', "burnin", false, 0);
+    clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram", cmdline::oneof<std::string>("glm", "bobaco", "ngram"));
 
-	if (do_skipgrams) {
-		std::cerr << "THIS IS THE SKIPGRAM VERSION" << std::endl;
-	}
+    clp.add("skipgram", 'S', "train with skipgrams");
+    clp.add<int>("streshold", 'T', "treshold for skipgrams", false, 1);
+    clp.add<int>("treshold", 't', "treshold for ngrams", false, 1);
 
-	ClassEncoder _class_encoder = ClassEncoder();
-	ClassDecoder _class_decoder = ClassDecoder();
+    clp.add<std::string>("modelname", 'm', "the name of the training model", true);
 
-	PatternModelOptions _pattern_model_options = PatternModelOptions();
-	_pattern_model_options.MAXLENGTH = kORDER;
-	_pattern_model_options.MINLENGTH = 1;
-        _pattern_model_options.DOSKIPGRAMS = do_skipgrams;
-	_pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = do_skipgrams;
-	_pattern_model_options.DOREVERSEINDEX = true;
-	_pattern_model_options.QUIET = false;
-	_pattern_model_options.MINTOKENS = mintokens;
+    clp.add<int>("reportppl", 'p', "report ppl every nth iteration", false, 0);
 
-	PatternModelOptions _test_pattern_model_options = PatternModelOptions();
-	_test_pattern_model_options.MAXLENGTH = kORDER;
-	_test_pattern_model_options.MINLENGTH = 1;
-        _test_pattern_model_options.DOSKIPGRAMS = do_skipgrams;
-	_test_pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = do_skipgrams;
-	_test_pattern_model_options.DOREVERSEINDEX = true;
-	_test_pattern_model_options.QUIET = false;
-	_test_pattern_model_options.MINTOKENS = 1;
+    clp.parse_check(argc, argv);
 
-	boost::filesystem::path background_dir(train_input_directory);
-	boost::filesystem::directory_iterator bit(background_dir), beod;
+    std::string _train_input_directory = clp.get<std::string>("traininput");
+    std::string _test_input_directory = clp.get<std::string>("testinput");
+    std::string _output_directory = clp.get<std::string>("output");
 
-	std::vector<std::string> train_input_files;
-	BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(bit, beod)){
-	if(is_regular_file(p)/* && p.extension() == ".txt"*/)
-	{
-		train_input_files.push_back(p.string());
-	}
-}
+    int _samples = clp.get<int>("samples");
+    int _burnin = clp.get<int>("burnin");
 
-	std::string basename = std::string("cpyp-n") + std::to_string(_pattern_model_options.MAXLENGTH) + "-mint" + std::to_string(mintokens) + ".colibri";
+    bool _do_skipgrams = clp.exist("skipgram");
+    int _min_skip_tokens = clp.get<int>("streshold");
+    int _min_tokens = clp.get<int>("treshold");
 
-	if (loaded_classfile.empty()) {
+    std::string _run_name = clp.get<std::string>("modelname");
+    int _report_ppl = clp.get<int>("reportppl");
 
-		std::cerr << "Found " << train_input_files.size() << " files" << std::endl;
+    Backoff _backoff_method = fromString(clp.get<std::string>("backoff"));
+    std::cerr << "Using backoff method: " << toString(_backoff_method) << std::endl;
 
-		_class_encoder.build(train_input_files, true);
-		_class_encoder.save(output_directory + "/" + basename + ".cls");
+    if (_do_skipgrams) {
+            std::cerr << "THIS IS THE SKIPGRAM VERSION" << std::endl;
+    }
 
-		std::cerr << "saved class file to: " + output_directory + "/" + basename + ".cls";
-	} else {
-		_class_encoder.load(loaded_classfile);
-		std::cerr << "Loaded class file" << std::endl;
-	}
+    ClassEncoder _class_encoder = ClassEncoder();
+    ClassDecoder _class_decoder = ClassDecoder();
 
-	std::string dat_output_file = loaded_datfile;
-	if (loaded_datfile.empty()) {
-		dat_output_file = output_directory + "/" + basename + ".dat";
+    PatternModelOptions _pattern_model_options = PatternModelOptions();
+    _pattern_model_options.MAXLENGTH = kORDER;
+    _pattern_model_options.MINLENGTH = 1;
+    _pattern_model_options.DOSKIPGRAMS = _do_skipgrams;
+    _pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = _do_skipgrams;
+    _pattern_model_options.DOREVERSEINDEX = true;
+    _pattern_model_options.QUIET = false;
+    _pattern_model_options.MINTOKENS = _min_tokens;
+    _pattern_model_options.MINTOKENS_SKIPGRAMS = _min_skip_tokens;
 
-		for (auto i : train_input_files) {
-			_class_encoder.encodefile(i, dat_output_file, false, false, true, false);
-		}
-		_class_decoder.load(output_directory + "/" + basename + ".cls");
-		std::cerr << "Created class decoder" << std::endl;
+    PatternModelOptions _test_pattern_model_options = PatternModelOptions();
+    _test_pattern_model_options.MAXLENGTH = kORDER;
+    _test_pattern_model_options.MINLENGTH = 1;
+    _test_pattern_model_options.DOSKIPGRAMS = false;//_do_skipgrams;
+    _test_pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = false;//_do_skipgrams;
+    _test_pattern_model_options.DOREVERSEINDEX = true;
+    _test_pattern_model_options.QUIET = false;
+    _test_pattern_model_options.MINTOKENS = 1;
 
-	} else {
-		_class_decoder.load(loaded_datfile);
-		std::cerr << "Loaded class decoder" << std::endl;
-	}
+    // +train
 
-	std::cerr << "dat output file: " << dat_output_file << std::endl;
-	std::cerr << "Creating indexed corpus" << std::endl;
-	IndexedCorpus _indexed_corpus = IndexedCorpus(dat_output_file);
-	std::cerr << "Created indexed corpus" << std::endl;
+    boost::filesystem::path background_dir(_train_input_directory);
+    boost::filesystem::directory_iterator bit(background_dir), beod;
 
-	PatternModel<uint32_t> _pattern_model;
-	if (loaded_patternmodel.empty()) {
-		std::cerr << "Going to learn pattern model" << std::endl;
-		_pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
-		_pattern_model.train(dat_output_file, _pattern_model_options, nullptr);
+    std::vector<std::string> train_input_files;
+    BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(bit, beod)){
+        if(is_regular_file(p)/* && p.extension() == ".txt"*/)
+        {
+                train_input_files.push_back(p.string());
+        }
+    }
 
-		_pattern_model.write(output_directory + "/" + basename + ".patternmodel");
-		std::cerr << "saved pattern model file to: " + output_directory + "/" + basename + ".patternmodel" << std::endl;
-	} else {
-		//_pattern_model.load(loaded_patternmodel, _pattern_model_options, nullptr);
-		std::cerr << "Going to train pattern model from dat file" << std::endl;
-		_pattern_model.train(loaded_datfile, _pattern_model_options, nullptr);
-		std::cerr << "Trained pattern model from dat file" << std::endl;
-	}
-	_pattern_model.computestats();
-	_pattern_model.computecoveragestats();
+    std::string _train_base_name = _output_directory + "/" + _run_name + "_train";
+    std::string _train_class_file_name = _train_base_name + ".cls";
+    std::string _train_corpus_file_name = _train_base_name + ".dat";
+    std::string _train_patternmodel_file_name = _train_base_name + ".patternmodel";
+    std::string _train_serialised_file_name = _train_base_name + ".ser";
 
-	std::cerr << ">> maxn:" << _pattern_model.maxlength() << std::endl;
+    _class_encoder.build(train_input_files, true);
+    _class_encoder.save(_train_class_file_name);
 
-	cerr << "Reading corpus...\n";
-	cerr << "E-corpus size: " << _indexed_corpus.sentences() << " sentences\t (" << _pattern_model.types() << " word types, " << _pattern_model.size() << " patterns types and "
-			<< _pattern_model.tokens() << " word tokens)\n";
+    for (auto i : train_input_files) {
+            _class_encoder.encodefile(i, _train_corpus_file_name, false, false, true, false);
+    }
+    _class_decoder.load(_train_class_file_name);
+    IndexedCorpus _indexed_corpus = IndexedCorpus(_train_corpus_file_name);
 
-	int increments = 0;
-	int decrements = 0;
+    PatternModel<uint32_t> _pattern_model;
+    _pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
+    _pattern_model.train(_train_corpus_file_name, _pattern_model_options, nullptr);
 
-	PYPLM<kORDER> lm(_pattern_model.types(), 1, 1, 1, 1);
-	for (int sample = 0; sample < samples; ++sample) {
-		for (IndexPattern it : _indexed_corpus) {
-			for (Pattern q : _pattern_model.getreverseindex(it.ref)) {
-				size_t p_size = q.size();
+    _pattern_model.computestats();
+    _pattern_model.computecoveragestats();
 
-				Pattern context = Pattern();
-				Pattern focus = Pattern();
+    _pattern_model.report(&std::cerr);
 
-				if (p_size == kORDER) {
-					if (p_size == 1) {
-						focus = q[0];
-					} else {
-						context = Pattern(q, 0, p_size - 1);
-						focus = q[p_size - 1];
-					}
+    std::cerr << ">" << _pattern_model.totalwordtypesingroup(0,1) << "<";
 
-					ClassDecoder* cd = nullptr;
+    _pattern_model.write(_train_patternmodel_file_name);
 
-					if (sample > 0) {
-//						std::cout << focus.tostring(_class_decoder) << " -- " << context.tostring(_class_decoder) << std::endl;
-						cd = &_class_decoder;
-						//std::cout << "\tDecrementing: " << decrements << std::endl;
-						lm.decrement(focus, context, eng, cd);
-						++decrements;
-					}
-					//std::cout << "\tIncrementing" << std::endl;
-					lm.increment(focus, context, eng, &_class_decoder);
-				} else {
-					//std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;
-				}
-			}
-		}
+    std::cerr << "Some stats, w/e\n" << _indexed_corpus.sentences() << " sentences\n"
+        << _pattern_model.types() << " word types\n" << _pattern_model.size() << " pattern types\n" 
+        << _pattern_model.tokens() << " word tokens" << std::endl;	
+	
+    // -train
+    // +test
 
-		if (sample % 10 == 9) {
-			cerr << " [LLH=" << lm.log_likelihood() << "]" << endl;
-			if (sample % 30u == 29)
-				lm.resample_hyperparameters(eng);
-		} else {
-			//std::cerr << "(" << decrements << ")" << flush;
-			cerr << '.' << flush;
-		}
-	}
+    boost::filesystem::path foreground_dir(_test_input_directory);
+    boost::filesystem::directory_iterator fit(foreground_dir), feod;
 
-	// TESTING
+    std::vector<std::string> test_input_files;
+    BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(fit, feod)) {
+        if(is_regular_file(p)) {
+            test_input_files.push_back(p.string());
+        }
+    }
 
-	boost::filesystem::path test_dir(test_input_directory);
-	boost::filesystem::directory_iterator test_bit(test_dir), test_beod;
+    std::string _test_base_output_name = _output_directory + "/" + _run_name + "_" + toString(_backoff_method) + "_test";
+    std::string _test_output_class_file_name = _test_base_output_name + ".cls";
+    std::string _test_output_corpus_file_name = _test_base_output_name + ".dat";
+    std::string _test_output_patternmodel_file_name = _test_base_output_name + ".patternmodel";
+    std::string _test_output_probabilities_file_name = _test_base_output_name + ".probs";
+    std::string _test_output_perplexities_file_name = _test_base_output_name + ".ppl";
 
-	std::vector<std::string> test_input_files;
-	BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(test_bit, test_beod)){
-	if(is_regular_file(p)/* && p.extension() == ".txt"*/)
-	{
-		test_input_files.push_back(p.string());
-	}
-}
+    for(auto i : test_input_files) {
+        _class_encoder.encodefile(i, _test_output_corpus_file_name, 1, 1, 0, 1);
+    }
+    _class_encoder.save(_test_output_class_file_name);
+    
+    ClassDecoder _test_class_decoder = ClassDecoder();
+    _test_class_decoder.load(_test_output_class_file_name);
 
-	std::cerr << "Found " << test_input_files.size() << " files" << std::endl;
+    IndexedCorpus _test_indexed_corpus = IndexedCorpus(_test_output_corpus_file_name);
 
-	std::string test_basename = "cpyp-n" + std::to_string(_pattern_model_options.MAXLENGTH) + "-mint" + std::to_string(mintokens) + ".test.colibri";
+    PatternModel<uint32_t> _test_pattern_model = PatternModel<uint32_t>(&_test_indexed_corpus);
+    _test_pattern_model.train(_test_output_corpus_file_name, _test_pattern_model_options);
 
-	std::string test_dat_output_file = output_directory + "/" + test_basename + ".dat";
+    _test_pattern_model.computestats();
+    _test_pattern_model.computecoveragestats();
 
-	for (auto i : test_input_files) {
-		_class_encoder.encodefile(i, test_dat_output_file, true, true, false, true);
-	}
-	_class_encoder.save(output_directory + "/" + test_basename + ".cls");
+    _test_pattern_model.report(&std::cerr);
 
-	ClassDecoder _test_class_decoder(output_directory + "/" + test_basename + ".cls");
 
-	IndexedCorpus _test_indexed_corpus = IndexedCorpus(test_dat_output_file);
+    std::cerr << "Test>" << _test_pattern_model.totalwordtypesingroup(0,1) << "<";
 
-	PatternModel<uint32_t> _test_pattern_model = PatternModel<uint32_t>(&_test_indexed_corpus);
-	_test_pattern_model.train(test_dat_output_file, _test_pattern_model_options, nullptr);
+    _test_pattern_model.write(_test_output_patternmodel_file_name);    
 
-	std::cerr << ">> maxn:" << _test_pattern_model.maxlength() << std::endl;
+    std::cerr << "Some stats, w/e\n" << _test_indexed_corpus.sentences() << " sentences\n"
+        << _test_pattern_model.types() << " word types\n" << _test_pattern_model.size() << " pattern types\n" 
+        << _test_pattern_model.tokens() << " word tokens" << std::endl;	
 
-	cerr << "Reading corpus...\n";
-	cerr << "E-corpus size: " << _test_indexed_corpus.sentences() << " sentences\t (" << _test_pattern_model.types() << " word types, " << _test_pattern_model.size()
-			<< " patterns types and " << _test_pattern_model.tokens() << " word tokens)\n";
+    // -test
 
-	double llh = 0;
-	unsigned cnt = 0;
-	unsigned oovs = 0;
+    std::ofstream _ppl_file;
+    _ppl_file.open(_test_output_perplexities_file_name);
 
-	for (IndexPattern it : _test_indexed_corpus) {
-		for (Pattern q : _test_pattern_model.getreverseindex(it.ref)) {
-			size_t p_size = q.size();
+    std::ofstream _probs_file;
+    _probs_file.open(_test_output_probabilities_file_name);
 
-			Pattern context = Pattern();
-			Pattern focus = Pattern();
+    cpyp::PYPLM<kORDER> lm(_pattern_model.types(), 1, 1, 1, 1);
+    for (int sample = 0; sample < _samples; ++sample) {
+        for (IndexPattern it : _indexed_corpus) {
+                for (Pattern q : _pattern_model.getreverseindex(it.ref)) {
+                        size_t p_size = q.size();
 
-			if (p_size == kORDER) {
-				context = Pattern(q, 0, p_size - 1);
-				focus = q[p_size - 1];
+                        Pattern context = Pattern();
+                        Pattern focus = Pattern();
 
-				if (p_size == 1) {
-					focus = q[0];
-				} else {
-					context = Pattern(q, 0, p_size - 1);
-					focus = q[p_size - 1];
-				}
+                        if (p_size == kORDER) {
+                                if (p_size == 1) {
+                                        focus = q[0];
+                                } else {
+                                        context = Pattern(q, 0, p_size - 1);
+                                        focus = q[p_size - 1];
+                                }
 
-				double lp = log(lm.prob(focus, context, &_test_class_decoder)) / log(2);
-				if (!_pattern_model.has(focus)) // OOV if not in the train model
-//                                if(!_pattern_model.occurrencecount(focus)) // but both do not work
-						{
-					++oovs;
-					lp = 0;
-				}
-				std::cout << "p[" << _pattern_model.occurrencecount(focus) << "](" << focus.tostring(_class_decoder) << " |";
-				std::cout << context.tostring(_test_class_decoder) << ") = " << lp << std::endl;
-				llh -= lp;
-				++cnt;
+                                if (sample > 0) {
+                                        lm.decrement(focus, context, _eng);
+                                }
+                                lm.increment(focus, context, _eng, nullptr);
+                        }
+                }
+        }
 
-			} else {
-				//std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;
-			}
-		}
-	}
+        // end training
 
-	cnt -= oovs;
-	std::cerr << "  Log_10 prob: " << (-llh * log(2) / log(10)) << std::endl;
-	std::cerr << "        Count: " << cnt << std::endl;
-	std::cerr << "         OOVs: " << oovs << std::endl;
-	std::cerr << "Cross-Entropy: " << (llh / cnt) << std::endl;
-	std::cerr << "   Perplexity: " << pow(2, llh / cnt) << std::endl;
+        if (_report_ppl && sample % _report_ppl == 0) {
+            double llh = 0;
+            unsigned cnt = 0;
+            unsigned oovs = 0;
 
-	std::cerr << "Done for now" << std::endl;
-	exit(4);
+            for (IndexPattern it : _test_indexed_corpus) {
+                    for (Pattern q : _test_pattern_model.getreverseindex(it.ref)) {
+                            size_t p_size = q.size();
+            
+                            Pattern context = Pattern();
+                            Pattern focus = Pattern();
+            
+                            if (p_size == kORDER) {
+                                    context = Pattern(q, 0, p_size - 1);
+                                    focus = q[p_size - 1];
+            
+                                    if (p_size == 1) {
+                                            focus = q[0];
+                                    } else {
+                                            context = Pattern(q, 0, p_size - 1);
+                                            focus = q[p_size - 1];
+                                    }
+            
+                                    double lp;
+                                    if(_backoff_method == Backoff::BOBACO) {
+                                        lp = log(lm.prob(focus, context, nullptr, true)) / log(2);
+                                    } else if(_backoff_method == Backoff::GLM) {
+                                             if(kORDER == 5) lp = log(lm.j15(focus, context)) / log(2);
+                                        else if(kORDER == 4) lp = log(lm.j7(focus, context)) / log(2);
+                                        else if(kORDER == 3) lp = log(lm.j3(focus, context)) / log(2);
+                                        else lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
+                                    } else {
+                                        // baco
+                                        lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
+                                    }
+
+                                    if (!_test_pattern_model.has(focus)) // OOV if not in the train model
+                                    {
+                                            ++oovs;
+                                            lp = 0;
+                                    }
+                                    llh -= lp;
+                                    ++cnt;
+                            }
+                    }
+            }
+
+            cnt -= oovs;
+            _ppl_file << "Sample: " << sample << "\tPerplexity: " << pow(2, llh / cnt) << std::endl;
+
+        } else if (!_report_ppl && sample % 10 == 9) {
+                std::cerr << " [LLH=" << lm.log_likelihood() << "]" << std::endl;
+                if (sample % 30u == 29)
+                        lm.resample_hyperparameters(_eng);
+        } else {
+                std::cerr << '.' << std::flush;
+        }
+
+
+
+    }
+
+    double llh = 0;
+    unsigned cnt = 0;
+    unsigned oovs = 0;
+
+    for (IndexPattern it : _test_indexed_corpus) {
+            for (Pattern q : _test_pattern_model.getreverseindex(it.ref)) {
+                    size_t p_size = q.size();
+    
+                    Pattern context = Pattern();
+                    Pattern focus = Pattern();
+    
+                    if (p_size == kORDER) {
+                            context = Pattern(q, 0, p_size - 1);
+                            focus = q[p_size - 1];
+    
+                            if (p_size == 1) {
+                                    focus = q[0];
+                            } else {
+                                    context = Pattern(q, 0, p_size - 1);
+                                    focus = q[p_size - 1];
+                            }
+
+                            double lp;
+                            if(_backoff_method == Backoff::BOBACO) {
+                                lp = log(lm.prob(focus, context, nullptr, true)) / log(2);
+                            } else if(_backoff_method == Backoff::GLM) {
+                                     if(kORDER == 5) lp = log(lm.j15(focus, context)) / log(2);
+                                else if(kORDER == 4) lp = log(lm.j7(focus, context)) / log(2);
+                                else if(kORDER == 3) lp = log(lm.j3(focus, context)) / log(2);
+                                else lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
+                            } else {
+                                // baco
+                                lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
+                            }
+
+                            if (!_test_pattern_model.has(focus)) // OOV if not in the train model
+                            {
+                                    ++oovs;
+                                    lp = 0;
+                            }
+                            llh -= lp;
+                            ++cnt;
+    
+                            _probs_file << "p[" << _pattern_model.occurrencecount(focus) << "](" << focus.tostring(_class_decoder) << " |";
+                            _probs_file << context.tostring(_test_class_decoder) << ") = " << lp << std::endl;
+
+                            llh -= lp;
+                            ++cnt;
+    
+                    } else {
+                            //std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;
+                    }
+            }
+    }
+
+    _ppl_file.close();
+    _probs_file.close();
+
+    cnt -= oovs;
+    std::cerr << "  Log_10 prob: " << (-llh * log(2) / log(10)) << std::endl;
+    std::cerr << "        Count: " << cnt << std::endl;
+    std::cerr << "         OOVs: " << oovs << std::endl;
+    std::cerr << "Cross-Entropy: " << (llh / cnt) << std::endl;
+    std::cerr << "   Perplexity: " << pow(2, llh / cnt) << std::endl;
+
+    std::cerr << "Done for now" << std::endl;
+    exit(4);
 
 }
