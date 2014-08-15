@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    std::string _train_base_name = _output_directory + "/" + _run_name + "_train";
+    std::string _train_base_name = _output_directory + "/" + _run_name + "_N" + kORDER + toString(_backoff_method) + "_train";
     std::string _train_class_file_name = _train_base_name + ".cls";
     std::string _train_corpus_file_name = _train_base_name + ".dat";
     std::string _train_patternmodel_file_name = _train_base_name + ".patternmodel";
@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    std::string _test_base_output_name = _output_directory + "/" + _run_name + "_" + toString(_backoff_method) + "_test";
+    std::string _test_base_output_name = _output_directory + "/" + _run_name + "_N" + kORDER + "_" + toString(_backoff_method) + "_test";
     std::string _test_output_class_file_name = _test_base_output_name + ".cls";
     std::string _test_output_corpus_file_name = _test_base_output_name + ".dat";
     std::string _test_output_patternmodel_file_name = _test_base_output_name + ".patternmodel";
