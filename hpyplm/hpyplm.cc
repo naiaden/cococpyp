@@ -17,6 +17,8 @@
 #include <classdecoder.h>
 #include <patternmodel.h>
 
+#include <sstream>
+
 #include "cmdline.h"
 
 enum class Backoff { GLM, BOBACO, NGRAM };
@@ -35,13 +37,17 @@ std::string toString(Backoff b) {
 }
 
 int main(int argc, char** argv) {
-    cpyp::MT19937 _eng;
-   
+  
+    std::stringstream oss;
+    oss << kORDER;
+    //int _kORDER = std::atoi(oss.str().c_str());
+    std::string _kORDER = oss.str();
+
     cmdline::parser clp;
 
-    clp.add<std::string>("traininput", 'i', "train input directory", true);
-    clp.add<std::string>("testinput", 'I', "test input directory", true);
-    clp.add<std::string>("output", 'o', "output directory", true);
+    clp.add<std::string>("traininput", 'i', "train input directory", false, "");
+    clp.add<std::string>("testinput", 'I', "test input directory", false, "");
+    clp.add<std::string>("output", 'o', "output directory", true, "");
  
     clp.add<int>("samples", 's', "samples", false, 50);
     clp.add<int>("burnin", 'b', "burnin", false, 0);
@@ -55,7 +61,22 @@ int main(int argc, char** argv) {
 
     clp.add<int>("reportppl", 'p', "report ppl every nth iteration", false, 0);
 
+    clp.add<std::string>("loadtraincorpus", '\0' , "load colibri encoded corpus (train)", false, "");
+    clp.add<std::string>("loadtrainpatternmodel", '\0', "load colibri encoded pattern model (train)", false, "");
+    clp.add<std::string>("loadtrainvocabulary", '\0', "load colibri class file (train)", false, "");
+
+    clp.add<std::string>("loadtestcorpus", '\0', "load colibri encoded corpus (test)", false, "");
+    clp.add<std::string>("loadtestpatternmodel", '\0', "load colibri encoded pattern model (test)", false, "");
+    clp.add<std::string>("loadtestvocabulary", '\0', "load colibri class file (test)", false, "");
+
+    clp.add<int>("seed", 'R', "initialise with random seed", false, 0);
+
     clp.parse_check(argc, argv);
+
+    cpyp::MT19937 _eng;
+    if(clp.get<int>("seed") > 0) {
+        _eng = cpyp::MT19937(clp.get<int>("seed"));
+    }
 
     std::string _train_input_directory = clp.get<std::string>("traininput");
     std::string _test_input_directory = clp.get<std::string>("testinput");
@@ -74,8 +95,22 @@ int main(int argc, char** argv) {
     Backoff _backoff_method = fromString(clp.get<std::string>("backoff"));
     std::cerr << "Using backoff method: " << toString(_backoff_method) << std::endl;
 
-    if (_do_skipgrams) {
-            std::cerr << "THIS IS THE SKIPGRAM VERSION" << std::endl;
+    std::string _load_train_corpus = clp.get<std::string>("loadtraincorpus");
+    std::string _load_train_patternmodel = clp.get<std::string>("loadtrainpatternmodel");
+    std::string _load_train_vocabulary = clp.get<std::string>("loadtrainvocabulary");
+
+    std::string _load_test_corpus = clp.get<std::string>("loadtestcorpus");
+    std::string _load_test_patternmodel = clp.get<std::string>("loadtestpatternmodel");
+    std::string _load_test_vocabulary = clp.get<std::string>("loadtestvocabulary");
+
+    if(_train_input_directory.empty() && (_load_train_corpus.empty() || _load_train_patternmodel.empty() || _load_train_vocabulary.empty())) {
+        std::cerr << "Not enough arguments to start training. Double check for either an input directory, or for the proper colibri derivatives." << std::endl;
+        return -8;
+    }
+
+    if(_test_input_directory.empty() && (_load_test_corpus.empty() || _load_test_patternmodel.empty() || _load_test_vocabulary.empty())) {
+        std::cerr << "Not enough arguments to start testing. Double check for either an input directory, or for the proper colibri derivatives." << std::endl;
+        return -8;
     }
 
     ClassEncoder _class_encoder = ClassEncoder();
@@ -102,35 +137,59 @@ int main(int argc, char** argv) {
 
     // +train
 
-    boost::filesystem::path background_dir(_train_input_directory);
-    boost::filesystem::directory_iterator bit(background_dir), beod;
-
     std::vector<std::string> train_input_files;
-    BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(bit, beod)){
-        if(is_regular_file(p)/* && p.extension() == ".txt"*/)
-        {
-                train_input_files.push_back(p.string());
+    if(!_train_input_directory.empty()) {
+        boost::filesystem::path background_dir(_train_input_directory);
+        boost::filesystem::directory_iterator bit(background_dir), beod;
+
+        BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(bit, beod)){
+            if(is_regular_file(p)/* && p.extension() == ".txt"*/)
+            {
+                    train_input_files.push_back(p.string());
+            }
         }
+    } else if(_load_train_vocabulary.empty() || _load_train_corpus.empty() || _load_train_patternmodel.empty()) {
+        std::cerr << "Unexpected situation. Neither training files nor colibri derivatives have been provided!" << std::endl;
+        return -8;
     }
 
-    std::string _train_base_name = _output_directory + "/" + _run_name + "_N" + kORDER + toString(_backoff_method) + "_train";
+    std::string _train_base_name = _output_directory + "/" + _run_name + "_" + toString(_backoff_method) + "_" + _kORDER + (_do_skipgrams ? "S" : "") + "_train";
     std::string _train_class_file_name = _train_base_name + ".cls";
     std::string _train_corpus_file_name = _train_base_name + ".dat";
     std::string _train_patternmodel_file_name = _train_base_name + ".patternmodel";
     std::string _train_serialised_file_name = _train_base_name + ".ser";
 
-    _class_encoder.build(train_input_files, true);
-    _class_encoder.save(_train_class_file_name);
 
-    for (auto i : train_input_files) {
-            _class_encoder.encodefile(i, _train_corpus_file_name, false, false, true, false);
+    if(_load_train_vocabulary.empty()) {
+        _class_encoder.build(train_input_files, true);
+        _class_encoder.save(_train_class_file_name);
+    } else {
+        _class_encoder.load(_load_train_vocabulary);
+        _train_class_file_name = _load_train_vocabulary;
     }
-    _class_decoder.load(_train_class_file_name);
+
+    if(_load_train_corpus.empty()) {
+        for (auto i : train_input_files) {
+            _class_encoder.encodefile(i, _train_corpus_file_name, false, false, true, false);
+        }
+        _class_decoder.load(_train_class_file_name);
+    } else {
+        _train_corpus_file_name = _load_train_corpus;
+    }
+    
+    
     IndexedCorpus _indexed_corpus = IndexedCorpus(_train_corpus_file_name);
 
     PatternModel<uint32_t> _pattern_model;
-    _pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
-    _pattern_model.train(_train_corpus_file_name, _pattern_model_options, nullptr);
+
+    if(_load_train_patternmodel.empty()) {
+        _pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
+        _pattern_model.train(_train_corpus_file_name, _pattern_model_options, nullptr);
+
+        _pattern_model.write(_train_patternmodel_file_name);
+    } else {
+        _pattern_model.load(_load_train_patternmodel, _pattern_model_options, nullptr);
+    }
 
     _pattern_model.computestats();
     _pattern_model.computecoveragestats();
@@ -139,7 +198,7 @@ int main(int argc, char** argv) {
 
     std::cerr << ">" << _pattern_model.totalwordtypesingroup(0,1) << "<";
 
-    _pattern_model.write(_train_patternmodel_file_name);
+
 
     std::cerr << "Some stats, w/e\n" << _indexed_corpus.sentences() << " sentences\n"
         << _pattern_model.types() << " word types\n" << _pattern_model.size() << " pattern types\n" 
@@ -148,45 +207,62 @@ int main(int argc, char** argv) {
     // -train
     // +test
 
-    boost::filesystem::path foreground_dir(_test_input_directory);
-    boost::filesystem::directory_iterator fit(foreground_dir), feod;
-
     std::vector<std::string> test_input_files;
-    BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(fit, feod)) {
-        if(is_regular_file(p)) {
-            test_input_files.push_back(p.string());
+    if(!_test_input_directory.empty()) {
+        boost::filesystem::path foreground_dir(_test_input_directory);
+        boost::filesystem::directory_iterator fit(foreground_dir), feod;
+
+        BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(fit, feod)) {
+            if(is_regular_file(p)) {
+                test_input_files.push_back(p.string());
+            }
         }
+    } else if(_load_test_vocabulary.empty() || _load_test_corpus.empty() || _load_train_patternmodel.empty()) {
+        std::cerr << "Unexpected situation. Neither test files nor colibri derivatives have been provided!" << std::endl;
+        return -8;
     }
 
-    std::string _test_base_output_name = _output_directory + "/" + _run_name + "_N" + kORDER + "_" + toString(_backoff_method) + "_test";
+
+
+
+    std::string _test_base_output_name = _output_directory + "/" + _run_name + "_" + toString(_backoff_method) + "_" + _kORDER + "_test";
     std::string _test_output_class_file_name = _test_base_output_name + ".cls";
     std::string _test_output_corpus_file_name = _test_base_output_name + ".dat";
     std::string _test_output_patternmodel_file_name = _test_base_output_name + ".patternmodel";
     std::string _test_output_probabilities_file_name = _test_base_output_name + ".probs";
     std::string _test_output_perplexities_file_name = _test_base_output_name + ".ppl";
 
-    for(auto i : test_input_files) {
-        _class_encoder.encodefile(i, _test_output_corpus_file_name, 1, 1, 0, 1);
+    if(_load_test_vocabulary.empty()) {
+        for(auto i : test_input_files) {
+            _class_encoder.encodefile(i, _test_output_corpus_file_name, 1, 1, 0, 1);
+        }
+        _class_encoder.save(_test_output_class_file_name);
+    } else {
+        _class_encoder.load(_load_test_vocabulary);
+        _test_output_class_file_name = _load_test_vocabulary;
     }
-    _class_encoder.save(_test_output_class_file_name);
-    
+
     ClassDecoder _test_class_decoder = ClassDecoder();
     _test_class_decoder.load(_test_output_class_file_name);
 
+
     IndexedCorpus _test_indexed_corpus = IndexedCorpus(_test_output_corpus_file_name);
 
-    PatternModel<uint32_t> _test_pattern_model = PatternModel<uint32_t>(&_test_indexed_corpus);
-    _test_pattern_model.train(_test_output_corpus_file_name, _test_pattern_model_options);
+    PatternModel<uint32_t> _test_pattern_model;    
+    if(_load_test_patternmodel.empty()) {
+        _pattern_model = PatternModel<uint32_t>(&_test_indexed_corpus);
+        _test_pattern_model.train(_test_output_corpus_file_name, _test_pattern_model_options);
+
+        _test_pattern_model.write(_test_output_patternmodel_file_name);    
+    } else {
+        _pattern_model.load(_load_test_patternmodel, _test_pattern_model_options, nullptr);
+    }
 
     _test_pattern_model.computestats();
     _test_pattern_model.computecoveragestats();
 
     _test_pattern_model.report(&std::cerr);
-
-
     std::cerr << "Test>" << _test_pattern_model.totalwordtypesingroup(0,1) << "<";
-
-    _test_pattern_model.write(_test_output_patternmodel_file_name);    
 
     std::cerr << "Some stats, w/e\n" << _test_indexed_corpus.sentences() << " sentences\n"
         << _test_pattern_model.types() << " word types\n" << _test_pattern_model.size() << " pattern types\n" 
