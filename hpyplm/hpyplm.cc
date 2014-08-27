@@ -180,10 +180,9 @@ int main(int argc, char** argv) {
     
     IndexedCorpus _indexed_corpus = IndexedCorpus(_train_corpus_file_name);
 
-    PatternModel<uint32_t> _pattern_model;
+    PatternModel<uint32_t> _pattern_model(&_indexed_corpus);
 
     if(_load_train_patternmodel.empty()) {
-        _pattern_model = PatternModel<uint32_t>(&_indexed_corpus);
         _pattern_model.train(_train_corpus_file_name, _pattern_model_options, nullptr);
 
         _pattern_model.write(_train_patternmodel_file_name);
@@ -222,9 +221,6 @@ int main(int argc, char** argv) {
         return -8;
     }
 
-
-
-
     std::string _test_base_output_name = _output_directory + "/" + _run_name + "_" + toString(_backoff_method) + "_" + _kORDER + "_test";
     std::string _test_output_class_file_name = _test_base_output_name + ".cls";
     std::string _test_output_corpus_file_name = _test_base_output_name + ".dat";
@@ -248,14 +244,13 @@ int main(int argc, char** argv) {
 
     IndexedCorpus _test_indexed_corpus = IndexedCorpus(_test_output_corpus_file_name);
 
-    PatternModel<uint32_t> _test_pattern_model;    
+    PatternModel<uint32_t> _test_pattern_model(&_test_indexed_corpus);
     if(_load_test_patternmodel.empty()) {
-        _pattern_model = PatternModel<uint32_t>(&_test_indexed_corpus);
         _test_pattern_model.train(_test_output_corpus_file_name, _test_pattern_model_options);
 
         _test_pattern_model.write(_test_output_patternmodel_file_name);    
     } else {
-        _pattern_model.load(_load_test_patternmodel, _test_pattern_model_options, nullptr);
+        _test_pattern_model.load(_load_test_patternmodel, _test_pattern_model_options, nullptr);
     }
 
     _test_pattern_model.computestats();
@@ -276,10 +271,17 @@ int main(int argc, char** argv) {
     std::ofstream _probs_file;
     _probs_file.open(_test_output_probabilities_file_name);
 
+    std::cerr << "Found " << _pattern_model.types() << " training types and " << 
+        _test_pattern_model.types() << " testing types" << std::endl;
+    std::cerr << "Performing " << _samples << " samples" << std::endl;
+
     cpyp::PYPLM<kORDER> lm(_pattern_model.types(), 1, 1, 1, 1);
     for (int sample = 0; sample < _samples; ++sample) {
         for (IndexPattern it : _indexed_corpus) {
                 for (Pattern q : _pattern_model.getreverseindex(it.ref)) {
+
+                       // std::cout << q.tostring(_test_class_decoder) << std::endl;
+
                         size_t p_size = q.size();
 
                         Pattern context = Pattern();
@@ -353,7 +355,9 @@ int main(int argc, char** argv) {
             cnt -= oovs;
             _ppl_file << "Sample: " << sample << "\tPerplexity: " << pow(2, llh / cnt) << std::endl;
 
-        } else if (!_report_ppl && sample % 10 == 9) {
+        } 
+        
+        if (!_report_ppl && sample % 10 == 9) {
                 std::cerr << " [LLH=" << lm.log_likelihood() << "]" << std::endl;
                 if (sample % 30u == 29)
                         lm.resample_hyperparameters(_eng);
