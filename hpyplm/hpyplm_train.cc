@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
         return -8;
     }
 
-    std::string _base_name = _output_directory + "/" + _run_name + "_" _kORDER + (_do_skipgrams ? "S" : "") + "_train";
+    std::string _base_name = _output_directory + "/" + _run_name + "_" + _kORDER + (_do_skipgrams ? "S" : "") + "_train";
     std::string _class_file_name = _base_name + ".cls";
     std::string _corpus_file_name = _base_name + ".dat";
     std::string _patternmodel_file_name = _base_name + ".patternmodel";
