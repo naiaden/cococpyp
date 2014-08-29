@@ -18,6 +18,7 @@
 #include <patternmodel.h>
 
 #include <sstream>
+#include <iomanip>
 
 #include "cmdline.h"
 
@@ -36,11 +37,35 @@ std::string toString(Backoff b) {
     return "unknown backoff method";
 }
 
+void p2b(const std::string& s, std::ostream& os, std::ofstream& ofs) {
+
+    ofs<< s;
+    os << s;
+
+}
+
+void p2bo(const std::string& s, std::ofstream& ofs) {
+    p2b(s, std::cout, ofs);
+}
+
+void p2be(const std::string& s, std::ofstream& ofs) {
+    p2b(s, std::cerr, ofs);
+}
+
 int main(int argc, char** argv) {
-  
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[80];
+
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+    std::string _current_time(buffer);
+
+ 
     std::stringstream oss;
     oss << kORDER;
-    //int _kORDER = std::atoi(oss.str().c_str());
     std::string _kORDER = oss.str();
 
     cmdline::parser clp;
@@ -113,12 +138,20 @@ int main(int argc, char** argv) {
         return -8;
     }
 
+    std::string _base_name = _output_directory + "/" + _run_name + "_" + toString(_backoff_method) + "_" + _kORDER;
+    std::ofstream _output;
+    std::string _output_filename = _base_name + ".output";
+    _output.open(_output_filename);
+
+    p2bo("Time: " + _current_time + "\n", _output);
+
+
     ClassEncoder _class_encoder = ClassEncoder();
     ClassDecoder _class_decoder = ClassDecoder();
 
     PatternModelOptions _pattern_model_options = PatternModelOptions();
     _pattern_model_options.MAXLENGTH = kORDER;
-    _pattern_model_options.MINLENGTH = 1;
+    _pattern_model_options.MINLENGTH = kORDER; ///////////////// 1 <-------------
     _pattern_model_options.DOSKIPGRAMS = _do_skipgrams;
     _pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = _do_skipgrams;
     _pattern_model_options.DOREVERSEINDEX = true;
@@ -128,7 +161,7 @@ int main(int argc, char** argv) {
 
     PatternModelOptions _test_pattern_model_options = PatternModelOptions();
     _test_pattern_model_options.MAXLENGTH = kORDER;
-    _test_pattern_model_options.MINLENGTH = 1;
+    _test_pattern_model_options.MINLENGTH = kORDER; ///////////// 1 <------------
     _test_pattern_model_options.DOSKIPGRAMS = false;//_do_skipgrams;
     _test_pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = false;//_do_skipgrams;
     _test_pattern_model_options.DOREVERSEINDEX = true;
@@ -153,7 +186,7 @@ int main(int argc, char** argv) {
         return -8;
     }
 
-    std::string _train_base_name = _output_directory + "/" + _run_name + "_" + toString(_backoff_method) + "_" + _kORDER + (_do_skipgrams ? "S" : "") + "_train";
+    std::string _train_base_name = _base_name + (_do_skipgrams ? "S" : "") + "_train";
     std::string _train_class_file_name = _train_base_name + ".cls";
     std::string _train_corpus_file_name = _train_base_name + ".dat";
     std::string _train_patternmodel_file_name = _train_base_name + ".patternmodel";
@@ -195,13 +228,9 @@ int main(int argc, char** argv) {
 
     _pattern_model.report(&std::cerr);
 
-    std::cerr << ">" << _pattern_model.totalwordtypesingroup(0,1) << "<";
-
-
-
-    std::cerr << "Some stats, w/e\n" << _indexed_corpus.sentences() << " sentences\n"
-        << _pattern_model.types() << " word types\n" << _pattern_model.size() << " pattern types\n" 
-        << _pattern_model.tokens() << " word tokens" << std::endl;	
+    p2be("Some stats, w/e\n" + std::to_string(_indexed_corpus.sentences()) + " sentences\n"
+        + std::to_string(_pattern_model.types()) + " word types\n" + std::to_string(_pattern_model.size()) + " pattern types\n" 
+        + std::to_string(_pattern_model.tokens()) + " word tokens\n", _output);	
 	
     // -train
     // +test
@@ -221,7 +250,7 @@ int main(int argc, char** argv) {
         return -8;
     }
 
-    std::string _test_base_output_name = _output_directory + "/" + _run_name + "_" + toString(_backoff_method) + "_" + _kORDER + "_test";
+    std::string _test_base_output_name = _base_name + "_test";
     std::string _test_output_class_file_name = _test_base_output_name + ".cls";
     std::string _test_output_corpus_file_name = _test_base_output_name + ".dat";
     std::string _test_output_patternmodel_file_name = _test_base_output_name + ".patternmodel";
@@ -257,11 +286,10 @@ int main(int argc, char** argv) {
     _test_pattern_model.computecoveragestats();
 
     _test_pattern_model.report(&std::cerr);
-    std::cerr << "Test>" << _test_pattern_model.totalwordtypesingroup(0,1) << "<";
 
-    std::cerr << "Some stats, w/e\n" << _test_indexed_corpus.sentences() << " sentences\n"
-        << _test_pattern_model.types() << " word types\n" << _test_pattern_model.size() << " pattern types\n" 
-        << _test_pattern_model.tokens() << " word tokens" << std::endl;	
+    p2be("Some stats, w/e\n" + std::to_string(_test_indexed_corpus.sentences()) + " sentences\n"
+        + std::to_string(_test_pattern_model.types()) + " word types\n" + std::to_string(_test_pattern_model.size()) + " pattern types\n" 
+        + std::to_string(_test_pattern_model.tokens()) + " word tokens\n", _output);	
 
     // -test
 
@@ -271,9 +299,11 @@ int main(int argc, char** argv) {
     std::ofstream _probs_file;
     _probs_file.open(_test_output_probabilities_file_name);
 
-    std::cerr << "Found " << _pattern_model.types() << " training types and " << 
-        _test_pattern_model.types() << " testing types" << std::endl;
-    std::cerr << "Performing " << _samples << " samples" << std::endl;
+    p2be("Found " + std::to_string(_pattern_model.types()) + " training types and " + 
+        std::to_string(_test_pattern_model.types()) + " testing types\n", _output);
+    p2be("Performing " + std::to_string(_samples) + " samples\n", _output);
+
+    PatternSet<uint64_t> allPatterns = _pattern_model.extractset();
 
     cpyp::PYPLM<kORDER> lm(_pattern_model.types(), 1, 1, 1, 1);
     for (int sample = 0; sample < _samples; ++sample) {
@@ -341,7 +371,9 @@ int main(int argc, char** argv) {
                                         lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
                                     }
 
-                                    if (!_test_pattern_model.has(focus)) // OOV if not in the train model
+//                                    if (!_test_pattern_model.has(focus)) // OOV if not in the train model
+//                                    if(!_pattern_model.occurrencecount(focus))
+                                    if(!allPatterns.has(focus))
                                     {
                                             ++oovs;
                                             lp = 0;
@@ -358,11 +390,12 @@ int main(int argc, char** argv) {
         } 
         
         if (!_report_ppl && sample % 10 == 9) {
-                std::cerr << " [LLH=" << lm.log_likelihood() << "]" << std::endl;
+                p2be(" [LLH=" + std::to_string(lm.log_likelihood()) + "]\n", _output);
                 if (sample % 30u == 29)
                         lm.resample_hyperparameters(_eng);
         } else {
-                std::cerr << '.' << std::flush;
+                p2be(".", _output);
+                //std::cerr << std::flush();
         }
 
 
@@ -404,7 +437,9 @@ int main(int argc, char** argv) {
                                 lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
                             }
 
-                            if (!_test_pattern_model.has(focus)) // OOV if not in the train model
+//                            if (!_test_pattern_model.has(focus)) // OOV if not in the train model
+//                            if(!_pattern_model.occurrencecount(focus))
+                            if(!allPatterns.has(focus))
                             {
                                     ++oovs;
                                     lp = 0;
@@ -415,9 +450,6 @@ int main(int argc, char** argv) {
                             _probs_file << "p[" << _pattern_model.occurrencecount(focus) << "](" << focus.tostring(_class_decoder) << " |";
                             _probs_file << context.tostring(_test_class_decoder) << ") = " << lp << std::endl;
 
-                            llh -= lp;
-                            ++cnt;
-    
                     } else {
                             //std::cout << "Skipping: " << q.tostring(_class_decoder) << std::endl;
                     }
@@ -428,13 +460,23 @@ int main(int argc, char** argv) {
     _probs_file.close();
 
     cnt -= oovs;
-    std::cerr << "  Log_10 prob: " << (-llh * log(2) / log(10)) << std::endl;
-    std::cerr << "        Count: " << cnt << std::endl;
-    std::cerr << "         OOVs: " << oovs << std::endl;
-    std::cerr << "Cross-Entropy: " << (llh / cnt) << std::endl;
-    std::cerr << "   Perplexity: " << pow(2, llh / cnt) << std::endl;
+    double lprob = (-llh * log(2)) / log(10);
+    p2be("  Log_10 prob: " + std::to_string(lprob) + "\n" , _output);
+    p2be("        Count: " + std::to_string(cnt) + "\n", _output);
+    p2be("         OOVs: " + std::to_string(oovs) + "\n", _output);
+    p2be("Cross-Entropy: " + std::to_string((llh / cnt)) + "\n", _output);
+    p2be("   Perplexity: " + std::to_string(pow(2, llh / cnt)) + "\n", _output);
 
-    std::cerr << "Done for now" << std::endl;
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+    _current_time = std::string(buffer);
+
+    p2bo("Time: " + _current_time + "\n", _output);
+
+    p2be("Done for now\n" , _output);
+    _output.close();
     exit(4);
 
 }

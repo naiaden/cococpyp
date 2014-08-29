@@ -23,11 +23,36 @@
 #include <patternmodel.h>
 
 #include <sstream>
+#include <iomanip>
 
 #include "hpyplm/uniform_vocab.h"
 #include "cmdline.h"
 
+void p2b(const std::string& s, std::ostream& os, std::ofstream& ofs) {
+
+    ofs << s;
+    os << s;
+}
+
+void p2bo(const std::string& s, std::ofstream& ofs) {
+    p2b(s, std::cout, ofs);
+}
+
+void p2be(const std::string& s, std::ofstream& ofs) {
+    p2b(s, std::cerr, ofs);
+}
+
 int main(int argc, char** argv) {
+
+    time_t rawtime;
+    struct tm* timeinfo;
+    char buffer[80];
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer, 80, "%d-%m-%Y %H:%M:%S", timeinfo);
+    std::string _current_time(buffer);
 
     std::stringstream oss;
     oss << kORDER;
@@ -86,7 +111,7 @@ int main(int argc, char** argv) {
 
     PatternModelOptions _pattern_model_options = PatternModelOptions();
     _pattern_model_options.MAXLENGTH = kORDER;
-    _pattern_model_options.MINLENGTH = 1; // kORDER - 1
+    _pattern_model_options.MINLENGTH = kORDER; // kORDER - 1
     _pattern_model_options.DOSKIPGRAMS = _do_skipgrams;
     _pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = _do_skipgrams;
     _pattern_model_options.DOREVERSEINDEX = true;
@@ -115,6 +140,12 @@ int main(int argc, char** argv) {
     std::string _corpus_file_name = _base_name + ".dat";
     std::string _patternmodel_file_name = _base_name + ".patternmodel";
     std::string _serialised_file_name = _base_name + ".ser";
+    
+    std::ofstream _output;
+    std::string _output_filename = _base_name + ".output";
+    _output.open(_output_filename);
+
+    p2bo("Time: " + _current_time + "\n", _output);
 
     if(_load_train_vocabulary.empty()) {
         _class_encoder.build(train_input_files, true);
@@ -151,17 +182,12 @@ int main(int argc, char** argv) {
 
     _pattern_model.report(&std::cerr);
 
-    std::cerr << ">" << _pattern_model.totalwordtypesingroup(0,1) << "<";
-
-
-
-    std::cerr << "Some stats, w/e\n" << _indexed_corpus.sentences() << " sentences\n"
-        << _pattern_model.types() << " word types\n" << _pattern_model.size() << " pattern types\n" 
-        << _pattern_model.tokens() << " word tokens" << std::endl;
+    p2be("Some stats, w/e\n" std::to_string(_indexed_corpus.sentences()) + " sentences\n"
+        + std::to_string(_pattern_model.types()) + " word types\n" + std::to_string(_pattern_model.size()) + " pattern types\n" 
+        + std::to_string(_pattern_model.tokens()) + " word tokens\n", _output);
 
     int cntr = 0;
 
-    //
 
 //    cpyp::PYPLM<kORDER> lm(_pattern_model.totalwordtypesingroup(0,1), 1, 1, 1, 1);
     cpyp::PYPLM<kORDER> lm(_pattern_model.types(), 1, 1, 1, 1);
@@ -190,28 +216,37 @@ int main(int argc, char** argv) {
        }
 
        if(sample % 10 == 9) {
-           std::cerr << " [LLH=" << lm.log_likelihood() << "]" << std::endl;
+           p2be(" [LLH=" + std::to_string(lm.log_likelihood()) + "]", _output);
            if(sample % 30u == 29) {
                lm.resample_hyperparameters(_eng);
            }
        } else {
-           std::cerr << "." << std::flush;
+           p2be(".", _output);
        }
     }
 
     //std::ofstream ofile(_output_file.c_str(), std::ios::out | std::ios::binary);
 
-        std::cerr << "Writing LM to " << _serialised_file_name << " ...\n";
+        p2be("Writing LM to " + _serialised_file_name + " ...\n", _output);
         std::ofstream ofile(_serialised_file_name, std::ios::binary);
         if (!ofile.good()) {
-            std::cerr << "Failed to open " << _serialised_file_name << " for writing\n";
+            p2be("Failed to open " + _serialised_file_name + " for writing\n", _output);
             return 1;
         }
 
         boost::archive::binary_oarchive oa(ofile);
         oa << lm;
 
-    std::cerr << "DONE, THANKS!" << std::endl;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(buffer,80,"%d-%m-%Y %H:%M:%S", timeinfo);
+    _current_time = std::string(buffer);
+
+    p2bo("Time: " + _current_time + "\n", _output);
+
+    p2be("DONE, THANKS!", _output);
+
+    _output.close();
 
     return 0;
 }
