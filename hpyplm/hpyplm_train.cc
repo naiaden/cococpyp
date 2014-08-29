@@ -182,7 +182,7 @@ int main(int argc, char** argv) {
 
     _pattern_model.report(&std::cerr);
 
-    p2be("Some stats, w/e\n" std::to_string(_indexed_corpus.sentences()) + " sentences\n"
+    p2be("Some stats, w/e\n" + std::to_string(_indexed_corpus.sentences()) + " sentences\n"
         + std::to_string(_pattern_model.types()) + " word types\n" + std::to_string(_pattern_model.size()) + " pattern types\n" 
         + std::to_string(_pattern_model.tokens()) + " word tokens\n", _output);
 
@@ -216,7 +216,7 @@ int main(int argc, char** argv) {
        }
 
        if(sample % 10 == 9) {
-           p2be(" [LLH=" + std::to_string(lm.log_likelihood()) + "]", _output);
+           p2be(" [LLH=" + std::to_string(lm.log_likelihood()) + "]\n", _output);
            if(sample % 30u == 29) {
                lm.resample_hyperparameters(_eng);
            }
@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
 
     p2bo("Time: " + _current_time + "\n", _output);
 
-    p2be("DONE, THANKS!", _output);
+    p2be("DONE, THANKS!\n", _output);
 
     _output.close();
 
