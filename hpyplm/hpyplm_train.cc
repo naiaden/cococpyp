@@ -60,7 +60,8 @@ int main(int argc, char** argv) {
 
     cmdline::parser clp;
 
-    clp.add<std::string>("traininput", 'i', "train input directory", true);
+    clp.add<std::string>("traininput", 'i', "train input directory", false);
+    clp.add<std::string>("traininputfile", 'f', "train input file", false);
     clp.add<std::string>("trainoutput", 'o', "train output directory", true);
     
     clp.add<int>("samples", 's', "samples", false, 50);
@@ -85,6 +86,8 @@ int main(int argc, char** argv) {
         _eng = cpyp::MT19937(clp.get<int>("seed"));
     }
 
+    std::string _train_input_file = clp.get<std::string>("traininputfile");
+
     std::string _train_input_directory = clp.get<std::string>("traininput");
     std::string _output_directory = clp.get<std::string>("trainoutput");
 
@@ -101,10 +104,10 @@ int main(int argc, char** argv) {
     std::string _load_train_patternmodel = clp.get<std::string>("loadtrainpatternmodel");
     std::string _load_train_vocabulary = clp.get<std::string>("loadtrainvocabulary");
 
-    if(_train_input_directory.empty() && (_load_train_corpus.empty() || _load_train_patternmodel.empty() || _load_train_vocabulary.empty())) {
-        std::cerr << "Not enough arguments to start training. Double check for either an input directory, or for the proper colibri derivatives." << std::endl;
-        return -8;
-    }
+//    if(_train_input_directory.empty() && (_load_train_corpus.empty() || _load_train_patternmodel.empty() || _load_train_vocabulary.empty())) {
+//        std::cerr << "Not enough arguments to start training. Double check for either an input directory, or for the proper colibri derivatives." << std::endl;
+//        return -8;
+//    }
 
     ClassEncoder _class_encoder = ClassEncoder();
     ClassDecoder _class_decoder = ClassDecoder();
@@ -130,10 +133,14 @@ int main(int argc, char** argv) {
                 train_input_files.push_back(p.string());
             }
         }
-    } else if(_load_train_vocabulary.empty() || _load_train_corpus.empty() || _load_train_patternmodel.empty()) {
-        std::cerr << "Unexpected situation. Neither training files nor colibri derivatives have been provided!" << std::endl;
-        return -8;
+    } else {
+       train_input_files.push_back(_train_input_file); 
     }
+    
+//    else if(_load_train_vocabulary.empty() || _load_train_corpus.empty() || _load_train_patternmodel.empty()) {
+//        std::cerr << "Unexpected situation. Neither training files nor colibri derivatives have been provided!" << std::endl;
+//        return -8;
+//    }
 
     std::string _base_name = _output_directory + "/" + _run_name + "_" + _kORDER + (_do_skipgrams ? "S" : "") + "_train";
     std::string _class_file_name = _base_name + ".cls";
@@ -188,6 +195,12 @@ int main(int argc, char** argv) {
 
     int cntr = 0;
 
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(buffer,80,"%d-%m-%Y %H:%M:%S", timeinfo);
+    _current_time = std::string(buffer);
+
+    p2bo("Time: " + _current_time + "\n", _output);
 
 //    cpyp::PYPLM<kORDER> lm(_pattern_model.totalwordtypesingroup(0,1), 1, 1, 1, 1);
     cpyp::PYPLM<kORDER> lm(_pattern_model.types(), 1, 1, 1, 1);
