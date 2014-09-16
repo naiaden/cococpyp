@@ -18,6 +18,7 @@
 #include <patternmodel.h>
 
 #include <sstream>
+#include <iomanip>
 
 #include "cmdline.h"
 
@@ -36,7 +37,33 @@ std::string toString(Backoff b) {
     return "unknown backoff method";
 }
 
+void p2b(const std::string& s, std::ostream& os, std::ofstream& ofs) {
+
+    ofs << s;
+    os << s;
+}
+
+void p2bo(const std::string& s, std::ofstream& ofs) {
+    p2b(s, std::cout, ofs);
+}
+
+void p2be(const std::string& s, std::ofstream& ofs) {
+    p2b(s, std::cerr, ofs);
+}
+
+
 int main(int argc, char** argv) {
+
+    time_t rawtime;
+    struct tm* timeinfo;
+    char buffer[80];
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer, 80, "%d-%m-%Y %H:%M:%S", timeinfo);
+    std::string _current_time(buffer);
+
     
     std::stringstream oss;
     oss << kORDER;
@@ -126,6 +153,13 @@ int main(int argc, char** argv) {
     //std::string _output_serialised_file_name = _base_output_name + ".ser";
     std::string _output_probabilities_file_name = _base_output_name + ".probs";
 
+    std::ofstream _output;
+    std::string _output_filename = _base_output_name + ".output";
+    _output.open(_output_filename);
+
+    p2bo("Time: " + _current_time + "\n", _output);
+
+
     _class_encoder.load(_input_class_file_name);
 
     for(auto i : test_input_files) {
@@ -142,8 +176,6 @@ int main(int argc, char** argv) {
 
     _test_pattern_model.computestats();
     _test_pattern_model.computecoveragestats();
-
-    _test_pattern_model.report(&std::cerr);
 
 
     _test_pattern_model.write(_output_patternmodel_file_name);
@@ -164,6 +196,12 @@ int main(int argc, char** argv) {
     std::ofstream _probs_file;
     _probs_file.open(_output_probabilities_file_name);
 
+    PatternSet<uint64_t> allPatterns;
+    {
+        PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options);
+        allPatterns = _train_pattern_model.extractset();
+    }
+
     for(IndexPattern indexPattern : _test_indexed_corpus) {
         for(Pattern pattern : _test_pattern_model.getreverseindex(indexPattern.ref)) {
             size_t pattern_size = pattern.size();
@@ -182,8 +220,6 @@ int main(int argc, char** argv) {
                     focus = pattern[pattern_size - 1];
                 }
 
-                unsigned oc = _test_pattern_model.occurrencecount(focus);
-
                 double lp;
 
                 if(_backoff_method == Backoff::BOBACO) {
@@ -198,12 +234,13 @@ int main(int argc, char** argv) {
                     lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
                 }
 
-                if(!oc) {
+                if(!allPatterns.has(focus)) {
                     ++oovs;
                     lp = 0;
+                    _probs_file << "***";
                 }
 
-                _probs_file << "p[" << oc << "](" << focus.tostring(_class_decoder) << " |";
+                _probs_file << "p(" << focus.tostring(_class_decoder) << " |";
                 _probs_file << context.tostring(_class_decoder) << ") = " << lp << std::endl;
 
                 llh -= lp;
@@ -211,15 +248,28 @@ int main(int argc, char** argv) {
             }
         }
     }
+
+    cnt -= oovs;
+    double lprob = (-llh * log(2)) / log(10);
+    p2be("  Log_10 prob: " + std::to_string(lprob) + "\n" , _output);
+    p2be("        Count: " + std::to_string(cnt) + "\n", _output);
+    p2be("         OOVs: " + std::to_string(oovs) + "\n", _output);
+    p2be("Cross-Entropy: " + std::to_string((llh / cnt)) + "\n", _output);
+    p2be("   Perplexity: " + std::to_string(pow(2, llh / cnt)) + "\n", _output);
+
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+    _current_time = std::string(buffer);
+
+    p2bo("Time: " + _current_time + "\n", _output);
+
+    p2be("Done for now\n" , _output);
+    _output.close();
     
     _probs_file.close();
 
-    cnt -= oovs;
-    std::cerr << "  Log_10 prob: " << (-llh * log(2) / log(10)) << std::endl;
-    std::cerr << "        Count: " << cnt << std::endl;
-    std::cerr << "         OOVs: " << oovs << std::endl;
-    std::cerr << "Cross-entropy: " << (llh / cnt) << std::endl;
-    std::cerr << "   Perplexity: " << pow(2, llh / cnt) << std::endl;
     return 0;
 
 }
