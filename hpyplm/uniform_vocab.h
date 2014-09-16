@@ -16,7 +16,8 @@ struct UniformVocabulary {
   void increment(const Pattern&, const Pattern&, Engine&, const ClassDecoder *const) { ++draws; }
   template<typename Engine>
   void decrement(const Pattern&, const Pattern&, Engine&, const ClassDecoder *const) { --draws; assert(draws >= 0); }
-  double prob(const Pattern& , const Pattern&, const ClassDecoder *const) const { /*std::cout << "\t\t\tp(0) " << p0 << std::endl; */return p0; }
+  double prob(const Pattern& , const Pattern&, const ClassDecoder *const, bool) const { /*std::cout << "\t\t\tp(0) " << p0 << std::endl; */return p0; }
+  double glm_prob(const Pattern& , const Pattern&, const ClassDecoder *const) const { /*std::cout << "\t\t\tp(0) " << p0 << std::endl; */return p0; }
   template<typename Engine>
   void resample_hyperparameters(Engine&) {}
   double log_likelihood() const { /*std::cerr << "(draws:" << draws << ",log(p0):" << log(p0) << ")";*/ return draws * log(p0); }
@@ -26,6 +27,24 @@ struct UniformVocabulary {
   }
   double p0;
   int draws;
+
+
+  double j0(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j1(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j2(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j3(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j4(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j5(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j6(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j7(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j8(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j9(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j10(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j11(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j12(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j13(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j14(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
+  double j15(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
 };
 
 }
