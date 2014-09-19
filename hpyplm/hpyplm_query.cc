@@ -202,6 +202,15 @@ int main(int argc, char** argv) {
         allPatterns = _train_pattern_model.extractset();
     }
 
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+    _current_time = std::string(buffer);
+
+    p2bo("Time: " + _current_time + "\n", _output);
+
+
     for(IndexPattern indexPattern : _test_indexed_corpus) {
         for(Pattern pattern : _test_pattern_model.getreverseindex(indexPattern.ref)) {
             size_t pattern_size = pattern.size();
