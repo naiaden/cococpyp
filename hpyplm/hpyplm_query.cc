@@ -71,7 +71,8 @@ int main(int argc, char** argv) {
 
     cmdline::parser clp;
 
-    clp.add<std::string>("testinput", 'I', "test input directory", true);
+    clp.add<std::string>("testinput", 'I', "test input directory", false);
+    clp.add<std::string>("testinputfile", 'F', "test input file", false); 
     clp.add<std::string>("output", '\0', "train and test output directory", false, "");
     clp.add<std::string>("testoutput", 'o', "test output directory", false, "");
     clp.add<std::string>("trainoutput", 'O', "train output directory", false, "");
@@ -88,6 +89,7 @@ int main(int argc, char** argv) {
     clp.parse_check(argc, argv);
 
     std::string _test_input_directory = clp.get<std::string>("testinput");
+    std::string _test_input_file = clp.get<std::string>("testinputfile");
     std::string _input_directory = clp.get<std::string>("trainoutput");
     std::string _output_directory = clp.get<std::string>("testoutput");
     if(clp.get<std::string>("output").empty() && (clp.get<std::string>("testoutput").empty() || clp.get<std::string>("trainoutput").empty())) {
@@ -108,10 +110,10 @@ int main(int argc, char** argv) {
     std::string _load_patternmodel = clp.get<std::string>("loadpatternmodel");
     std::string _load_vocabulary = clp.get<std::string>("loadvocabulary");
 
-    if(_test_input_directory.empty() && (_load_corpus.empty() || _load_patternmodel.empty() || _load_vocabulary.empty())) {
-        std::cerr << "Not enough arguments to start testing. Double check for either an input directory, or for the proper colibri derivatives." << std::endl;
-        return -8;
-    }
+//    if(_test_input_directory.empty() && (_load_corpus.empty() || _load_patternmodel.empty() || _load_vocabulary.empty())) {
+//        std::cerr << "Not enough arguments to start testing. Double check for either an input directory, or for the proper colibri derivatives." << std::endl;
+//        return -8;
+//    }
 
     ClassEncoder _class_encoder = ClassEncoder();
     ClassDecoder _class_decoder = ClassDecoder();
@@ -135,10 +137,13 @@ int main(int argc, char** argv) {
                 test_input_files.push_back(p.string());
             }
         }
-    } else if(_load_vocabulary.empty() || _load_corpus.empty() || _load_patternmodel.empty()) {
-        std::cerr << "Unexpected situation. Neither test files nor colibri derivatives have been provided!" << std::endl;
-        return -8;
+    } else {
+        test_input_files.push_back(_test_input_file);
     }
+//    } else if(_load_vocabulary.empty() || _load_corpus.empty() || _load_patternmodel.empty()) {
+//        std::cerr << "Unexpected situation. Neither test files nor colibri derivatives have been provided!" << std::endl;
+//        return -8;
+//    }
 
     std::string _base_input_name = _input_directory + "/" + _input_run_name;
     std::string _input_class_file_name = _base_input_name + ".cls";
