@@ -167,23 +167,42 @@ int main(int argc, char** argv) {
 
     _class_encoder.load(_input_class_file_name);
 
+    std::cout << "Ignore 1, just loaded class encoder\n";
+
     for(auto i : test_input_files) {
         _class_encoder.encodefile(i, _output_corpus_file_name, 1, 1, 0, 1);
     }
+
+    std::cout << "Ignore 2, just encoded the files\n";
+
     _class_encoder.save(_output_class_file_name);
+
+    std::cout << "Ignore 3, just saved class encoder\n";
 
     _class_decoder.load(_output_class_file_name);
 
+    std::cout << "Ignore 4, just loaded class decoder\n";
+
     IndexedCorpus _test_indexed_corpus = IndexedCorpus(_output_corpus_file_name);
 
+    std::cout << "Ignore 5, just created an indexed corpus\n";
+
     PatternModel<uint32_t> _test_pattern_model = PatternModel<uint32_t>(&_test_indexed_corpus);
+
+    std::cout << "Ignore 6, just created a pattern model\n";
+
     _test_pattern_model.train(_output_corpus_file_name, _pattern_model_options);
+
+    std::cout << "Ignore 7, just trained pattern model\n";
 
     _test_pattern_model.computestats();
     _test_pattern_model.computecoveragestats();
 
+    std::cout << "Ignore 8, just computed stuff\n";
 
     _test_pattern_model.write(_output_patternmodel_file_name);
+    
+    std::cout << "Ignore 9, just write the model to a file\n";
 
     double llh = 0;
     unsigned cnt = 0;
