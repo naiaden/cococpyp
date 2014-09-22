@@ -71,7 +71,8 @@ int main(int argc, char** argv) {
 
     cmdline::parser clp;
 
-    clp.add<std::string>("testinput", 'I', "test input directory", true);
+    clp.add<std::string>("testinput", 'I', "test input directory", false);
+    clp.add<std::string>("testinputfile", 'F', "test input file", false); 
     clp.add<std::string>("output", '\0', "train and test output directory", false, "");
     clp.add<std::string>("testoutput", 'o', "test output directory", false, "");
     clp.add<std::string>("trainoutput", 'O', "train output directory", false, "");
@@ -88,6 +89,7 @@ int main(int argc, char** argv) {
     clp.parse_check(argc, argv);
 
     std::string _test_input_directory = clp.get<std::string>("testinput");
+    std::string _test_input_file = clp.get<std::string>("testinputfile");
     std::string _input_directory = clp.get<std::string>("trainoutput");
     std::string _output_directory = clp.get<std::string>("testoutput");
     if(clp.get<std::string>("output").empty() && (clp.get<std::string>("testoutput").empty() || clp.get<std::string>("trainoutput").empty())) {
@@ -108,10 +110,10 @@ int main(int argc, char** argv) {
     std::string _load_patternmodel = clp.get<std::string>("loadpatternmodel");
     std::string _load_vocabulary = clp.get<std::string>("loadvocabulary");
 
-    if(_test_input_directory.empty() && (_load_corpus.empty() || _load_patternmodel.empty() || _load_vocabulary.empty())) {
-        std::cerr << "Not enough arguments to start testing. Double check for either an input directory, or for the proper colibri derivatives." << std::endl;
-        return -8;
-    }
+//    if(_test_input_directory.empty() && (_load_corpus.empty() || _load_patternmodel.empty() || _load_vocabulary.empty())) {
+//        std::cerr << "Not enough arguments to start testing. Double check for either an input directory, or for the proper colibri derivatives." << std::endl;
+//        return -8;
+//    }
 
     ClassEncoder _class_encoder = ClassEncoder();
     ClassDecoder _class_decoder = ClassDecoder();
@@ -135,10 +137,13 @@ int main(int argc, char** argv) {
                 test_input_files.push_back(p.string());
             }
         }
-    } else if(_load_vocabulary.empty() || _load_corpus.empty() || _load_patternmodel.empty()) {
-        std::cerr << "Unexpected situation. Neither test files nor colibri derivatives have been provided!" << std::endl;
-        return -8;
+    } else {
+        test_input_files.push_back(_test_input_file);
     }
+//    } else if(_load_vocabulary.empty() || _load_corpus.empty() || _load_patternmodel.empty()) {
+//        std::cerr << "Unexpected situation. Neither test files nor colibri derivatives have been provided!" << std::endl;
+//        return -8;
+//    }
 
     std::string _base_input_name = _input_directory + "/" + _input_run_name;
     std::string _input_class_file_name = _base_input_name + ".cls";
@@ -162,23 +167,42 @@ int main(int argc, char** argv) {
 
     _class_encoder.load(_input_class_file_name);
 
+    std::cout << "Ignore 1, just loaded class encoder\n";
+
     for(auto i : test_input_files) {
         _class_encoder.encodefile(i, _output_corpus_file_name, 1, 1, 0, 1);
     }
+
+    std::cout << "Ignore 2, just encoded the files\n";
+
     _class_encoder.save(_output_class_file_name);
+
+    std::cout << "Ignore 3, just saved class encoder\n";
 
     _class_decoder.load(_output_class_file_name);
 
+    std::cout << "Ignore 4, just loaded class decoder\n";
+
     IndexedCorpus _test_indexed_corpus = IndexedCorpus(_output_corpus_file_name);
 
+    std::cout << "Ignore 5, just created an indexed corpus\n";
+
     PatternModel<uint32_t> _test_pattern_model = PatternModel<uint32_t>(&_test_indexed_corpus);
+
+    std::cout << "Ignore 6, just created a pattern model\n";
+
     _test_pattern_model.train(_output_corpus_file_name, _pattern_model_options);
+
+    std::cout << "Ignore 7, just trained pattern model\n";
 
     _test_pattern_model.computestats();
     _test_pattern_model.computecoveragestats();
 
+    std::cout << "Ignore 8, just computed stuff\n";
 
     _test_pattern_model.write(_output_patternmodel_file_name);
+    
+    std::cout << "Ignore 9, just write the model to a file\n";
 
     double llh = 0;
     unsigned cnt = 0;
@@ -201,6 +225,15 @@ int main(int argc, char** argv) {
         PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options);
         allPatterns = _train_pattern_model.extractset();
     }
+
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+    _current_time = std::string(buffer);
+
+    p2bo("Time: " + _current_time + "\n", _output);
+
 
     for(IndexPattern indexPattern : _test_indexed_corpus) {
         for(Pattern pattern : _test_pattern_model.getreverseindex(indexPattern.ref)) {
