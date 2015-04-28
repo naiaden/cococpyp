@@ -17,6 +17,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <vector>
+#include <map>
 
 #include <classencoder.h>
 #include <classdecoder.h>
@@ -70,6 +71,7 @@ int main(int argc, char** argv) {
     clp.add("skipgram", 'S', "train with skipgrams");
     clp.add<int>("streshold", 'T', "treshold for skipgrams", false, 1);
     clp.add<int>("treshold", 't', "treshold for ngrams", false, 1);
+    clp.add<int>("unigramtreshold", 'W', "unigram treshold", false, 1);
 
     clp.add<std::string>("modelname", 'm', "the name of the training model", true);
 
@@ -97,6 +99,7 @@ int main(int argc, char** argv) {
     bool _do_skipgrams = clp.exist("skipgram");
     int _min_skip_tokens = clp.get<int>("streshold");
     int _min_tokens = clp.get<int>("treshold");
+    int _unigram_treshold = clp.get<int>("unigramtreshold");
 
     std::string _run_name = clp.get<std::string>("modelname");
 
@@ -121,6 +124,7 @@ int main(int argc, char** argv) {
     _pattern_model_options.QUIET = false;
     _pattern_model_options.MINTOKENS = _min_tokens;
     _pattern_model_options.MINTOKENS_SKIPGRAMS = _min_skip_tokens;
+    _pattern_model_options.MINTOKENS_UNIGRAMS = _unigram_treshold;
 
     
     std::vector<std::string> train_input_files;
@@ -200,6 +204,11 @@ int main(int argc, char** argv) {
     strftime(buffer,80,"%d-%m-%Y %H:%M:%S", timeinfo);
     _current_time = std::string(buffer);
 
+    std::map<Pattern, int> patternAdded;
+    std::map<Pattern, std::vector<Pattern> > patternSpawned;
+
+
+
     p2bo("Time: " + _current_time + "\n", _output);
 
 //    cpyp::PYPLM<kORDER> lm(_pattern_model.totalwordtypesingroup(0,1), 1, 1, 1, 1);
@@ -219,6 +228,14 @@ int main(int argc, char** argv) {
                         context = Pattern(pattern, 0, pattern_size - 1);
                         focus = pattern[pattern_size - 1];
                     }
+                    
+//                    if(!pattern.isskipgram()) {
+//                        for (gp : generateSkipgrams(pattern)) { // make skipgrams
+//                            patternAdded[pattern]++;
+//
+//                        }
+//
+//                    }
 
                     if(sample > 0) {
                         lm.decrement(focus, context, _eng);

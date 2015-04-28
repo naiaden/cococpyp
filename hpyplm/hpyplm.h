@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <unordered_map>
+#include <map>
+#include <set>
 
 #include "cpyp/m.h"
 #include "cpyp/random.h"
@@ -122,9 +124,22 @@ template<unsigned N> struct PYPLM {
 */
 	}
 
-	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false) const {
+	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false, std::map<Pattern, int> * patternAdded = nullptr, std::map<Pattern, std::set<Pattern> > * patternSpawned = nullptr) const {
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
                 Pattern shortened_context = pattern.reverse();
+
+/*                // "dynamic" backoff
+                if(patternAdded != nullptr && patternSpawned != nullptr) {
+                    std::vector<Pattern> all_subngrams;
+                    context.subngrams(all_subngrams);
+                    std::set<Pattern> subngrams(all_subngrams.begin(), all_subngrams.end());
+                    
+                    double prob = 0;
+                    for(sng : subngrams) {
+                        prob += (patternAdded[sng] * 1.0) / patternSpawned[sng].size() * ;
+                    }
+                }
+*/
 
                 std::string indentation = std::string(kORDER-N, '\t');
                 if(decoder != nullptr) {

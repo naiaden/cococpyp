@@ -1,5 +1,5 @@
 #all: hpyplm dhpyplm
-all: hpyplm2 hpyplm3 hpyplm4 hpyplm5 hpyplm_train3 hpyplm_train4 hpyplm_query3 hpyplm_query4
+all: hpyplm3 hpyplm3 hpyplm4 hpyplm5 hpyplm_train3 hpyplm_train4 hpyplm_query3 hpyplm_query4 loadmodel
 #hpyplm4 hpyplm5 hpyplm6 hpyplm7 hpyplm8 hpyplm9 hpyplm10
 #hpyplm6 hpyplm7 shpyplm3 shpyplm4 shpyplm5
 
@@ -54,6 +54,11 @@ hpyplm_query5: hpyplm_query.cc
 hpyplm_query_observe: hpyplm_query_observe.cc
 	$(CXX) -std=c++11 -O3 -Wall -I$(BOOST_INCLUDE) -I.. $< -o $@ $(BOOST_SERIALIZATION)
 
+hpyplm_analysis4: hpyplm_analysis.cc
+	$(CXX) -std=c++11 -DkORDER='4' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
+
+hpyplm_loadmodel: hpyplm_loadmodel.cc
+	$(CXX) -std=c++11 -DkORDER='4' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
 
 dhpyplm_train: dhpyplm_train.cc
 	$(CXX) -std=c++11 -O3 -Wall -I$(BOOST_INCLUDE) -I.. $< -o $@ $(BOOST_SERIALIZATION)

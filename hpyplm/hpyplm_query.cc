@@ -12,6 +12,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <vector>
+#include <map>
+#include <set>
 
 #include <classencoder.h>
 #include <classdecoder.h>
@@ -22,11 +24,12 @@
 
 #include "cmdline.h"
 
-enum class Backoff { GLM, BOBACO, NGRAM };
+enum class Backoff { GLM, BOBACO, NGRAM, REL};
 
 Backoff fromString(const std::string& s) {
     if(s.compare("glm") == 0) return Backoff::GLM;
     else if(s.compare("bobaco") == 0) return Backoff::BOBACO;
+    else if(s.compare("relative") == 0) return Backoff::REL;
     else return Backoff::NGRAM;
 }
 
@@ -34,6 +37,7 @@ std::string toString(Backoff b) {
     if(b == Backoff::GLM) return "GLM";
     if(b == Backoff::BOBACO) return "bobaco";
     if(b == Backoff::NGRAM) return "ngram";
+    if(b == Backoff::REL) return "relative";
     return "unknown backoff method";
 }
 
@@ -224,6 +228,30 @@ int main(int argc, char** argv) {
     {
         PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options);
         allPatterns = _train_pattern_model.extractset();
+    }
+
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+    _current_time = std::string(buffer);
+
+    p2bo("Time: " + _current_time + "\n", _output);
+
+    std::map<Pattern, int> patternAdded;
+    std::map<Pattern, std::set<Pattern> > patternSpawned;
+
+    for(auto kv : lm.p) {
+        std::string p_to_string = kv.first.tostring(_class_decoder);
+        if(kv.first.isngram()) {
+            std::vector<Pattern> all_subngrams;
+            kv.first.subngrams(all_subngrams, kORDER);
+            std::set<Pattern> subngrams(all_subngrams.begin(), all_subngrams.end());
+           for(gp : subngrams) {
+             patternAdded[gp]++;
+             patternSpawned[gp].insert(kv.first);
+           }
+        }
     }
 
     time (&rawtime);
