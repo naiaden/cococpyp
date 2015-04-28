@@ -214,17 +214,25 @@ int main(int argc, char** argv) {
     }
     boost::archive::binary_iarchive ia(ifs);
 
+    std::cout << "Ignore 10, opened serialisation file\n";
+
     cpyp::PYPLM<kORDER> lm;
     ia & lm;
 
+    std::cout << "Ignore 11, created the PYPLM\n";
+
     std::ofstream _probs_file;
     _probs_file.open(_output_probabilities_file_name);
+
+    std::cout << "Ignore 12, opened the output files\n";
 
     PatternSet<uint64_t> allPatterns;
     {
         PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options);
         allPatterns = _train_pattern_model.extractset();
     }
+
+    std::cout << "Ignore 13, allPatterns stuff\n";
 
     time (&rawtime);
     timeinfo = localtime(&rawtime);

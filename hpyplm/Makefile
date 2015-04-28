@@ -1,5 +1,5 @@
 #all: hpyplm dhpyplm
-all: hpyplm2 hpyplm3 hpyplm4 hpyplm5 hpyplm_train3 hpyplm_train4 hpyplm_query3 hpyplm_query4
+all: hpyplm_train3 hpyplm_train4 hpyplm_query3 hpyplm_query4
 
 #COCO_INCLUDE=/usr/local/include/colibri-core
 #COCO_INCLUDE=/home/lonrust/Software/colibri-core/include
@@ -20,34 +20,10 @@ hpyplm4: hpyplm.cc
 hpyplm5: hpyplm.cc
 	$(CXX) -std=c++11 -DkORDER='5' -g -O0 -Wall -I.. hpyplm.cc -o hpyplm5 -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/ 
 
-hpyplm6: hpyplm.cc
-	$(CXX) -std=c++11 -DkORDER='6' -g -O0 -Wall -I.. hpyplm.cc -o hpyplm6 -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/ 
-
-hpyplm7: hpyplm.cc
-	$(CXX) -std=c++11 -DkORDER='7' -g -O0 -Wall -I.. hpyplm.cc -o hpyplm7 -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/ 
-
-hpyplm8: hpyplm.cc
-	$(CXX) -std=c++11 -DkORDER='8' -g -O0 -Wall -I.. hpyplm.cc -o hpyplm8 -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/ 
-
-hpyplm9: hpyplm.cc
-	$(CXX) -std=c++11 -DkORDER='9' -g -O0 -Wall -I.. hpyplm.cc -o hpyplm9 -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/ 
-
-hpyplm10: hpyplm.cc
-	$(CXX) -std=c++11 -DkORDER='10' -g -O0 -Wall -I.. hpyplm.cc -o hpyplm10 -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/ 
-
-hpyplm4: hpyplm.cc
-	$(CXX) -std=c++11 -DkORDER='4' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
-
-hpyplm5: hpyplm.cc
-	$(CXX) -std=c++11 -DkORDER='5' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
-
 #dhpyplm: dhpyplm.cc
 #	$(CXX) -std=c++11 -O3 -g -Wall -I.. dhpyplm.cc -o dhpyplm
 
 ## stuff below here is optional
-
-hpyplm_train: hpyplm_train.cc
-	$(CXX) -std=c++11 -DkORDER='3' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/
 
 hpyplm_train3: hpyplm_train.cc
 	$(CXX) -std=c++11 -DkORDER='3' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/
@@ -58,18 +34,14 @@ hpyplm_train4: hpyplm_train.cc
 hpyplm_train5: hpyplm_train.cc
 	$(CXX) -std=c++11 -DkORDER='5' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/
 
-hpyplm_query: hpyplm_query.cc
-	$(CXX) -std=c++11 -DkORDER='3' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
-#	//$(CXX) -std=c++11 -O3 -Wall -I$(BOOST_INCLUDE) -I.. $< -o $@ $(BOOST_SERIALIZATION)
-
 hpyplm_query3: hpyplm_query.cc
-	$(CXX) -std=c++11 -DkORDER='3' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
+	$(CXX) -std=c++11 -DkORDER='3' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/
 
 hpyplm_query4: hpyplm_query.cc
-	$(CXX) -std=c++11 -DkORDER='4' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
+	$(CXX) -std=c++11 -DkORDER='4' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/
 
 hpyplm_query5: hpyplm_query.cc
-	$(CXX) -std=c++11 -DkORDER='5' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
+	$(CXX) -std=c++11 -DkORDER='5' -g -O0 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2 -L/users/spraak/onrust/software/boost_1_55_0/stage/lib/
 
 hpyplm_query_observe: hpyplm_query_observe.cc
 	$(CXX) -std=c++11 -O3 -Wall -I$(BOOST_INCLUDE) -I.. $< -o $@ $(BOOST_SERIALIZATION)
