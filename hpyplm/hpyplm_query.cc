@@ -246,6 +246,7 @@ int main(int argc, char** argv) {
 
     p2bo("Time: " + _current_time + "\n", _output);
 
+/*
     std::map<Pattern, int> patternAdded;
     std::map<Pattern, std::set<Pattern> > patternSpawned;
 
@@ -261,6 +262,8 @@ int main(int argc, char** argv) {
            }
         }
     }
+*/
+
 
     time (&rawtime);
     timeinfo = localtime(&rawtime);
