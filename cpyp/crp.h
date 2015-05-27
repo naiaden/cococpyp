@@ -13,6 +13,9 @@
 #include "crp_table_manager.h"
 #include "m.h"
 
+#include <pattern.h>
+#include <classdecoder.h>
+
 namespace cpyp {
 
 // Chinese restaurant process (Pitman-Yor parameters) histogram-based table tracking
@@ -338,6 +341,15 @@ public:
 		std::cerr << "PYP(d=" << discount_ << ",c=" << strength_ << ") customers=" << num_customers_ << std::endl;
 		for (auto& dish_loc : dish_locs_)
 			(*out) << dish_loc.first << " : " << dish_loc.second << std::endl;
+	}
+
+	void print_cout(ClassDecoder * const decoder) {
+		std::cout << "PYP(d=" << discount_ << ",c=" << strength_ << ") customers=" << num_customers_ << std::endl;
+		for (auto& dish_loc : dish_locs_)
+                {
+                    std::cout << dish_loc.first.tostring(*decoder) << std::endl;
+                }
+//			std::cerr << dish_loc.first << " : " << dish_loc.second << std::endl;
 	}
 
 	typedef typename std::unordered_map<Dish, crp_table_manager<1>, DishHash>::const_iterator const_iterator;
