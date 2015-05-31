@@ -22,7 +22,16 @@
 #include <sstream>
 #include <iomanip>
 
+#include <queue>
+
 #include "cmdline.h"
+
+std::vector<std::string> split(std::string const &input) { 
+    std::istringstream buffer(input);
+    std::vector<std::string> ret{std::istream_iterator<std::string>(buffer), 
+                                 std::istream_iterator<std::string>()};
+    return ret;
+}
 
 enum class Backoff { GLM, BOBACO, NGRAM, REL};
 
@@ -264,6 +273,32 @@ int main(int argc, char** argv) {
     _current_time = std::string(buffer);
 
     p2bo("Time: " + _current_time + "\n", _output);
+
+    std::queue<std::string> ngram_buffer;
+    // ngram_buffer.push( ... )
+    // ngram_buffer.pop()
+    // ngram_buffer.front()
+    // ngram_buffer.size()
+
+    std::ifstream file("INPUTFILE.txt");
+    std::string retrieved_string;
+    while( std::getline(file, retrieved_string))
+    {
+        // split sentence
+        std::vector<std::string> words = split(retrieved_string);
+        for(std::string word : words)
+        {
+            if(ngram_buffer.size() < kORDER)
+            {
+                ngram_buffer.push(word);
+            }
+
+            // process
+            
+
+            ngram_buffer.pop();
+        }
+    }
 
 
     for(IndexPattern indexPattern : _test_indexed_corpus) {
