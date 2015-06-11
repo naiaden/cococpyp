@@ -153,6 +153,10 @@ int main(int argc, char** argv) {
     } else {
         test_input_files.push_back(_test_input_file);
     }
+    for(auto f: test_input_files)
+    {
+        std::cout << f << std::endl;
+    }
 //    } else if(_load_vocabulary.empty() || _load_corpus.empty() || _load_patternmodel.empty()) {
 //        std::cerr << "Unexpected situation. Neither test files nor colibri derivatives have been provided!" << std::endl;
 //        return -8;
@@ -195,27 +199,6 @@ int main(int argc, char** argv) {
     _class_decoder.load(_output_class_file_name);
 
     std::cout << "Ignore 4, just loaded class decoder\n";
-
-    IndexedCorpus _test_indexed_corpus = IndexedCorpus(_output_corpus_file_name);
-
-    std::cout << "Ignore 5, just created an indexed corpus\n";
-
-    PatternModel<uint32_t> _test_pattern_model = PatternModel<uint32_t>(&_test_indexed_corpus);
-
-    std::cout << "Ignore 6, just created a pattern model\n";
-
-    _test_pattern_model.train(_output_corpus_file_name, _pattern_model_options);
-
-    std::cout << "Ignore 7, just trained pattern model\n";
-
-    _test_pattern_model.computestats();
-    _test_pattern_model.computecoveragestats();
-
-    std::cout << "Ignore 8, just computed stuff\n";
-
-    _test_pattern_model.write(_output_patternmodel_file_name);
-    
-    std::cout << "Ignore 9, just write the model to a file\n";
 
     double llh = 0;
     unsigned cnt = 0;
@@ -274,76 +257,72 @@ int main(int argc, char** argv) {
 
     p2bo("Time: " + _current_time + "\n", _output);
 
-    std::queue<std::string> ngram_buffer;
-    // ngram_buffer.push( ... )
-    // ngram_buffer.pop()
-    // ngram_buffer.front()
-    // ngram_buffer.size()
 
-    std::ifstream file("INPUTFILE.txt");
-    std::string retrieved_string;
-    while( std::getline(file, retrieved_string))
+    for(std::string input_file_name : test_input_files)
     {
-        // split sentence
-        std::vector<std::string> words = split(retrieved_string);
-        for(std::string word : words)
+//        std::cout << "Opening file: " << input_file_name << std::endl;
+        std::ifstream file(input_file_name);
+//        std::cout << "Opening was succesful" << std::endl;
+
+        std::string retrieved_string;
+        while( std::getline(file, retrieved_string))
         {
-            if(ngram_buffer.size() < kORDER)
+//            std::cout << "Retrieved line: " << retrieved_string << std::endl;
+            // split sentence
+            std::vector<std::string> words = split(retrieved_string);
+
+//            std::cout << "Found " << std::to_string(words.size()) << " words" << std::endl;
+
+            if(words.size() < kORDER)
             {
-                ngram_buffer.push(word);
-            }
+                break;
+            } else
+            {
+//                std::cout << "Processing the sentence" << std::endl;
+                // als kORDER = 4, dan is 3 het focuswoord
+                for(int i = (kORDER-1); i < words.size(); ++i)
+                {
+//                    std::cout << "Focus word: " << words[i] << std::endl;
+//                    std::cout << "n=" << kORDER << ", i=" << i << std::endl;
+                
+                    std::stringstream context_stream;
+                    context_stream << words[i-(kORDER-1)];
 
-            // process
-            
+                    for(int ii = 1; ii < kORDER-1 ; ++ii)
+                    {
+                        context_stream << " " << words[i-(kORDER-1)+ii];
+                    }
 
-            ngram_buffer.pop();
-        }
-    }
+                    Pattern context = _class_encoder.buildpattern(context_stream.str());
+                    Pattern focus = _class_encoder.buildpattern(words[i]);
 
+                    double lp;
 
-    for(IndexPattern indexPattern : _test_indexed_corpus) {
-        for(Pattern pattern : _test_pattern_model.getreverseindex(indexPattern.ref)) {
-            size_t pattern_size = pattern.size();
+                    if(_backoff_method == Backoff::BOBACO) {
+                        lp = log(lm.prob(focus, context, nullptr, true)) / log(2);
+                    } else if(_backoff_method == Backoff::GLM) {
+                             if(kORDER == 5) lp = log(lm.j15(focus, context)) / log(2);
+                        else if(kORDER == 4) lp = log(lm.j7(focus, context)) / log(2);
+                        else if(kORDER == 3) lp = log(lm.j3(focus, context)) / log(2);
+                        else lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
+                    } else {
+                        // baco
+                        lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
+                    }
 
-            Pattern context = Pattern();
-            Pattern focus = Pattern();
+                    if(!allPatterns.has(focus)) {
+                        ++oovs;
+                        lp = 0;
+                        _probs_file << "***";
+                    }
 
-            if(pattern_size == kORDER) {
-                context = Pattern(pattern, 0, pattern_size - 1);
-                focus = pattern[pattern_size - 1];
+                    _probs_file << "p(" << focus.tostring(_class_decoder) << " |";
+                    _probs_file << context.tostring(_class_decoder) << ") = " << lp << std::endl;
 
-                if(pattern_size == 1) {
-                    focus = pattern[0];
-                } else {
-                    context = Pattern(pattern, 0, pattern_size - 1);
-                    focus = pattern[pattern_size - 1];
+                    llh -= lp;
+                    ++cnt;
+
                 }
-
-                double lp;
-
-                if(_backoff_method == Backoff::BOBACO) {
-                    lp = log(lm.prob(focus, context, nullptr, true)) / log(2);
-                } else if(_backoff_method == Backoff::GLM) {
-                         if(kORDER == 5) lp = log(lm.j15(focus, context)) / log(2);
-                    else if(kORDER == 4) lp = log(lm.j7(focus, context)) / log(2);
-                    else if(kORDER == 3) lp = log(lm.j3(focus, context)) / log(2);
-                    else lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
-                } else {
-                    // baco
-                    lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
-                }
-
-                if(!allPatterns.has(focus)) {
-                    ++oovs;
-                    lp = 0;
-                    _probs_file << "***";
-                }
-
-                _probs_file << "p(" << focus.tostring(_class_decoder) << " |";
-                _probs_file << context.tostring(_class_decoder) << ") = " << lp << std::endl;
-
-                llh -= lp;
-                ++cnt;
             }
         }
     }
