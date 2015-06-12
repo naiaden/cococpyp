@@ -291,12 +291,14 @@ int main(int argc, char** argv) {
 
             int nr_files = 0;
             int nr_lines = 0;
+                std::map<int, int> blabla;
             for(std::string input_file_name : test_input_files)
             {
                     ++nr_files;
         //        std::cout << "Opening file: " << input_file_name << std::endl;
                 std::ifstream file(input_file_name);
         //        std::cout << "Opening was succesful" << std::endl;
+
 
                 std::string retrieved_string;
                 while( std::getline(file, retrieved_string))
@@ -334,7 +336,7 @@ int main(int argc, char** argv) {
                             double lp;
 
                             if(i_backoff_method == Backoff::BOBACO) {
-                                lp = log(lm.prob(focus, context, nullptr, true)) / log(2);
+                                lp = log(lm.prob(focus, context, nullptr, true, nullptr, nullptr, &blabla)) / log(2);
                             } else if(i_backoff_method == Backoff::GLM) {
                                      if(kORDER == 5) lp = log(lm.j15(focus, context)) / log(2);
                                 else if(kORDER == 4) lp = log(lm.j7(focus, context)) / log(2);
@@ -360,6 +362,11 @@ int main(int argc, char** argv) {
                         }
                     }
                 }
+            }
+
+            for(auto key: blabla)
+            {
+                std::cout << key.first << " " << key.second << std::endl;
             }
 
             std::cout << "Processed " << nr_files << " files and " << nr_lines << " lines" << std::endl;

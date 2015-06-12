@@ -124,7 +124,7 @@ template<unsigned N> struct PYPLM {
 */
 	}
 
-	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false, std::map<Pattern, int> * patternAdded = nullptr, std::map<Pattern, std::set<Pattern> > * patternSpawned = nullptr) const {
+	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false, std::map<Pattern, int> * patternAdded = nullptr, std::map<Pattern, std::set<Pattern> > * patternSpawned = nullptr, std::map<int, int> * backoff_administration = nullptr) const {
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
                 Pattern shortened_context = pattern.reverse();
 
@@ -146,7 +146,7 @@ template<unsigned N> struct PYPLM {
                     std::cout << N << indentation << "P: " << w.tostring(*decoder) << " | " << shortened_context.tostring(*decoder) << std::endl;
                 }
 
-		const double bo = backoff.prob(w, context, decoder, backoff_to_skips);
+		const double bo = backoff.prob(w, context, decoder, backoff_to_skips, patternAdded, patternSpawned, backoff_administration);
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
@@ -154,6 +154,11 @@ template<unsigned N> struct PYPLM {
                     double average;
                     
                     if(backoff_to_skips) {
+                        if(backoff_administration) 
+                        {
+                            int temp_int = (*backoff_administration)[kORDER+N];
+                            (*backoff_administration)[kORDER+N] = ++temp_int;
+                        }
 
                         // okay, ngram is not available
                         // time for some backoff
@@ -161,7 +166,7 @@ template<unsigned N> struct PYPLM {
                         for(Pattern skipped_context : skipped_patterns) {
                             Pattern s_rev = skipped_context.reverse();
 
-                            average += ((prob(w, skipped_context,decoder,backoff_to_skips))/(skipped_patterns.size()+1));
+                            average += ((prob(w, skipped_context,decoder,backoff_to_skips, patternAdded, patternSpawned, backoff_administration))/(skipped_patterns.size()+1));
                         }
                         average += bo/(skipped_patterns.size()+1);
 
@@ -174,6 +179,11 @@ template<unsigned N> struct PYPLM {
                         return average;
  
                     } else {
+                        if(backoff_administration) 
+                        {
+                            int temp_int = (*backoff_administration)[kORDER];
+                            (*backoff_administration)[kORDER] = ++temp_int;
+                        }
                         return bo;
                     }
                 }
