@@ -33,20 +33,22 @@ std::vector<std::string> split(std::string const &input) {
     return ret;
 }
 
-enum class Backoff { GLM, BOBACO, NGRAM, REL};
+enum class Backoff { GLM, BOBACO, NGRAM, REL, ALL};
 
 Backoff fromString(const std::string& s) {
     if(s.compare("glm") == 0) return Backoff::GLM;
     else if(s.compare("bobaco") == 0) return Backoff::BOBACO;
     else if(s.compare("relative") == 0) return Backoff::REL;
+    else if(s.compare("all") == 0) return Backoff::ALL;
     else return Backoff::NGRAM;
 }
 
 std::string toString(Backoff b) {
-    if(b == Backoff::GLM) return "GLM";
+    if(b == Backoff::GLM) return "glm";
     if(b == Backoff::BOBACO) return "bobaco";
     if(b == Backoff::NGRAM) return "ngram";
     if(b == Backoff::REL) return "relative";
+    if(b == Backoff::ALL) return "all";
     return "unknown backoff method";
 }
 
@@ -93,7 +95,7 @@ int main(int argc, char** argv) {
     clp.add<std::string>("trainmodel", 'm', "the name of the training model", true);
     clp.add<std::string>("testmodel", 'M', "the name of the testing model", true);
 
-    clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram", cmdline::oneof<std::string>("glm", "bobaco", "ngram"));
+    clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram", cmdline::oneof<std::string>("glm", "bobaco", "ngram", "all"));
 
     clp.add<std::string>("loadcorpus", '\0', "load colibri encoded corpus", false, "");
     clp.add<std::string>("loadpatternmodel", '\0', "load colibri encoded pattern model", false, "");
@@ -168,18 +170,20 @@ int main(int argc, char** argv) {
     std::string _input_patternmodel_file_name = _base_input_name + ".patternmodel";
     std::string _input_serialised_file_name = _base_input_name + ".ser";
 
-    std::string _base_output_name = _output_directory + "/" + _output_run_name + "_" + toString(_backoff_method) + "_" + _kORDER;
-    std::string _output_class_file_name = _base_output_name + ".cls";
-    std::string _output_corpus_file_name = _base_output_name + ".dat";
-    std::string _output_patternmodel_file_name = _base_output_name + ".patternmodel";
+
+    std::string _general_base_output_name = _output_directory + "/" + _output_run_name + "_" + toString(_backoff_method) + "-common_" + _kORDER;
+    std::string _general_output_class_file_name = _general_base_output_name + ".cls";
+    std::string _general_output_corpus_file_name = _general_base_output_name + ".dat";
+//   std::string _output_patternmodel_file_name = _base_output_name + ".patternmodel";
     //std::string _output_serialised_file_name = _base_output_name + ".ser";
-    std::string _output_probabilities_file_name = _base_output_name + ".probs";
+//    std::string _output_probabilities_file_name = _base_output_name + ".probs";
 
-    std::ofstream _output;
-    std::string _output_filename = _base_output_name + ".output";
-    _output.open(_output_filename);
+    std::ofstream _general_output;
+    std::string _general_output_filename = _general_base_output_name + ".output";
+    _general_output.open(_general_output_filename);
 
-    p2bo("Time: " + _current_time + "\n", _output);
+
+    p2bo("Time: " + _current_time + "\n", _general_output);
 
 
     _class_encoder.load(_input_class_file_name);
@@ -187,23 +191,19 @@ int main(int argc, char** argv) {
     std::cout << "Ignore 1, just loaded class encoder\n";
 
     for(auto i : test_input_files) {
-        _class_encoder.encodefile(i, _output_corpus_file_name, 1, 1, 0, 1);
+        _class_encoder.encodefile(i, _general_output_corpus_file_name, 1, 1, 0, 1);
     }
 
     std::cout << "Ignore 2, just encoded the files\n";
 
-    _class_encoder.save(_output_class_file_name);
+    _class_encoder.save(_general_output_class_file_name);
 
     std::cout << "Ignore 3, just saved class encoder\n";
 
-    _class_decoder.load(_output_class_file_name);
+    _class_decoder.load(_general_output_class_file_name);
 
     std::cout << "Ignore 4, just loaded class decoder\n";
 
-    double llh = 0;
-    unsigned cnt = 0;
-    unsigned oovs = 0;
-    
     std::ifstream ifs(_input_serialised_file_name, std::ios::binary);
     if(!ifs.good()) {
         std::cerr << "Something went wrong whilst reading the model: " << _input_serialised_file_name << std::endl;
@@ -213,8 +213,6 @@ int main(int argc, char** argv) {
     cpyp::PYPLM<kORDER> lm;
     ia & lm;
 
-    std::ofstream _probs_file;
-    _probs_file.open(_output_probabilities_file_name);
 
     PatternSet<uint64_t> allPatterns;
     {
@@ -228,7 +226,7 @@ int main(int argc, char** argv) {
     strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
     _current_time = std::string(buffer);
 
-    p2bo("Time: " + _current_time + "\n", _output);
+    p2bo("Time: " + _current_time + "\n", _general_output);
 
 /*
     std::map<Pattern, int> patternAdded;
@@ -247,106 +245,146 @@ int main(int argc, char** argv) {
         }
     }
 */
+        std::vector<Backoff> all_backoff_options = std::vector<Backoff>();
 
-
-    time (&rawtime);
-    timeinfo = localtime(&rawtime);
-
-    strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
-    _current_time = std::string(buffer);
-
-    p2bo("Time: " + _current_time + "\n", _output);
-
-
-    for(std::string input_file_name : test_input_files)
+    if(_backoff_method == Backoff::ALL) {
+        all_backoff_options.push_back(Backoff::NGRAM);
+        all_backoff_options.push_back(Backoff::BOBACO);
+        all_backoff_options.push_back(Backoff::GLM);
+    } else 
     {
-//        std::cout << "Opening file: " << input_file_name << std::endl;
-        std::ifstream file(input_file_name);
-//        std::cout << "Opening was succesful" << std::endl;
+        all_backoff_options.push_back(_backoff_method);
+    }
+       for(Backoff i_backoff_method : all_backoff_options) { 
 
-        std::string retrieved_string;
-        while( std::getline(file, retrieved_string))
-        {
-//            std::cout << "Retrieved line: " << retrieved_string << std::endl;
-            // split sentence
-            std::vector<std::string> words = split(retrieved_string);
 
-//            std::cout << "Found " << std::to_string(words.size()) << " words" << std::endl;
+    std::string _base_output_name = _output_directory + "/" + _output_run_name + "_" + toString(i_backoff_method) + "_" + _kORDER;
+    std::string _output_class_file_name = _base_output_name + ".cls";
+    std::string _output_corpus_file_name = _base_output_name + ".dat";
+    std::string _output_patternmodel_file_name = _base_output_name + ".patternmodel";
+    //std::string _output_serialised_file_name = _base_output_name + ".ser";
+    std::string _output_probabilities_file_name = _base_output_name + ".probs";
 
-            if(words.size() < kORDER)
+    std::ofstream _output;
+    std::string _output_filename = _base_output_name + ".output";
+    _output.open(_output_filename);
+
+    std::ofstream _probs_file;
+    _probs_file.open(_output_probabilities_file_name);
+
+            std::cout << "Processing method " << toString(i_backoff_method) << std::endl;
+
+            time (&rawtime);
+            timeinfo = localtime(&rawtime);
+
+            strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+            _current_time = std::string(buffer);
+
+            p2bo("Time: " + _current_time + "\n", _output);
+
+
+    double llh = 0;
+    unsigned cnt = 0;
+    unsigned oovs = 0;
+    
+
+
+            int nr_files = 0;
+            int nr_lines = 0;
+            for(std::string input_file_name : test_input_files)
             {
-                break;
-            } else
-            {
-//                std::cout << "Processing the sentence" << std::endl;
-                // als kORDER = 4, dan is 3 het focuswoord
-                for(int i = (kORDER-1); i < words.size(); ++i)
+                    ++nr_files;
+        //        std::cout << "Opening file: " << input_file_name << std::endl;
+                std::ifstream file(input_file_name);
+        //        std::cout << "Opening was succesful" << std::endl;
+
+                std::string retrieved_string;
+                while( std::getline(file, retrieved_string))
                 {
-//                    std::cout << "Focus word: " << words[i] << std::endl;
-//                    std::cout << "n=" << kORDER << ", i=" << i << std::endl;
-                
-                    std::stringstream context_stream;
-                    context_stream << words[i-(kORDER-1)];
+                        ++nr_lines;
+        //            std::cout << "Retrieved line: " << retrieved_string << std::endl;
+                    // split sentence
+                    std::vector<std::string> words = split(retrieved_string);
 
-                    for(int ii = 1; ii < kORDER-1 ; ++ii)
+        //            std::cout << "Found " << std::to_string(words.size()) << " words" << std::endl;
+
+                    if(words.size() < kORDER)
                     {
-                        context_stream << " " << words[i-(kORDER-1)+ii];
+                    //    break;
+                    } else
+                    {
+        //                std::cout << "Processing the sentence" << std::endl;
+                        // als kORDER = 4, dan is 3 het focuswoord
+                        for(int i = (kORDER-1); i < words.size(); ++i)
+                        {
+        //                    std::cout << "Focus word: " << words[i] << std::endl;
+        //                    std::cout << "n=" << kORDER << ", i=" << i << std::endl;
+                        
+                            std::stringstream context_stream;
+                            context_stream << words[i-(kORDER-1)];
+
+                            for(int ii = 1; ii < kORDER-1 ; ++ii)
+                            {
+                                context_stream << " " << words[i-(kORDER-1)+ii];
+                            }
+
+                            Pattern context = _class_encoder.buildpattern(context_stream.str());
+                            Pattern focus = _class_encoder.buildpattern(words[i]);
+
+                            double lp;
+
+                            if(i_backoff_method == Backoff::BOBACO) {
+                                lp = log(lm.prob(focus, context, nullptr, true)) / log(2);
+                            } else if(i_backoff_method == Backoff::GLM) {
+                                     if(kORDER == 5) lp = log(lm.j15(focus, context)) / log(2);
+                                else if(kORDER == 4) lp = log(lm.j7(focus, context)) / log(2);
+                                else if(kORDER == 3) lp = log(lm.j3(focus, context)) / log(2);
+                                else lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
+                            } else {
+                                // baco
+                                lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
+                            }
+
+                            if(!allPatterns.has(focus)) {
+                                ++oovs;
+                                lp = 0;
+                                _probs_file << "***";
+                            }
+
+                            _probs_file << "p(" << focus.tostring(_class_decoder) << " |";
+                            _probs_file << context.tostring(_class_decoder) << ") = " << lp << std::endl;
+
+                            llh -= lp;
+                            ++cnt;
+
+                        }
                     }
-
-                    Pattern context = _class_encoder.buildpattern(context_stream.str());
-                    Pattern focus = _class_encoder.buildpattern(words[i]);
-
-                    double lp;
-
-                    if(_backoff_method == Backoff::BOBACO) {
-                        lp = log(lm.prob(focus, context, nullptr, true)) / log(2);
-                    } else if(_backoff_method == Backoff::GLM) {
-                             if(kORDER == 5) lp = log(lm.j15(focus, context)) / log(2);
-                        else if(kORDER == 4) lp = log(lm.j7(focus, context)) / log(2);
-                        else if(kORDER == 3) lp = log(lm.j3(focus, context)) / log(2);
-                        else lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
-                    } else {
-                        // baco
-                        lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
-                    }
-
-                    if(!allPatterns.has(focus)) {
-                        ++oovs;
-                        lp = 0;
-                        _probs_file << "***";
-                    }
-
-                    _probs_file << "p(" << focus.tostring(_class_decoder) << " |";
-                    _probs_file << context.tostring(_class_decoder) << ") = " << lp << std::endl;
-
-                    llh -= lp;
-                    ++cnt;
-
                 }
             }
-        }
+
+            std::cout << "Processed " << nr_files << " files and " << nr_lines << " lines" << std::endl;
+
+            cnt -= oovs;
+            double lprob = (-llh * log(2)) / log(10);
+            p2be("  Log_10 prob: " + std::to_string(lprob) + "\n" , _output);
+            p2be("        Count: " + std::to_string(cnt) + "\n", _output);
+            p2be("         OOVs: " + std::to_string(oovs) + "\n", _output);
+            p2be("Cross-Entropy: " + std::to_string((llh / cnt)) + "\n", _output);
+            p2be("   Perplexity: " + std::to_string(pow(2, llh / cnt)) + "\n", _output);
+
+            time (&rawtime);
+            timeinfo = localtime(&rawtime);
+
+            strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+            _current_time = std::string(buffer);
+
+            p2bo("Time: " + _current_time + "\n", _output);
+    _probs_file.close();
     }
 
-    cnt -= oovs;
-    double lprob = (-llh * log(2)) / log(10);
-    p2be("  Log_10 prob: " + std::to_string(lprob) + "\n" , _output);
-    p2be("        Count: " + std::to_string(cnt) + "\n", _output);
-    p2be("         OOVs: " + std::to_string(oovs) + "\n", _output);
-    p2be("Cross-Entropy: " + std::to_string((llh / cnt)) + "\n", _output);
-    p2be("   Perplexity: " + std::to_string(pow(2, llh / cnt)) + "\n", _output);
-
-    time (&rawtime);
-    timeinfo = localtime(&rawtime);
-
-    strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
-    _current_time = std::string(buffer);
-
-    p2bo("Time: " + _current_time + "\n", _output);
-
-    p2be("Done for now\n" , _output);
-    _output.close();
+    p2be("Done for now\n" , _general_output);
+    _general_output.close();
     
-    _probs_file.close();
 
     return 0;
 
