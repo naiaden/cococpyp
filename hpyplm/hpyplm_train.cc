@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unistd.h>
 #include <unordered_map>
 #include <cstdlib>
 
@@ -146,7 +147,12 @@ int main(int argc, char** argv) {
 //        return -8;
 //    }
 
-    std::string _base_name = _output_directory + "/" + _run_name + "_" + _kORDER + (_do_skipgrams ? "S" : "") + "_train";
+    char hostname[128];
+
+    gethostname(hostname, sizeof hostname);
+    std::string _host_name(hostname);
+
+    std::string _base_name = _output_directory + "/" + _run_name + "_" + _kORDER + (_do_skipgrams ? "S" : "") + "_W" + std::to_string(_unigram_treshold) + "_t" + std::to_string(_min_tokens) + "_T" + std::to_string(_min_skip_tokens)  +  "_train";
     std::string _class_file_name = _base_name + ".cls";
     std::string _corpus_file_name = _base_name + ".dat";
     std::string _patternmodel_file_name = _base_name + ".patternmodel";
@@ -156,7 +162,12 @@ int main(int argc, char** argv) {
     std::string _output_filename = _base_name + ".output";
     _output.open(_output_filename);
 
-    p2bo("Time: " + _current_time + "\n", _output);
+    p2bo("Running on " + _host_name + "\n", _output);
+
+p2bo("Train input file: " + _train_input_file + "\n", _output);
+p2bo("Train input dir: " + _train_input_directory + "\n", _output);
+p2bo("Train output dir: " + _output_directory + "\n", _output);
+p2bo("Time: " + _current_time + "\n", _output);
 
     if(_load_train_vocabulary.empty()) {
         _class_encoder.build(train_input_files, true);
@@ -193,9 +204,9 @@ int main(int argc, char** argv) {
 
     _pattern_model.report(&std::cerr);
 
-    p2be("Some stats, w/e\n" + std::to_string(_indexed_corpus.sentences()) + " sentences\n"
-        + std::to_string(_pattern_model.types()) + " word types\n" + std::to_string(_pattern_model.size()) + " pattern types\n" 
-        + std::to_string(_pattern_model.tokens()) + " word tokens\n", _output);
+    p2be("Some stats, w/e1\n" + std::to_string(_indexed_corpus.sentences()) + " sentences\n"
+        + std::to_string(_pattern_model.totalwordtypesingroup(0, 0)) + " word types\n" + std::to_string(_pattern_model.totalpatternsingroup(0,kORDER)) + " pattern types\n" 
+        + std::to_string(_pattern_model.totaltokensingroup(0, 1)) + " word tokens\n", _output);
 
     int cntr = 0;
 
@@ -212,21 +223,29 @@ int main(int argc, char** argv) {
     p2bo("Time: " + _current_time + "\n", _output);
 
 //    cpyp::PYPLM<kORDER> lm(_pattern_model.totalwordtypesingroup(0,1), 1, 1, 1, 1);
-    cpyp::PYPLM<kORDER> lm(_pattern_model.types(), 1, 1, 1, 1);
+    cpyp::PYPLM<kORDER> lm(_pattern_model.totalwordtypesingroup(0, 0), 1, 1, 1, 1);
     for(int sample = 0; sample < _samples; ++sample) {
+        int patterns_processed = 0;
+        int patterns_unprocessed = 0;
         for( IndexPattern indexPattern : _indexed_corpus) {
             for (Pattern pattern : _pattern_model.getreverseindex(indexPattern.ref)) {
                 size_t pattern_size = pattern.size();
 
+                if(patterns_processed > 10 || patterns_unprocessed > 10)
+                    return(4);
+
                 Pattern context = Pattern();
                 Pattern focus = Pattern();
 
-                if(pattern_size == kORDER) {
+                if(pattern_size == 4) {//kORDER) {
+                    std::cout << "4: " << pattern.tostring(_class_decoder) << std::endl;
                     if(pattern_size == 1) {
                         focus = pattern[0];
                     } else {
                         context = Pattern(pattern, 0, pattern_size - 1);
                         focus = pattern[pattern_size - 1];
+
+                        ++patterns_processed;
                     }
                     
 //                    if(!pattern.isskipgram()) {
@@ -241,9 +260,15 @@ int main(int argc, char** argv) {
                         lm.decrement(focus, context, _eng);
                     }
                     lm.increment(focus, context, _eng, nullptr);
+                } else
+                {
+                    std::cout << "X: " << pattern.tostring(_class_decoder) << std::endl;
+                    ++patterns_unprocessed;
                 }
            }
        }
+           std::cout << "Patterns processed:" << patterns_processed << std::endl;
+           std::cout << "Patterns unprocessed:" << patterns_unprocessed << std::endl;
 
        if(sample % 10 == 9) {
            p2be(" [LLH=" + std::to_string(lm.log_likelihood()) + "]\n", _output);
