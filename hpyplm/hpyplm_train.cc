@@ -229,16 +229,17 @@ p2bo("Time: " + _current_time + "\n", _output);
         int patterns_unprocessed = 0;
         for( IndexPattern indexPattern : _indexed_corpus) {
             for (Pattern pattern : _pattern_model.getreverseindex(indexPattern.ref)) {
+            if(_pattern_model.has(pattern)) {
                 size_t pattern_size = pattern.size();
 
-                if(patterns_processed > 10 || patterns_unprocessed > 10)
-                    return(4);
+                //if(patterns_processed > 10 || patterns_unprocessed > 10)
+                //    return(4);
 
                 Pattern context = Pattern();
                 Pattern focus = Pattern();
 
                 if(pattern_size == 4) {//kORDER) {
-                    std::cout << "4: " << pattern.tostring(_class_decoder) << std::endl;
+                    //std::cout << "4: " << pattern.tostring(_class_decoder) << std::endl;
                     if(pattern_size == 1) {
                         focus = pattern[0];
                     } else {
@@ -262,13 +263,13 @@ p2bo("Time: " + _current_time + "\n", _output);
                     lm.increment(focus, context, _eng, nullptr);
                 } else
                 {
-                    std::cout << "X: " << pattern.tostring(_class_decoder) << std::endl;
+                    //std::cout << "X: " << pattern.tostring(_class_decoder) << std::endl;
                     ++patterns_unprocessed;
                 }
-           }
+           }}
        }
-           std::cout << "Patterns processed:" << patterns_processed << std::endl;
-           std::cout << "Patterns unprocessed:" << patterns_unprocessed << std::endl;
+           //std::cout << "Patterns processed:" << patterns_processed << std::endl;
+           //std::cout << "Patterns unprocessed:" << patterns_unprocessed << std::endl;
 
        if(sample % 10 == 9) {
            p2be(" [LLH=" + std::to_string(lm.log_likelihood()) + "]\n", _output);

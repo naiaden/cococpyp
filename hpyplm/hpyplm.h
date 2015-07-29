@@ -67,7 +67,7 @@ template<unsigned N> struct PYPLM {
                     std::cout << N << indentation << "I: " << w.tostring(*decoder) << " | " << shortened_context.tostring(*decoder) << std::endl;
                 }
 
-		const double bo = backoff.prob(w, context, decoder, false);
+		const double bo = backoff.prob(w, context, decoder, false, nullptr, nullptr, nullptr);
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
