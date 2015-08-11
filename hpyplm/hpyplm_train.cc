@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
 
     PatternModelOptions _pattern_model_options = PatternModelOptions();
     _pattern_model_options.MAXLENGTH = kORDER;
-    _pattern_model_options.MINLENGTH = kORDER; // kORDER - 1
+    _pattern_model_options.MINLENGTH = 1;// A kORDER; // kORDER - 1
     _pattern_model_options.DOSKIPGRAMS = _do_skipgrams;
     _pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = _do_skipgrams;
     _pattern_model_options.DOREVERSEINDEX = true;
@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
     gethostname(hostname, sizeof hostname);
     std::string _host_name(hostname);
 
-    std::string _base_name = _output_directory + "/" + _run_name + "_" + _kORDER + (_do_skipgrams ? "S" : "") + "_W" + std::to_string(_unigram_treshold) + "_t" + std::to_string(_min_tokens) + "_T" + std::to_string(_min_skip_tokens)  +  "_train";
+    std::string _base_name = _output_directory + "/" + _run_name + "_" + _kORDER + (_do_skipgrams ? "S" : "") + "_W" + std::to_string(_unigram_treshold) + "_t" + std::to_string(_min_tokens) + "_T" + std::to_string(_min_skip_tokens) + "_s" + std::to_string(_samples) +  "_train";
     std::string _class_file_name = _base_name + ".cls";
     std::string _corpus_file_name = _base_name + ".dat";
     std::string _patternmodel_file_name = _base_name + ".patternmodel";
@@ -238,7 +238,7 @@ p2bo("Time: " + _current_time + "\n", _output);
                 Pattern context = Pattern();
                 Pattern focus = Pattern();
 
-                if(pattern_size == 4) {//kORDER) {
+// A 2015 07 29 if(pattern_size == 4) {//kORDER) {
                     //std::cout << "4: " << pattern.tostring(_class_decoder) << std::endl;
                     if(pattern_size == 1) {
                         focus = pattern[0];
@@ -261,12 +261,13 @@ p2bo("Time: " + _current_time + "\n", _output);
                         lm.decrement(focus, context, _eng);
                     }
                     lm.increment(focus, context, _eng, nullptr);
-                } else
-                {
-                    //std::cout << "X: " << pattern.tostring(_class_decoder) << std::endl;
-                    ++patterns_unprocessed;
-                }
-           }}
+// A                } else
+// A                {
+// A                    //std::cout << "X: " << pattern.tostring(_class_decoder) << std::endl;
+// A                    ++patterns_unprocessed;
+// A                }
+           }
+           }
        }
            //std::cout << "Patterns processed:" << patterns_processed << std::endl;
            //std::cout << "Patterns unprocessed:" << patterns_unprocessed << std::endl;
