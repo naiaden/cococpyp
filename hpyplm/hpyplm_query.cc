@@ -354,7 +354,7 @@ int main(int argc, char** argv) {
                             }
 
                             _probs_file << "p(" << focus.tostring(_class_decoder) << " |";
-                            _probs_file << context.tostring(_class_decoder) << ") = " << lp << std::endl;
+                            _probs_file << context.tostring(_class_decoder) << ") = " << std::fixed << std::setprecision(20) << lp << std::endl;
 
                             llh -= lp;
                             ++cnt;

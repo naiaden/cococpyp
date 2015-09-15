@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
 
     cmdline::parser clp;
 
-    clp.add<std::string>("output", '\0', "train and test output directory", false, "");
+    clp.add<std::string>("testoutput", 'o', "test output directory", false, "");
     clp.add<std::string>("trainoutput", 'O', "train output directory", false, "");
 
     clp.add<std::string>("trainmodel", 'm', "the name of the training model", true);
@@ -65,15 +65,20 @@ int main(int argc, char** argv) {
     clp.add<std::string>("loadpatternmodel", '\0', "load colibri encoded pattern model", false, "");
     clp.add<std::string>("loadvocabulary", '\0', "load colibri class file", false, "");
 
+    clp.add<int>("contextsize", 'c', "process context size (n=c+1)", 0);
+
     clp.parse_check(argc, argv);
 
     std::string _input_directory = clp.get<std::string>("trainoutput");
+    std::string _output_directory = clp.get<std::string>("testoutput");
 
     std::string _input_run_name = clp.get<std::string>("trainmodel");
 
     std::string _load_corpus = clp.get<std::string>("loadcorpus");
     std::string _load_patternmodel = clp.get<std::string>("loadpatternmodel");
     std::string _load_vocabulary = clp.get<std::string>("loadvocabulary");
+
+    int _only_context_size = clp.get<int>("contextsize");
 
     ClassEncoder _class_encoder = ClassEncoder();
     ClassDecoder _class_decoder = ClassDecoder();
@@ -93,11 +98,15 @@ int main(int argc, char** argv) {
     std::string _input_patternmodel_file_name = _base_input_name + ".patternmodel";
     std::string _input_serialised_file_name = _base_input_name + ".ser";
 
-    std::string _base_output_name = "analysis_" + _input_directory + "/" + _input_run_name + "_" + _kORDER;
+    std::string _base_output_name = _output_directory + "/analysis_" + _input_run_name;
 
     std::ofstream _output;
     std::string _output_filename = _base_output_name + ".output";
     _output.open(_output_filename);
+
+    std::ofstream _ngram_output;
+    std::string _ngram_output_filename = _base_output_name + "." + std::to_string(_only_context_size);
+    _ngram_output.open(_ngram_output_filename);
 
     p2bo("Time: " + _current_time + "\n", _output);
 
@@ -157,27 +166,41 @@ int main(int argc, char** argv) {
     int total_num_tables = 0;
     int total_num_customers = 0;
 
-    for(auto kv : lm.p) {
+    int c_size = 0;
+
+    for(auto kv : lm.p) { // p = p_
         std::string p_to_string = kv.first.tostring(_class_decoder);
-        if(p_to_string.find("police said") != std::string::npos)
+
+        if(p_to_string.size() == 0) 
+            c_size = 0;
+        else 
+            c_size = std::count( p_to_string.begin(), p_to_string.end(), ' ' ) + 1;
+
+         std::vector<std::string> focus_words = kv.second.give_focus_words(&_class_decoder);
+
+/*
+        if(c_size == _only_context_size || c_size == -1)
         {
-            std::cout << "FOUND SOMETHING:" << p_to_string << std::endl;
-//            kv.second.print(std::cout);
-//            std::cout << kv.second << std::endl;
-             kv.second.print_cout(&_class_decoder);
+            std::cout << std::endl;
+            std::cout << "-------- " << p_to_string << std::endl;
+            kv.second.print_cout(&_class_decoder);
         }
-        //int num_tables = kv.second.num_tables();
-        //total_num_tables += num_tables;
-        //int num_customers = kv.second.num_customers();
-        //total_num_customers += num_customers;
+*/
 
-        //std::cout << p_to_string << "\t" << num_tables << "\t" << num_customers << std::endl;
+        if(c_size == _only_context_size)
+        {
+             for(auto s : focus_words)
+             {
+                p2bo(((c_size ? (p_to_string + " ") : "") + s) + "\n", _ngram_output);
+             }
+
+            int num_tables = kv.second.num_tables();
+            //total_num_tables += num_tables;
+            int num_customers = kv.second.num_customers();
+            //total_num_customers += num_customers;
+        }
+
     }
-
-    //std::cout << "[TOTAL] " << total_num_tables << ":" << total_num_customers << std::endl;
-    
-    //
-
 
     time (&rawtime);
     timeinfo = localtime(&rawtime);
@@ -189,6 +212,7 @@ int main(int argc, char** argv) {
 
     p2be("Done for now\n" , _output);
     _output.close();
+    _ngram_output.close();
     
 
     return 0;

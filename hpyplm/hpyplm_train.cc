@@ -73,6 +73,7 @@ int main(int argc, char** argv) {
     clp.add<int>("streshold", 'T', "treshold for skipgrams", false, 1);
     clp.add<int>("treshold", 't', "treshold for ngrams", false, 1);
     clp.add<int>("unigramtreshold", 'W', "unigram treshold", false, 1);
+    clp.add<int>("prunedonsubsumed", 'p', "prune all n-grams that are not subsumed by higher order n-grams", false, 0);
 
     clp.add<std::string>("modelname", 'm', "the name of the training model", true);
 
@@ -101,6 +102,7 @@ int main(int argc, char** argv) {
     int _min_skip_tokens = clp.get<int>("streshold");
     int _min_tokens = clp.get<int>("treshold");
     int _unigram_treshold = clp.get<int>("unigramtreshold");
+    int _pruned_on_subsume = clp.get<int>("prunedonsubsumed");
 
     std::string _run_name = clp.get<std::string>("modelname");
 
@@ -126,6 +128,7 @@ int main(int argc, char** argv) {
     _pattern_model_options.MINTOKENS = _min_tokens;
     _pattern_model_options.MINTOKENS_SKIPGRAMS = _min_skip_tokens;
     _pattern_model_options.MINTOKENS_UNIGRAMS = _unigram_treshold;
+    _pattern_model_options.PRUNEDONSUBSUMED = _pruned_on_subsume;
 
     
     std::vector<std::string> train_input_files;
@@ -152,7 +155,7 @@ int main(int argc, char** argv) {
     gethostname(hostname, sizeof hostname);
     std::string _host_name(hostname);
 
-    std::string _base_name = _output_directory + "/" + _run_name + "_" + _kORDER + (_do_skipgrams ? "S" : "") + "_W" + std::to_string(_unigram_treshold) + "_t" + std::to_string(_min_tokens) + "_T" + std::to_string(_min_skip_tokens) + "_s" + std::to_string(_samples) +  "_train";
+    std::string _base_name = _output_directory + "/" + _run_name + "_" + _kORDER + (_do_skipgrams ? "S" : "") + "_W" + std::to_string(_unigram_treshold) + "_t" + std::to_string(_min_tokens) + "_T" + std::to_string(_min_skip_tokens) + "_s" + std::to_string(_samples) +  "_p" + std::to_string(_pruned_on_subsume) + "_train";
     std::string _class_file_name = _base_name + ".cls";
     std::string _corpus_file_name = _base_name + ".dat";
     std::string _patternmodel_file_name = _base_name + ".patternmodel";

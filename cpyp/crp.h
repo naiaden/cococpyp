@@ -2,6 +2,8 @@
 #define _CPYP_CRP_H_
 
 #include <iostream>
+#include <vector>
+#include <string>
 #include <numeric>
 #include <cassert>
 #include <cmath>
@@ -347,10 +349,19 @@ public:
 		std::cout << "PYP(d=" << discount_ << ",c=" << strength_ << ") customers=" << num_customers_ << std::endl;
 		for (auto& dish_loc : dish_locs_)
                 {
-                    std::cout << dish_loc.first.tostring(*decoder) << std::endl;
+                    std::cout << dish_loc.first.tostring(*decoder) << ":" << dish_loc.second << std::endl;
                 }
 //			std::cerr << dish_loc.first << " : " << dish_loc.second << std::endl;
 	}
+        
+        std::vector<std::string> give_focus_words(ClassDecoder * const decoder) {
+                std::vector<std::string> focus_words = std::vector<std::string>();
+                for (auto& dish_loc : dish_locs_)
+                {
+                    focus_words.push_back(dish_loc.first.tostring(*decoder));
+                }
+                return focus_words;
+        }
 
 	typedef typename std::unordered_map<Dish, crp_table_manager<1>, DishHash>::const_iterator const_iterator;
 	const_iterator begin() const {
