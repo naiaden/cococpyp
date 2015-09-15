@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
     _pattern_model_options.MINTOKENS = _min_tokens;
     _pattern_model_options.MINTOKENS_SKIPGRAMS = _min_skip_tokens;
     _pattern_model_options.MINTOKENS_UNIGRAMS = _unigram_treshold;
-    _pattern_model_options.PRUNEDONSUBSUMED = _pruned_on_subsume;
+    _pattern_model_options.PRUNENONSUBSUMED = _pruned_on_subsume;
 
     
     std::vector<std::string> train_input_files;
