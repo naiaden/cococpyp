@@ -46,6 +46,8 @@ void p2be(const std::string& s, std::ofstream& ofs) {
 
 int main(int argc, char** argv) {
 
+    bool _ignore_errors = true;
+
     time_t rawtime;
     struct tm* timeinfo;
     char buffer[80];
@@ -80,6 +82,7 @@ int main(int argc, char** argv) {
     clp.add<std::string>("loadtraincorpus", '\0', "load colibri encoded corpus", false, "");
     clp.add<std::string>("loadtrainpatternmodel", '\0', "load colibri encoded pattern model", false, "");
     clp.add<std::string>("loadtrainvocabulary", '\0', "load colibri class file", false, "");
+    clp.add<std::string>("extendmodel", 'E', "extend current model (with larger n or skips)", false, "");
 
     clp.add<int>("seed", 'R', "initialise with random seed", false, 0);
 
@@ -109,6 +112,7 @@ int main(int argc, char** argv) {
     std::string _load_train_corpus = clp.get<std::string>("loadtraincorpus");
     std::string _load_train_patternmodel = clp.get<std::string>("loadtrainpatternmodel");
     std::string _load_train_vocabulary = clp.get<std::string>("loadtrainvocabulary");
+    std::string _extend_model = clp.get<std::string>("extendmodel");
 
 //    if(_train_input_directory.empty() && (_load_train_corpus.empty() || _load_train_patternmodel.empty() || _load_train_vocabulary.empty())) {
 //        std::cerr << "Not enough arguments to start training. Double check for either an input directory, or for the proper colibri derivatives." << std::endl;
@@ -176,6 +180,7 @@ p2bo("Time: " + _current_time + "\n", _output);
         _class_encoder.build(train_input_files, true);
         _class_encoder.save(_class_file_name);
     } else {
+        p2bo("Loading " + _load_train_vocabulary + "\n", _output);
         _class_encoder.load(_load_train_vocabulary);
         _class_file_name = _load_train_vocabulary;
     }
@@ -186,20 +191,37 @@ p2bo("Time: " + _current_time + "\n", _output);
         }
         _class_decoder.load(_class_file_name);
     } else {
+        p2bo("Loading " + _load_train_corpus + "\n", _output);
         _corpus_file_name = _load_train_corpus;
     }
 
-
+    p2bo("Doing corpus stuff\n", _output);
     IndexedCorpus _indexed_corpus = IndexedCorpus(_corpus_file_name);
 
+    p2bo("Doing pattern model stuff\n", _output);
     PatternModel<uint32_t> _pattern_model(&_indexed_corpus);
 
-    if(_load_train_patternmodel.empty()) {
-        _pattern_model.train(_corpus_file_name, _pattern_model_options);
+    if(_extend_model.empty())
+    {
+        if(_load_train_patternmodel.empty()) {
+            _pattern_model.train(_corpus_file_name, _pattern_model_options);
 
-        _pattern_model.write(_patternmodel_file_name);
-    } else {
-        _pattern_model.load(_load_train_patternmodel, _pattern_model_options);
+            _pattern_model.write(_patternmodel_file_name);
+        } else {
+            _pattern_model.load(_load_train_patternmodel, _pattern_model_options);
+        }
+    } else
+    {
+        if(_load_train_patternmodel.empty()) {
+            p2bo("Extending the model with " + _extend_model + "\n", _output);
+            _pattern_model.load(_extend_model, _pattern_model_options);
+            _pattern_model.train(_corpus_file_name, _pattern_model_options, NULL, true, 1, _ignore_errors);
+
+            _pattern_model.write(_patternmodel_file_name);
+        } else {
+            _pattern_model.load(_load_train_patternmodel, _pattern_model_options);
+        }
+        
     }
 
     _pattern_model.computestats();
