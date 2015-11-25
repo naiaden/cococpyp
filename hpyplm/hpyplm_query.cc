@@ -166,8 +166,11 @@ int main(int argc, char** argv) {
 
     std::string _base_input_name = _input_directory + "/" + _input_run_name;
     std::string _input_class_file_name = _base_input_name + ".cls";
+    if(!_load_vocabulary.empty()) { _input_class_file_name = _load_vocabulary; }
     std::string _input_corpus_file_name = _base_input_name + ".dat";
+    if(!_load_corpus.empty()) { _input_corpus_file_name = _load_corpus; }
     std::string _input_patternmodel_file_name = _base_input_name + ".patternmodel";
+    if(!_load_patternmodel.empty()) { _input_patternmodel_file_name = _load_patternmodel; }
     std::string _input_serialised_file_name = _base_input_name + ".ser";
 
 

@@ -113,25 +113,6 @@ int main(int argc, char** argv) {
     _class_encoder.load(_input_class_file_name);
     _class_decoder.load(_input_class_file_name);
 
-    IndexedCorpus _train_indexed_corpus = IndexedCorpus(_input_corpus_file_name);
-
-    std::cout << "Ignore 5, just created an indexed corpus\n";
-
-    PatternModel<uint32_t> _train_pattern_model = PatternModel<uint32_t>(&_train_indexed_corpus);
-
-    std::cout << "Ignore 6, just created a pattern model\n";
-
-    _train_pattern_model.train(_input_corpus_file_name, _pattern_model_options);
-
-    std::cout << "Ignore 7, just trained pattern model\n";
-
-    _train_pattern_model.computestats();
-    _train_pattern_model.computecoveragestats();
-
-    std::cout << "Ignore 8, just computed stuff\n";
-
-    _train_pattern_model.write(_input_patternmodel_file_name);
-    
     std::cout << "Ignore 9, just write the model to a file\n";
 
     double llh = 0;
@@ -187,19 +168,35 @@ int main(int argc, char** argv) {
         }
 */
 
+
         if(c_size == _only_context_size)
         {
-             for(auto s : focus_words)
-             {
-                p2bo(((c_size ? (p_to_string + " ") : "") + s) + "\n", _ngram_output);
-             }
 
             int num_tables = kv.second.num_tables();
             //total_num_tables += num_tables;
             int num_customers = kv.second.num_customers();
             //total_num_customers += num_customers;
+
+
+            p2bo(((c_size ? (p_to_string + " ") : "")) + "\t" + std::to_string(num_customers) + "\n", _ngram_output);
         }
 
+/*        if(c_size == _only_context_size)
+        {
+
+            int num_tables = kv.second.num_tables();
+            //total_num_tables += num_tables;
+            int num_customers = kv.second.num_customers();
+            //total_num_customers += num_customers;
+
+
+             for(auto s : focus_words)
+             {
+                p2bo(((c_size ? (p_to_string + " ") : "") + s) + "\n", _ngram_output);
+                //p2bo(((c_size ? (p_to_string + " ") : "") + s) + "\t" + std::to_string(num_customers) + "\n", _ngram_output);
+             }
+        }
+*/
     }
 
     time (&rawtime);
