@@ -216,10 +216,13 @@ int main(int argc, char** argv) {
     cpyp::PYPLM<kORDER> lm;
     ia & lm;
 
+    
+    IndexedCorpus _indexed_corpus = IndexedCorpus(_input_corpus_file_name);
 
     PatternSet<uint64_t> allPatterns;
     {
-        PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options);
+        //PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options);
+        PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options, nullptr, &_indexed_corpus);
         allPatterns = _train_pattern_model.extractset();
     }
 

@@ -51,6 +51,9 @@ hpyplm_query3: hpyplm_query.cc
 hpyplm_query4: hpyplm_query.cc
 	$(CXX) -std=c++11 -DkORDER='4' -g -O3 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
 
+hpyplm_backoffcountquery4: hpyplm_backoffcountquery.cc
+	$(CXX) -std=c++11 -DkORDER='4' -g -O3 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
+
 hpyplm_query5: hpyplm_query.cc
 	$(CXX) -std=c++11 -DkORDER='5' -g -O3 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
 
