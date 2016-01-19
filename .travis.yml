@@ -2,8 +2,5 @@ language: cpp
 sudo: false
 compiler:
 - gcc
-- clang
 install:
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
-  - echo $CXX
-  - cd hpyplm && make hpyplm_train3
+  - cd hpyplm && g++ -std=c++0x -DkORDER='3' -g -O3 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
