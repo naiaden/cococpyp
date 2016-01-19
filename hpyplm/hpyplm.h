@@ -125,7 +125,7 @@ template<unsigned N> struct PYPLM {
 	}
 
 	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false, std::map<Pattern, int> * patternAdded = nullptr, std::map<Pattern, std::set<Pattern> > * patternSpawned = nullptr, std::map<int, int> * backoff_administration = nullptr) const {
-                std::cout << ">>>>> N: " << std::to_string(N) << std::endl;
+                //std::cout << ">>>>> N: " << std::to_string(N) << std::endl;
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
                 Pattern shortened_context = pattern.reverse();
 
@@ -336,7 +336,7 @@ template<unsigned N> struct PYPLM {
         double j7(const Pattern& w, const Pattern& c, ClassDecoder * const decoder = nullptr) {
             if(N > 3) return backoff.j7(w, c, decoder);
 
-            std::cout << ">>>>> N#: " << std::to_string(N) << std::endl;
+            //std::cout << ">>>>> N#: " << std::to_string(N) << std::endl;
             if(decoder != nullptr) { std::cerr << "[" << N << "]j7: " <<  w.tostring(*decoder) << " | " << c.tostring(*decoder); }
 
             Pattern p = Pattern(c, kORDER-4,3);

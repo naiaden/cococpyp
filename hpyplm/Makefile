@@ -60,6 +60,9 @@ hpyplm_query5: hpyplm_query.cc
 hpyplm_query_observe: hpyplm_query_observe.cc
 	$(CXX) -std=c++11 -O3 -Wall -I$(BOOST_INCLUDE) -I.. $< -o $@ $(BOOST_SERIALIZATION)
 
+hpyplm_analysis3: hpyplm_analysis.cc
+	$(CXX) -std=c++11 -DkORDER='3' -g -O3 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
+
 hpyplm_analysis4: hpyplm_analysis.cc
 	$(CXX) -std=c++11 -DkORDER='4' -g -O3 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
 
