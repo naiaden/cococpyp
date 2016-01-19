@@ -2,4 +2,7 @@ language: cpp
 sudo: false
 env:
   - TEST_DIR=hpyplm
-install: cd hpyplm && make hpyplm_train3
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+  - echo $CXX
+  - cd hpyplm && make hpyplm_train3
