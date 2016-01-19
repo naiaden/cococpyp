@@ -2,6 +2,8 @@ language: cpp
 compiler:
 - gcc
 before_install:
+- sudo apt-get update
+- sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost_serialization-dev
 - git clone https://github.com/proycon/colibri-core
 - cd colibri-core
 - bash bootstrap
