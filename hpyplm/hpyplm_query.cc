@@ -3,7 +3,6 @@
 #include <cstdlib>
 
 #include "hpyplm.h"
-#include "corpus/corpus.h"
 
 #include "cpyp/boost_serializers.h"
 #include <boost/serialization/vector.hpp>

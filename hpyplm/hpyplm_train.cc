@@ -4,7 +4,6 @@
 #include <cstdlib>
 
 #include "hpyplm.h"
-#include "corpus/corpus.h"
 #include "cpyp/m.h"
 #include "cpyp/random.h"
 #include "cpyp/crp.h"
