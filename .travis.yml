@@ -2,5 +2,12 @@ language: cpp
 sudo: false
 compiler:
 - gcc
+before_install:
+- git clone https://github.com/proycon/colibri-core
+- cd colibri-core
+- bash bootstrap
+- ./configure
+- make
+- cd ..
 install:
-  - cd hpyplm && g++ -std=c++0x -DkORDER='3' -g -O3 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
+  - cd hpyplm && g++ -std=c++0x -DkORDER='3' -g -O3 -I.. $< -o hpyplm_train3 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2
