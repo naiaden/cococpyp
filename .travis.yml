@@ -10,4 +10,4 @@ before_install:
 - make
 - cd ..
 install:
-  - cd hpyplm && g++ -std=c++0x -DkORDER='3' -g -O3 -I.. $< -o hpyplm_train3 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2
+  - cd hpyplm && g++ -std=c++0x -DkORDER='3' -g -O3 -I.. -o hpyplm_train3 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2
