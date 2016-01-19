@@ -1,9 +1,16 @@
 language: cpp
 compiler:
 - gcc
+script: echo "hoi"
+addons:
+  apt:
+    packages:
+    - libboost-system-dev 
+    - libboost-filesystem-dev 
+    - libboost-serialization-dev
 before_install:
-- sudo apt-get update
-- sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-serialization-dev
+#- sudo apt-get update
+#- sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-serialization-dev
 - git clone https://github.com/proycon/colibri-core
 - cd colibri-core
 - bash bootstrap
@@ -12,4 +19,5 @@ before_install:
 - sudo make install
 - cd ..
 install:
-  - cd hpyplm && g++ -std=c++0x -nostartfiles -DkORDER='3' -g -O3 -I.. -o hpyplm_train3 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2
+  - cd hpyplm 
+  - g++ -std=c++0x -nostartfiles -DkORDER='3' -g -O3 -I.. -o hpyplm_train3 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2
