@@ -1,2 +1,4 @@
 language: cpp
 sudo: false
+env:
+  - TEST_DIR=hpyplm
