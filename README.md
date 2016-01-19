@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/naiaden/cococpyp.svg?branch=master)](https://travis-ci.org/naiaden/cococpyp)
+
 This repository contains the code for my PhD project "What's left in the bag for latent variable language modelling", a joint-doctorate project between the Radboud University Nijmegen, the Netherlands, and the KU Leuven, Belgium.
 In this project I look at bag-of-words for language modelling, and try to find information in this bag-of-words that is currently unexploited such as skipgrams. Bayesian models are exemplar for latent variable models, and it is this intersection of language modelling and Bayesian statistics that I find interesting.
 
