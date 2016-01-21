@@ -75,26 +75,10 @@ template<unsigned N> struct PYPLM {
 			tr.insert(&it->second); // add to resampler
 		}
 
-		if (it->second.increment(w, bo, eng, false/*cs == "o.a. uit" && fs == ":"*/)) {
+		if (it->second.increment(w, bo, eng, false)) {
 			backoff.increment(w, context, eng, decoder);
 		}
 
-  /*              
-                std::vector<Pattern> skipped_patterns = generateSkips(shortened_context);
-                for(Pattern skipped_context : skipped_patterns) {
-                    const double s_bo = backoff.prob(w, skipped_context, decoder);
-                    auto s_rev = skipped_context.reverse();
-
-                    auto s_it = p.find(s_rev);
-                    if(s_it == p.end()) {
-                        s_it = p.insert(make_pair(s_rev, crp<Pattern>(0.8, 0))).first;
-                        tr.insert(&s_it->second);
-                    }
-                    if(s_it->second.increment(w, bo, eng, false)) {
-                        backoff.increment(w, skipped_context, eng, decoder);
-                    }
-                }
-    */
 	}
 
 	template<typename Engine>
@@ -109,38 +93,12 @@ template<unsigned N> struct PYPLM {
 		if (it->second.decrement(w, eng)) {
 			backoff.decrement(w, context, eng, decoder);
 		}
-/*
-                std::vector<Pattern> skipped_patterns = generateSkips(shortened_context);
-                for(Pattern skipped_context : skipped_patterns) {
-                    Pattern s_rev = skipped_context.reverse();
-
-                    auto s_it = p.find(s_rev);
-                    assert(s_it != p.end());
-
-                    if(s_it->second.decrement(w, eng)) {
-                        backoff.decrement(w, skipped_context, eng, decoder);
-                    }
-                }
-*/
 	}
 
 	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false, std::map<Pattern, int> * patternAdded = nullptr, std::map<Pattern, std::set<Pattern> > * patternSpawned = nullptr, std::map<int, int> * backoff_administration = nullptr) const {
                 //std::cout << ">>>>> N: " << std::to_string(N) << std::endl;
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
                 Pattern shortened_context = pattern.reverse();
-
-/*                // "dynamic" backoff
-                if(patternAdded != nullptr && patternSpawned != nullptr) {
-                    std::vector<Pattern> all_subngrams;
-                    context.subngrams(all_subngrams);
-                    std::set<Pattern> subngrams(all_subngrams.begin(), all_subngrams.end());
-                    
-                    double prob = 0;
-                    for(sng : subngrams) {
-                        prob += (patternAdded[sng] * 1.0) / patternSpawned[sng].size() * ;
-                    }
-                }
-*/
 
                 std::string indentation = std::string(kORDER-N, '\t');
                 if(decoder != nullptr) {
