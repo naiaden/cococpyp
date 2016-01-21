@@ -1,7 +1,7 @@
 language: cpp
 compiler:
 - gcc
-script: echo "hoi"
+script: cd test && bash test-suite.sh
 addons:
   apt:
     packages:
