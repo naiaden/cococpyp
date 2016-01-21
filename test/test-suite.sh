@@ -4,10 +4,10 @@
 #g++ -std=c++0x -DkORDER='4' -g -O3 -I.. -o thg4 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2 test_hpyplm_generatepatterns.cc -I/home/lonrust/local/include/colibri-core -I../tools
 #g++ -std=c++0x -DkORDER='5' -g -O3 -I.. -o thg5 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2 test_hpyplm_generatepatterns.cc -I/home/lonrust/local/include/colibri-core -I../tools
 
-g++ -std=c++0x -DkORDER='2' -g -O3 -I.. -o thg2 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2 test_hpyplm_generatepatterns.cc -I../tools
-g++ -std=c++0x -DkORDER='3' -g -O3 -I.. -o thg3 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2 test_hpyplm_generatepatterns.cc -I../tools
-g++ -std=c++0x -DkORDER='4' -g -O3 -I.. -o thg4 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2 test_hpyplm_generatepatterns.cc -I../tools
-g++ -std=c++0x -DkORDER='5' -g -O3 -I.. -o thg5 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2 test_hpyplm_generatepatterns.cc -I../tools
+g++ -std=c++0x -DkORDER='2' -g -O3 -I.. -I../../colibri-core/include -o thg2 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2 test_hpyplm_generatepatterns.cc -I../tools
+g++ -std=c++0x -DkORDER='3' -g -O3 -I.. -I../../colibri-core/include -o thg3 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2 test_hpyplm_generatepatterns.cc -I../tools
+g++ -std=c++0x -DkORDER='4' -g -O3 -I.. -I../../colibri-core/include -o thg4 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2 test_hpyplm_generatepatterns.cc -I../tools
+g++ -std=c++0x -DkORDER='5' -g -O3 -I.. -I../../colibri-core/include -o thg5 -lcolibricore -lboost_filesystem -lboost_system -lboost_serialization -lbz2 test_hpyplm_generatepatterns.cc -I../tools
 
 ### Generate files
 ./thg2 -f testdocs/apology.txt -o . -m apology 2> /dev/null
