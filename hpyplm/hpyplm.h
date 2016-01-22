@@ -95,7 +95,7 @@ template<unsigned N> struct PYPLM {
 		}
 	}
 
-	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false, std::map<Pattern, int> * patternAdded = nullptr, std::map<Pattern, std::set<Pattern> > * patternSpawned = nullptr, std::map<int, int> * backoff_administration = nullptr) const {
+	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false, std::map<int, int> * backoff_administration = nullptr, backoffmethod) const {
                 //std::cout << ">>>>> N: " << std::to_string(N) << std::endl;
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
                 Pattern shortened_context = pattern.reverse();
@@ -105,10 +105,13 @@ template<unsigned N> struct PYPLM {
                     std::cout << N << indentation << "P: " << w.tostring(*decoder) << " | " << shortened_context.tostring(*decoder) << std::endl;
                 }
 
-		const double bo = backoff.prob(w, context, decoder, backoff_to_skips, patternAdded, patternSpawned, backoff_administration);
+		const double bo = backoff.prob(w, context, decoder, backoff_to_skips, backoff_administration);
+                double entropy_context = 2.0;
+                double sum_entropies = entropy_context;
+                int entropy_values = 1;
 
 		auto it = p.find(pattern);
-		if (it == p.end()) {
+		if (it == p.end()) { // if the pattern is not in the train data
 
                     double average;
                     
@@ -119,15 +122,36 @@ template<unsigned N> struct PYPLM {
                             (*backoff_administration)[kORDER+N] = ++temp_int;
                         }
 
-                        // okay, ngram is not available
-                        // time for some backoff
                         std::vector<Pattern> skipped_patterns = generateSkips(shortened_context);
                         for(Pattern skipped_context : skipped_patterns) {
-                            Pattern s_rev = skipped_context.reverse();
+                        
+                            if(false /* skipped_context.size() == (kORDER-1) && same_content_bearing_words */) 
+                            {
+                                break;
+                            }
+/*                        
+                            // limited
+                            if(limited)
+                            {
+                                // als het skipped ding niet bestaat, backoff
+                                auto skip_p_it = p.find(skipped_context + focus);
+                                if(skip_p_it == p.end())
+                                {
+                                    
+                                }
+                            }
+*/
 
-                            average += ((prob(w, skipped_context,decoder,backoff_to_skips, patternAdded, patternSpawned, backoff_administration))/(skipped_patterns.size()+1));
+                            // full
+                            double p_skipped_context = prob(w, skipped_context, decoder, backoff_to_skips, backoff_administration);
+                            double entropy_skipped_context = 2.0;    
+                            sum_entropies += entropy_skipped_context;
+                            ++entropy_values;
+
+                            average += (p_skipped_context / entropy_skipped_context);
                         }
-                        average += bo/(skipped_patterns.size()+1);
+                        average += (bo/entropy_context);
+                        average = sum_entropies * average / entropy_values;
 
                         if(decoder != nullptr) {
                             std::cout << indentation << "BO: " << average << " (original bo: " << bo << ")" << std::endl;
@@ -137,7 +161,8 @@ template<unsigned N> struct PYPLM {
 
                         return average;
  
-                    } else {
+                    } // if(backoff_to_skips) 
+                    else { // if(!backoff_to_skips)
                         if(backoff_administration) 
                         {
                             int temp_int = (*backoff_administration)[kORDER];
