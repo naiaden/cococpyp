@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 
     PatternModelOptions _pattern_model_options = PatternModelOptions();
     _pattern_model_options.MAXLENGTH = 4;
-    _pattern_model_options.MINLENGTH = 4;
+    _pattern_model_options.MINLENGTH = 1;
     _pattern_model_options.DOSKIPGRAMS = false;
     _pattern_model_options.DOREVERSEINDEX = true;
     _pattern_model_options.QUIET = false;
@@ -59,25 +59,46 @@ int main(int argc, char** argv)
 
    IndexedCorpus _indexed_corpus = IndexedCorpus(_input_corpus_file_name);
    std::cout << "Done loading indexed corpus" << std::endl;
-   PatternSet<uint64_t> allPatterns;
-   {
-        PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options, nullptr, &_indexed_corpus);
-        allPatterns = _train_pattern_model.extractset();
-   }
+   
+   PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options, nullptr, &_indexed_corpus);
+   PatternSet<uint64_t> allPatterns = _train_pattern_model.extractset(4,4);
+   PatternSet<uint64_t> allWords = _train_pattern_model.extractset(1,1);
     std::cout << "Done creating pattern set" << std::endl;
 
-    for(auto pattern : allPatterns)
-    {
-        std::cout << pattern.tostring(_class_decoder) << std::endl;
-    }
-
-    // all words
-
-
-
     // for each context c, find all cf for which count > 0
-    
+    for(int n = 1; n < 4; ++n)
+    {
+        std::cout << "Processing contexts for " << n << std::endl;
 
+        PatternSet<uint64_t> allContexts = _train_pattern_model.extractset(n,n);
+        std::cout << "\tcounting" << std::endl;
+        for(auto context : allContexts)
+        {
+                int counts = 0;
+                int triggers = 0;
+                std::vector<std::pair<Pattern, int>> occs;
+                for(auto word : allWords)
+                {
+                    const Pattern ngram = context + word;
+                    int count = _train_pattern_model.occurrencecount(ngram);
+                    if(count)
+                    {
+                        occs.push_back(std::pair<Pattern, int>(ngram, count));
+                        counts += count;
+                        ++triggers;
+                    }
+               }
+
+                double llh = 0;
+               for(auto occ : occs)
+               {
+//                    _general_output << occ.first.tostring(_class_decoder) << "\t" << std::to_string(triggers) << "\t" << std::to_string(occ.second*1.0/counts) << "\n";
+                        double mle = occ.second*1.0/counts;
+                        llh -= log(mle);
+               }
+               _general_output << context.tostring(_class_decoder) << "\t" << -llh << "\t" << llh/triggers << std::endl;
+        }
+    }
 
    _general_output.close();
    
