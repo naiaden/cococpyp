@@ -44,6 +44,7 @@ void p2be(const std::string& s, std::ofstream& ofs) {
 }
 
 int main(int argc, char** argv) {
+    cpyp::MT19937 _eng(1234);
 
     bool _ignore_errors = true;
 
@@ -83,14 +84,16 @@ int main(int argc, char** argv) {
     clp.add<std::string>("loadtrainvocabulary", '\0', "load colibri class file", false, "");
     clp.add<std::string>("extendmodel", 'E', "extend current model (with larger n or skips)", false, "");
 
-    clp.add<int>("seed", 'R', "initialise with random seed", false, 0);
+//    clp.add<int>("seed", 'R', "initialise with random seed", false, 0);
 
     clp.parse_check(argc, argv);
 
-    cpyp::MT19937 _eng;
-    if(clp.get<int>("seed") > 0) {
-        _eng = cpyp::MT19937(clp.get<int>("seed"));
-    }
+//    cpyp::MT19937 _eng;
+//    if(clp.get<int>("seed") > 0) {
+//        _eng = cpyp::MT19937(clp.get<int>("seed"));
+//        _eng = cpyp::MT19937(950562645);
+//    }
+//    _eng.seed(950562645);
 
     std::string _train_input_file = clp.get<std::string>("traininputfile");
 
@@ -170,10 +173,10 @@ int main(int argc, char** argv) {
 
     p2bo("Running on " + _host_name + "\n", _output);
 
-p2bo("Train input file: " + _train_input_file + "\n", _output);
-p2bo("Train input dir: " + _train_input_directory + "\n", _output);
-p2bo("Train output dir: " + _output_directory + "\n", _output);
-p2bo("Time: " + _current_time + "\n", _output);
+    p2bo("Train input file: " + _train_input_file + "\n", _output);
+    p2bo("Train input dir: " + _train_input_directory + "\n", _output);
+    p2bo("Train output dir: " + _output_directory + "\n", _output);
+    p2bo("Time: " + _current_time + "\n", _output);
 
     if(_load_train_vocabulary.empty()) {
         _class_encoder.build(train_input_files, true);
@@ -248,75 +251,67 @@ p2bo("Time: " + _current_time + "\n", _output);
 
 //    cpyp::PYPLM<kORDER> lm(_pattern_model.totalwordtypesingroup(0,1), 1, 1, 1, 1);
     cpyp::PYPLM<kORDER> lm(_pattern_model.totalwordtypesingroup(0, 0), 1, 1, 1, 1);
-    for(int sample = 0; sample < _samples; ++sample) {
+    for(int sample = 0; sample < _samples; ++sample) 
+    {
         int patterns_processed = 0;
         int patterns_unprocessed = 0;
-        for( IndexPattern indexPattern : _indexed_corpus) {
-            for (Pattern pattern : _pattern_model.getreverseindex(indexPattern.ref)) {
-            if(_pattern_model.has(pattern)) {
-                size_t pattern_size = pattern.size();
+        for( IndexPattern indexPattern : _indexed_corpus) 
+        {
+            for (Pattern pattern : _pattern_model.getreverseindex(indexPattern.ref)) 
+            {
+                if(_pattern_model.has(pattern)) 
+                {
+                    size_t pattern_size = pattern.size();
 
-                //if(patterns_processed > 10 || patterns_unprocessed > 10)
-                //    return(4);
+                    Pattern context = Pattern();
+                    Pattern focus = Pattern();
 
-                Pattern context = Pattern();
-                Pattern focus = Pattern();
+                    if(pattern_size == 4) // kORDER
+                    {
+                        if(pattern_size == 1) 
+                        {
+                            focus = pattern[0];
+                        } else 
+                        {
+                            context = Pattern(pattern, 0, pattern_size - 1);
+                            focus = pattern[pattern_size - 1];
+                            ++patterns_processed;
+                        }
 
-// A 2015 07 29 if(pattern_size == 4) {//kORDER) {
-                    //std::cout << "4: " << pattern.tostring(_class_decoder) << std::endl;
-                    if(pattern_size == 1) {
-                        focus = pattern[0];
-                    } else {
-                        context = Pattern(pattern, 0, pattern_size - 1);
-                        focus = pattern[pattern_size - 1];
-
-                        ++patterns_processed;
+                        if(sample > 0) 
+                        {
+                            lm.decrement(focus, context, _eng);
+                        }
+                        lm.increment(focus, context, _eng, nullptr);
+  //                      std::cout << "Adding: " << context.tostring(_class_decoder) << " " << focus.tostring(_class_decoder) << std::endl;
                     }
-                    
-//                    if(!pattern.isskipgram()) {
-//                        for (gp : generateSkipgrams(pattern)) { // make skipgrams
-//                            patternAdded[pattern]++;
-//
-//                        }
-//
-//                    }
+                }
+            }
 
-                    if(sample > 0) {
-                        lm.decrement(focus, context, _eng);
-                    }
-                    lm.increment(focus, context, _eng, nullptr);
-// A                } else
-// A                {
-// A                    //std::cout << "X: " << pattern.tostring(_class_decoder) << std::endl;
-// A                    ++patterns_unprocessed;
-// A                }
-           }
-           }
-       }
-           //std::cout << "Patterns processed:" << patterns_processed << std::endl;
-           //std::cout << "Patterns unprocessed:" << patterns_unprocessed << std::endl;
-
-       if(sample % 10 == 9) {
-           p2be(" [LLH=" + std::to_string(lm.log_likelihood()) + "]\n", _output);
-           if(sample % 30u == 29) {
-               lm.resample_hyperparameters(_eng);
-           }
-       } else {
-           p2be(".", _output);
-       }
+            if(sample % 10 == 9) 
+            {
+                p2be(" [LLH=" + std::to_string(lm.log_likelihood()) + "]\n", _output);
+                if(sample % 30u == 29) 
+                {
+                    lm.resample_hyperparameters(_eng);
+                } else 
+                {
+                    p2be(".", _output);
+                }
+            }
+        }
     }
 
-    //std::ofstream ofile(_output_file.c_str(), std::ios::out | std::ios::binary);
+    p2be("Writing LM to " + _serialised_file_name + " ...\n", _output);
+    std::ofstream ofile(_serialised_file_name, std::ios::binary);
+    if (!ofile.good()) 
+    {
+        p2be("Failed to open " + _serialised_file_name + " for writing\n", _output);
+        return 1;
+    }
 
-        p2be("Writing LM to " + _serialised_file_name + " ...\n", _output);
-        std::ofstream ofile(_serialised_file_name, std::ios::binary);
-        if (!ofile.good()) {
-            p2be("Failed to open " + _serialised_file_name + " for writing\n", _output);
-            return 1;
-        }
-
-        boost::archive::binary_oarchive oa(ofile);
-        oa << lm;
+    boost::archive::binary_oarchive oa(ofile);
+    oa << lm;
 
     time(&rawtime);
     timeinfo = localtime(&rawtime);

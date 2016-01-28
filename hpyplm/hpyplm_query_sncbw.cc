@@ -233,137 +233,129 @@ int main(int argc, char** argv) {
 
     p2bo("Time: " + _current_time + "\n", _general_output);
 
-        std::vector<Backoff> all_backoff_options = std::vector<Backoff>();
+    std::vector<Backoff> all_backoff_options = std::vector<Backoff>();
 
     if(_backoff_method == Backoff::ALL) {
-        all_backoff_options.push_back(Backoff::NGRAM);
-        all_backoff_options.push_back(Backoff::BOBACO);
-        all_backoff_options.push_back(Backoff::GLM);
+         all_backoff_options.push_back(Backoff::NGRAM);
+         all_backoff_options.push_back(Backoff::BOBACO);
+         all_backoff_options.push_back(Backoff::GLM);
     } else 
     {
-        all_backoff_options.push_back(_backoff_method);
+         all_backoff_options.push_back(_backoff_method);
     }
-       for(Backoff i_backoff_method : all_backoff_options) { 
+
+    for(Backoff i_backoff_method : all_backoff_options)
+    {
+        std::string _base_output_name = _output_directory + "/" + _output_run_name + "_" + toString(i_backoff_method) + "_" + _kORDER;
+        std::string _output_class_file_name = _base_output_name + ".cls";
+        std::string _output_corpus_file_name = _base_output_name + ".dat";
+        std::string _output_patternmodel_file_name = _base_output_name + ".patternmodel";
+        //std::string _output_serialised_file_name = _base_output_name + ".ser";
+        std::string _output_probabilities_file_name = _base_output_name + ".probs";
+
+        std::ofstream _output;
+        std::string _output_filename = _base_output_name + ".output";
+        _output.open(_output_filename);
+
+        std::ofstream _probs_file;
+        _probs_file.open(_output_probabilities_file_name);
+
+        std::cout << "Processing method " << toString(i_backoff_method) << std::endl;
+
+        time (&rawtime);
+        timeinfo = localtime(&rawtime);
+
+        strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+        _current_time = std::string(buffer);
+
+        p2bo("Time: " + _current_time + "\n", _output);
 
 
-    std::string _base_output_name = _output_directory + "/" + _output_run_name + "_" + toString(i_backoff_method) + "_" + _kORDER;
-    std::string _output_class_file_name = _base_output_name + ".cls";
-    std::string _output_corpus_file_name = _base_output_name + ".dat";
-    std::string _output_patternmodel_file_name = _base_output_name + ".patternmodel";
-    //std::string _output_serialised_file_name = _base_output_name + ".ser";
-    std::string _output_probabilities_file_name = _base_output_name + ".probs";
-
-    std::ofstream _output;
-    std::string _output_filename = _base_output_name + ".output";
-    _output.open(_output_filename);
-
-    std::ofstream _probs_file;
-    _probs_file.open(_output_probabilities_file_name);
-
-            std::cout << "Processing method " << toString(i_backoff_method) << std::endl;
-
-            time (&rawtime);
-            timeinfo = localtime(&rawtime);
-
-            strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
-            _current_time = std::string(buffer);
-
-            p2bo("Time: " + _current_time + "\n", _output);
+        double llh = 0;
+        unsigned cnt = 0;
+        unsigned oovs = 0;
+        
 
 
-    double llh = 0;
-    unsigned cnt = 0;
-    unsigned oovs = 0;
-    
+        int nr_files = 0;
+        int nr_lines = 0;
+        std::map<int, int> backoff_administration;
+        for(std::string input_file_name : test_input_files)
+        {
+            ++nr_files;
+            std::ifstream file(input_file_name);
 
 
-            int nr_files = 0;
-            int nr_lines = 0;
-                std::map<int, int> backoff_administration;
-            for(std::string input_file_name : test_input_files)
+            std::string retrieved_string;
+            while( std::getline(file, retrieved_string))
             {
-                    ++nr_files;
-                std::ifstream file(input_file_name);
+                ++nr_lines;
+                std::vector<std::string> words = split(retrieved_string);
 
-
-                std::string retrieved_string;
-                while( std::getline(file, retrieved_string))
+                if(words.size() < kORDER)
                 {
-                        ++nr_lines;
-                    std::vector<std::string> words = split(retrieved_string);
+                } else
+                {
+                    // als kORDER = 4, dan is 3 het focuswoord
+                    for(int i = (kORDER-1); i < words.size(); ++i)
+                    {
+                        std::stringstream context_stream;
+                        context_stream << words[i-(kORDER-1)];
 
-                    if(words.size() < kORDER)
-                    {
-                    } else
-                    {
-                        // als kORDER = 4, dan is 3 het focuswoord
-                        for(int i = (kORDER-1); i < words.size(); ++i)
+                        for(int ii = 1; ii < kORDER-1 ; ++ii)
                         {
-                            std::stringstream context_stream;
-                            context_stream << words[i-(kORDER-1)];
-
-                            for(int ii = 1; ii < kORDER-1 ; ++ii)
-                            {
-                                context_stream << " " << words[i-(kORDER-1)+ii];
-                            }
-
-                            Pattern context = _class_encoder.buildpattern(context_stream.str());
-                            Pattern focus = _class_encoder.buildpattern(words[i]);
-
-                            double lp;
-
-                            if(i_backoff_method == Backoff::BOBACO) {
-                                lp = log(lm.prob(focus, context, nullptr, true, nullptr, nullptr, &backoff_administration)) / log(2);
-                            } else if(i_backoff_method == Backoff::GLM) {
-                                     if(kORDER == 5) lp = log(lm.j15(focus, context)) / log(2);
-                                else if(kORDER == 4) lp = log(lm.j7(focus, context)) / log(2);
-                                else if(kORDER == 3) lp = log(lm.j3(focus, context)) / log(2);
-                                else lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
-                            } else {
-                                // baco
-                                lp = log(lm.prob(focus, context, nullptr, false)) / log(2);
-                            }
-
-                            if(!allPatterns.has(focus)) {
-                                ++oovs;
-                                lp = 0;
-                                _probs_file << "***";
-                            }
-
-                            _probs_file << "p(" << focus.tostring(_class_decoder) << " |";
-                            _probs_file << context.tostring(_class_decoder) << ") = " << std::fixed << std::setprecision(20) << lp << std::endl;
-
-                            llh -= lp;
-                            ++cnt;
-
+                            context_stream << " " << words[i-(kORDER-1)+ii];
                         }
+
+                        Pattern context = _class_encoder.buildpattern(context_stream.str());
+                        Pattern focus = _class_encoder.buildpattern(words[i]);
+
+                        double lp;
+
+                        // deze moet er wel in natuurlijk
+                        bool backoff_to_skips = false;
+                        lp = log(lm.prob(focus, context, nullptr/*&_class_decoder*/, backoff_to_skips, &backoff_administration))    /log(2);
+
+                        if(!allPatterns.has(focus)) {
+                            ++oovs;
+                            lp = 0;
+                            _probs_file << "***";
+                        }
+
+                        _probs_file << "p(" << focus.tostring(_class_decoder) << " |";
+                        _probs_file << context.tostring(_class_decoder) << ") = " << std::fixed << std::setprecision(20) << lp << std::endl;
+
+                        llh -= lp;
+                        ++cnt;
+
                     }
                 }
             }
+        }
 
-            for(auto key: backoff_administration)
-            {
-                std::cout << key.first << " " << key.second << std::endl;
-            }
+        for(auto key: backoff_administration)
+        {
+            std::cout << key.first << " " << key.second << std::endl;
+        }
 
-            std::cout << "Processed " << nr_files << " files and " << nr_lines << " lines" << std::endl;
+        std::cout << "Processed " << nr_files << " files and " << nr_lines << " lines" << std::endl;
 
-            cnt -= oovs;
-            double lprob = (-llh * log(2)) / log(10);
-            p2be("  Log_10 prob: " + std::to_string(lprob) + "\n" , _output);
-            p2be("        Count: " + std::to_string(cnt) + "\n", _output);
-            p2be("         OOVs: " + std::to_string(oovs) + "\n", _output);
-            p2be("Cross-Entropy: " + std::to_string((llh / cnt)) + "\n", _output);
-            p2be("   Perplexity: " + std::to_string(pow(2, llh / cnt)) + "\n", _output);
+        cnt -= oovs;
+        double lprob = (-llh * log(2)) / log(10); // in cpyp: (-llh * log(2) / log(10))
+        p2be("  Log_10 prob: " + std::to_string(lprob) + "\n" , _output);
+        p2be("        Count: " + std::to_string(cnt) + "\n", _output);
+        p2be("         OOVs: " + std::to_string(oovs) + "\n", _output);
+        p2be("Cross-Entropy: " + std::to_string((llh / cnt)) + "\n", _output);
+        p2be("   Perplexity: " + std::to_string(pow(2, llh / cnt)) + "\n", _output);
 
-            time (&rawtime);
-            timeinfo = localtime(&rawtime);
+        time (&rawtime);
+        timeinfo = localtime(&rawtime);
 
-            strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
-            _current_time = std::string(buffer);
+        strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+        _current_time = std::string(buffer);
 
-            p2bo("Time: " + _current_time + "\n", _output);
-    _probs_file.close();
+        p2bo("Time: " + _current_time + "\n", _output);
+        _probs_file.close();
     }
 
     p2be("Done for now\n" , _general_output);

@@ -67,7 +67,7 @@ template<unsigned N> struct PYPLM {
                     std::cout << N << indentation << "I: " << w.tostring(*decoder) << " | " << shortened_context.tostring(*decoder) << std::endl;
                 }
 
-		const double bo = backoff.prob(w, context, decoder, false, nullptr, nullptr, nullptr);
+		const double bo = backoff.prob(w, context, decoder, false);
 
 		auto it = p.find(pattern);
 		if (it == p.end()) {
@@ -95,7 +95,7 @@ template<unsigned N> struct PYPLM {
 		}
 	}
 
-	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false, std::map<int, int> * backoff_administration = nullptr, backoffmethod) const {
+	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false, std::map<int, int> * backoff_administration = nullptr/*, backoffmethod*/) const {
                 //std::cout << ">>>>> N: " << std::to_string(N) << std::endl;
                 Pattern pattern = Pattern(context.reverse(), 0, N-1);
                 Pattern shortened_context = pattern.reverse();
@@ -106,12 +106,15 @@ template<unsigned N> struct PYPLM {
                 }
 
 		const double bo = backoff.prob(w, context, decoder, backoff_to_skips, backoff_administration);
+                
                 double entropy_context = 2.0;
                 double sum_entropies = entropy_context;
                 int entropy_values = 1;
 
 		auto it = p.find(pattern);
 		if (it == p.end()) { // if the pattern is not in the train data
+                    return bo;
+
 
                     double average;
                     
@@ -157,12 +160,10 @@ template<unsigned N> struct PYPLM {
                             std::cout << indentation << "BO: " << average << " (original bo: " << bo << ")" << std::endl;
                         }
 
-
-
                         return average;
  
-                    } // if(backoff_to_skips) 
-                    else { // if(!backoff_to_skips)
+                    } // end if(backoff_to_skips) 
+                    else { // end if(!backoff_to_skips)
                         if(backoff_administration) 
                         {
                             int temp_int = (*backoff_administration)[kORDER];
@@ -173,14 +174,14 @@ template<unsigned N> struct PYPLM {
                 }
 
 
-                double ret = it->second.prob(w, bo);
-                 
-                if(decoder != nullptr) {
-                    std::cout << N << indentation << "CRP: " << ret << std::endl;
-                }
-
-                return ret;
-		//return it->second.prob(w, bo);
+                //double ret = it->second.prob(w, bo);
+                // 
+                //if(decoder != nullptr) {
+                //    std::cout << N << indentation << "CRP: " << ret << std::endl;
+                //}
+                //
+                //return ret;
+		return it->second.prob(w, bo);
 	}
 
         double avg( std::initializer_list<double> list )
