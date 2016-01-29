@@ -65,77 +65,48 @@ int main(int argc, char** argv)
    PatternSet<uint64_t> allWords = _train_pattern_model.extractset(1,1);
     std::cout << "Done creating pattern set" << std::endl;
 
-    PatternSet<uint64_t>* set_of_contexts;
-    PatternSet<uint64_t>* set_of_ngrams = new PatternSet<uint64_t>();
-    set_of_contexts = &allWords;
+    PatternSet<uint64_t>* set_of_all_contexts;
+    PatternSet<uint64_t>* set_of_contexts = new PatternSet<uint64_t>();
+    set_of_all_contexts = &allWords;
 
-    int pr =0;
-    int npr = 0;
     for(int n = 1; n < 4; ++n)
     {
         std::cout << "Generating contexts with length 1" << std::endl;
-        for(auto context : *set_of_contexts)
+        for(auto context : *set_of_all_contexts)
         {
+            int sum = 0;
+            int triggers = 0;
+            std::vector<int> occs;
             for(auto word : allWords)
             {
                 const Pattern ngram = context + word;
-                if(_train_pattern_model.occurrencecount(ngram))
+                int count = _train_pattern_model.occurrencecount(ngram);
+                if(count)
                 {
-                    ++pr;
-                    set_of_ngrams->insert(ngram);
-                    std::cout << "Adding " << ngram.tostring(_class_decoder) << std::endl;
-                }
-                else
-                {
-                    ++npr;
+                    occs.push_back(count);
+                    ++triggers;
+                    sum += count;
+                    set_of_contexts->insert(ngram);
+                    std::cout << "Adding " << context.tostring(_class_decoder) << std::endl;
+                    // possible optimisation: only insert context once
                 }
             }
-        }
-        std::cout << "processed: " << pr << " not processed: " << npr << std::endl;
-        break;
-        for(auto ngram : *set_of_ngrams)
-        {
             
+            double llh = 0;
+            for(auto occ : occs)
+            {
+                double mle = occ*1.0/sum;
+                llh -= log(mle);
+            }
+
+            std::cout << context.tostring(_class_decoder) << "\t" << triggers << "\t" << -llh << "\t" << llh/triggers << std::endl;
+
         }
-    }
 
-/*
-    // for each context c, find all cf for which count > 0
-    for(int n = 1; n < 4; ++n)
-    {
-        std::cout << "Processing contexts for " << n << std::endl;
-
-        PatternSet<uint64_t> allContexts = _train_pattern_model.extractset(n,n);
-        std::cout << "\tcounting" << std::endl;
-        for(auto context : allContexts)
-        {
-                int counts = 0;
-                int triggers = 0;
-                std::vector<std::pair<Pattern, int>> occs;
-                for(auto word : allWords)
-                {
-                    const Pattern ngram = context + word;
-                    int count = _train_pattern_model.occurrencecount(ngram);
-                    if(count)
-                    {
-                        occs.push_back(std::pair<Pattern, int>(ngram, count));
-                        counts += count;
-                        ++triggers;
-                    }
-               }
-
-                double llh = 0;
-               for(auto occ : occs)
-               {
-//                    _general_output << occ.first.tostring(_class_decoder) << "\t" << std::to_string(triggers) << "\t" << std::to_string(occ.second*1.0/counts) << "\n";
-                        double mle = occ.second*1.0/counts;
-                        llh -= log(mle);
-               }
-               _general_output << context.tostring(_class_decoder) << "\t" << -llh << "\t" << llh/triggers << std::endl;
-        }
+        set_of_all_contexts = set_of_contexts;
+        set_of_contexts = new PatternSet<uint64_t>();
+        // dit gaat fout...
     }
 
    _general_output.close();
-
-*/
 }
