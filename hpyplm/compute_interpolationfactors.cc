@@ -65,14 +65,15 @@ int main(int argc, char** argv)
    PatternSet<uint64_t> allWords = _train_pattern_model.extractset(1,1);
     std::cout << "Done creating pattern set" << std::endl;
 
-    PatternSet<uint64_t>* set_of_all_contexts;
-    PatternSet<uint64_t>* set_of_contexts = new PatternSet<uint64_t>();
-    set_of_all_contexts = &allWords;
+    PatternSet<uint64_t> set_of_all_contexts = _train_pattern_model.extractset(1,1);//allWords;
+    PatternSet<uint64_t> set_of_contexts = PatternSet<uint64_t>();
 
+    int bla = 0;
     for(int n = 1; n < 4; ++n)
     {
-        std::cout << "Generating contexts with length 1" << std::endl;
-        for(auto context : *set_of_all_contexts)
+        bla = 0;
+        std::cout << "Generating contexts with length " << n << std::endl;
+        for(auto context : set_of_all_contexts)
         {
             int sum = 0;
             int triggers = 0;
@@ -86,7 +87,7 @@ int main(int argc, char** argv)
                     occs.push_back(count);
                     ++triggers;
                     sum += count;
-                    set_of_contexts->insert(ngram);
+                    set_of_contexts.insert(ngram);
                     std::cout << "Adding " << context.tostring(_class_decoder) << std::endl;
                     // possible optimisation: only insert context once
                 }
@@ -99,12 +100,15 @@ int main(int argc, char** argv)
                 llh -= log(mle);
             }
 
-            std::cout << context.tostring(_class_decoder) << "\t" << triggers << "\t" << -llh << "\t" << llh/triggers << std::endl;
-
+            //std::cout << context.tostring(_class_decoder) << "\t" << triggers << "\t" << -llh << "\t" << llh/triggers << std::endl;
+            if(++bla == 100)
+            {
+                break;
+            }
         }
 
         set_of_all_contexts = set_of_contexts;
-        set_of_contexts = new PatternSet<uint64_t>();
+        set_of_contexts = PatternSet<uint64_t>();
         // dit gaat fout...
     }
 
