@@ -73,7 +73,7 @@ int main(int argc, char** argv)
     std::cout << "Done creating pattern set" << std::endl;
 
     int bla = 0;
-    for(int n = 3; n <= 4; ++n)
+    for(int n = 1; n <= 4; ++n)
     {
         
         PatternSet<uint64_t> allPatterns = _train_pattern_model.extractset(n,n);
@@ -103,15 +103,16 @@ int main(int argc, char** argv)
                     llh -= log(mle);
                 }
     
-                std::cout << prefix.tostring(_class_decoder) << "\t" << added_patterns.size() << "\t" << -llh << "\t" << llh/added_patterns.size() << std::endl;
-                std::cout << "----------------------------------------" << std::endl;
+//                std::cout << previous_prefix.tostring(_class_decoder) << "\t" << added_patterns.size() << "\t" << -llh << "\t" << llh/added_patterns.size() << std::endl;
+                _general_output << previous_prefix.tostring(_class_decoder) << "\t" << added_patterns.size() << "\t" << -llh << "\t" << llh/added_patterns.size() << std::endl;
+//                std::cout << "----------------------------------------" << std::endl;
                 previous_prefix = prefix;
 
                 llh = 0;
                 sum = 0;
                 added_patterns = std::vector<int>();
             }
-            std::cout << "[" << prefix.tostring(_class_decoder) << "]\t" << pattern.tostring(_class_decoder) << std::endl;
+//            std::cout << "[" << prefix.tostring(_class_decoder) << "]\t" << pattern.tostring(_class_decoder) << std::endl;
             int count = _train_pattern_model.occurrencecount(pattern);
             sum += count;
             added_patterns.push_back(count);
