@@ -65,6 +65,41 @@ int main(int argc, char** argv)
    PatternSet<uint64_t> allWords = _train_pattern_model.extractset(1,1);
     std::cout << "Done creating pattern set" << std::endl;
 
+    PatternSet<uint64_t>* set_of_contexts;
+    PatternSet<uint64_t>* set_of_ngrams = new PatternSet<uint64_t>();
+    set_of_contexts = &allWords;
+
+    int pr =0;
+    int npr = 0;
+    for(int n = 1; n < 4; ++n)
+    {
+        std::cout << "Generating contexts with length 1" << std::endl;
+        for(auto context : *set_of_contexts)
+        {
+            for(auto word : allWords)
+            {
+                const Pattern ngram = context + word;
+                if(_train_pattern_model.occurrencecount(ngram))
+                {
+                    ++pr;
+                    set_of_ngrams->insert(ngram);
+                    std::cout << "Adding " << ngram.tostring(_class_decoder) << std::endl;
+                }
+                else
+                {
+                    ++npr;
+                }
+            }
+        }
+        std::cout << "processed: " << pr << " not processed: " << npr << std::endl;
+        break;
+        for(auto ngram : *set_of_ngrams)
+        {
+            
+        }
+    }
+
+/*
     // for each context c, find all cf for which count > 0
     for(int n = 1; n < 4; ++n)
     {
@@ -101,5 +136,6 @@ int main(int argc, char** argv)
     }
 
    _general_output.close();
-   
+
+*/
 }
