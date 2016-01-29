@@ -23,12 +23,14 @@ int main(int argc, char** argv)
     clp.add<std::string>("output", 'o', "output directory", true);
     clp.add<std::string>("trainmodel", 'm', "the name of the training model", true);
     clp.add<int>("n", 'n', "n", false, 4);
+    clp.add<int>("parallel", 'p', "number of parallel bla", false);
 
     clp.parse_check(argc, argv);
 
     std::string _input_directory = clp.get<std::string>("trainoutput");
     std::string _output_directory = clp.get<std::string>("output");
     std::string _input_run_name = clp.get<std::string>("trainmodel");
+    int _parallel_bla = clp.get<int>("parallel");
 
     ClassEncoder _class_encoder = ClassEncoder();
     ClassDecoder _class_decoder = ClassDecoder();
@@ -47,7 +49,7 @@ int main(int argc, char** argv)
    std::string _input_patternmodel_file_name = _base_input_name + ".patternmodel";
 
    std::string _general_base_output_name = _output_directory + "/" + _input_run_name;
-   std::string _general_interpolationfactors_output_name = _general_base_output_name + ".factors";
+   std::string _general_interpolationfactors_output_name = _general_base_output_name + ".factors." + std::to_string(_parallel_bla);
 
    std::ofstream _general_output;
    _general_output.open(_general_interpolationfactors_output_name);
@@ -71,45 +73,47 @@ int main(int argc, char** argv)
     int bla = 0;
     for(int n = 1; n < 4; ++n)
     {
-        bla = 0;
         std::cout << "Generating contexts with length " << n << std::endl;
         for(auto context : set_of_all_contexts)
         {
-            int sum = 0;
-            int triggers = 0;
-            std::vector<int> occs;
-            for(auto word : allWords)
+            if(context.hash() % 28 == _parallel_bla)
             {
-                const Pattern ngram = context + word;
-                int count = _train_pattern_model.occurrencecount(ngram);
-                if(count)
-                {
-                    occs.push_back(count);
-                    ++triggers;
-                    sum += count;
-                    set_of_contexts.insert(ngram);
-                    std::cout << "Adding " << context.tostring(_class_decoder) << std::endl;
-                    // possible optimisation: only insert context once
-                }
-            }
-            
-            double llh = 0;
-            for(auto occ : occs)
-            {
-                double mle = occ*1.0/sum;
-                llh -= log(mle);
-            }
+                ++bla;
 
-            //std::cout << context.tostring(_class_decoder) << "\t" << triggers << "\t" << -llh << "\t" << llh/triggers << std::endl;
-            if(++bla == 100)
-            {
-                break;
+                int sum = 0;
+                int triggers = 0;
+                std::vector<int> occs;
+                for(auto word : allWords)
+                {
+                    const Pattern ngram = context + word;
+                    int count = _train_pattern_model.occurrencecount(ngram);
+                    if(count)
+                    {
+                        occs.push_back(count);
+                        ++triggers;
+                        sum += count;
+                        set_of_contexts.insert(ngram);
+                        //std::cout << "Adding " << context.tostring(_class_decoder) << std::endl;
+                        // possible optimisation: only insert context once
+                    }
+                }
+                
+                double llh = 0;
+                for(auto occ : occs)
+                {
+                    double mle = occ*1.0/sum;
+                    llh -= log(mle);
+                }
+
+                _general_output << context.tostring(_class_decoder) << "\t" << triggers << "\t" << -llh << "\t" << llh/triggers << std::endl;
             }
         }
 
         set_of_all_contexts = set_of_contexts;
         set_of_contexts = PatternSet<uint64_t>();
-        // dit gaat fout...
+
+        std::cout << _parallel_bla << "]: Processed " << bla << "contexts for " << n << std::endl;
+        break;
     }
 
    _general_output.close();
