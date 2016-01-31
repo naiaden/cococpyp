@@ -77,8 +77,6 @@ struct ProgramOptions
 
     ProgramOptions(CommandLineOptions& _clo) : clo(_clo)
     {
-        
-        
     }
 
 
@@ -91,33 +89,51 @@ struct ProgramOptions
    std::string getGeneralInterpolationFactorsOutputName() { return getGeneralBaseOutputName() + ".factors"; }
 };
 
+struct CoCoInitialiser
+{
+    ClassEncoder classEncoder;
+    ClassDecoder classDecoder;
+    IndexedCorpus indexedCorpus;
+    PatternModel<uint32_t> trainPatternModel;
+
+    ClassEncoder& getClassEncoder() { return classEncoder; }
+    ClassDecoder& getClassDecoder() { return classDecoder; }
+    IndexedCorpus& getIndexedCorpus() { return indexedCorpus; }
+    PatternModel<uint32_t>& getTrainPatternModel() { return trainPatternModel; }
+
+    ProgramOptions& po;
+    CustomPatternModelOptions& cpmo;
+
+    CoCoInitialiser(ProgramOptions& _po, CustomPatternModelOptions& _cpmo) : po(_po), cpmo(_cpmo)
+    {
+       classEncoder.load(po.getInputClassFileName());
+       std::cout << "Done loading class encoder" << std::endl;
+       classDecoder.load(po.getInputClassFileName());
+       std::cout << "Done loading class decoder" << std::endl;
+
+       indexedCorpus = IndexedCorpus(po.getInputCorpusFileName());
+       std::cout << "Done loading indexed corpus" << std::endl;
+       
+       trainPatternModel = PatternModel<uint32_t>(po.getInputPatternModelFileName(), cpmo.getPatternModelOptions(), nullptr, &indexedCorpus);
+    }
+
+};
+
 int main(int argc, char** argv) 
 {
     CommandLineOptions clo = CommandLineOptions(argc, argv);
     ProgramOptions po = ProgramOptions(clo);
     CustomPatternModelOptions cpmo = CustomPatternModelOptions();
 
-    ClassEncoder _class_encoder = ClassEncoder();
-    ClassDecoder _class_decoder = ClassDecoder();
+    CoCoInitialiser cci = CoCoInitialiser(po, cpmo);
 
    std::ofstream _general_output;
    _general_output.open(po.getGeneralInterpolationFactorsOutputName());
 
-    std::cout << "Processing " << po.getInputClassFileName() << std::endl;
-
-   _class_encoder.load(po.getInputClassFileName());
-   std::cout << "Done loading class encoder" << std::endl;
-   _class_decoder.load(po.getInputClassFileName());
-   std::cout << "Done loading class decoder" << std::endl;
-
-   IndexedCorpus _indexed_corpus = IndexedCorpus(po.getInputCorpusFileName());
-   std::cout << "Done loading indexed corpus" << std::endl;
-   
-   PatternModel<uint32_t> _train_pattern_model(po.getInputPatternModelFileName(), cpmo.getPatternModelOptions(), nullptr, &_indexed_corpus);
 
     for(int n = 1; n <= 4; ++n)
     {
-        PatternSet<uint64_t> allPatterns = _train_pattern_model.extractset(n,n);
+        PatternSet<uint64_t> allPatterns = cci.getTrainPatternModel().extractset(n,n);
         std::cout << "Done extracting set for " << n << std::endl;
         
         std::set<Pattern, PatternComp> ordered_patterns;
@@ -143,8 +159,8 @@ int main(int argc, char** argv)
                     llh -= log(mle);
                 }
     
-                std::cout << previous_prefix.tostring(_class_decoder) << "\t" << added_patterns.size() << "\t" << -llh << "\t" << llh/added_patterns.size() << std::endl;
-//                _general_output << previous_prefix.tostring(_class_decoder) << "\t" << added_patterns.size() << "\t" << -llh << "\t" << llh/added_patterns.size() << std::endl;
+                std::cout << previous_prefix.tostring(cci.getClassDecoder()) << "\t" << added_patterns.size() << "\t" << -llh << "\t" << llh/added_patterns.size() << std::endl;
+//                _general_output << previous_prefix.tostring(cci.getClassDecoder()) << "\t" << added_patterns.size() << "\t" << -llh << "\t" << llh/added_patterns.size() << std::endl;
                 previous_prefix = prefix;
 
                 llh = 0;
@@ -152,7 +168,7 @@ int main(int argc, char** argv)
                 added_patterns = std::vector<int>();
             }
             
-            int count = _train_pattern_model.occurrencecount(pattern);
+            int count = cci.getTrainPatternModel().occurrencecount(pattern);
             sum += count;
             added_patterns.push_back(count);
         }
