@@ -23,59 +23,100 @@ struct PatternComp
     }
 };
 
-int main(int argc, char** argv) 
+struct CommandLineOptions
 {
     cmdline::parser clp;
+    std::string _output_directory;
+    std::string _input_directory;
+    std::string _train_model;
+    int n;
 
-    clp.add<std::string>("trainoutput", 'O', "train output directory", true);
-    clp.add<std::string>("output", 'o', "output directory", true);
-    clp.add<std::string>("trainmodel", 'm', "the name of the training model", true);
-    clp.add<int>("n", 'n', "n", false, 4);
+    CommandLineOptions(int argc, char** argv)
+    {
+        clp.add<std::string>("trainoutput", 'O', "train output directory", true);
+        clp.add<std::string>("output", 'o', "output directory", true);
+        clp.add<std::string>("trainmodel", 'm', "the name of the training model", true);
+        clp.add<int>("n", 'n', "n", false, 4);
 
-    clp.parse_check(argc, argv);
+        clp.parse_check(argc, argv);
 
-    std::string _input_directory = clp.get<std::string>("trainoutput");
-    std::string _output_directory = clp.get<std::string>("output");
-    std::string _input_run_name = clp.get<std::string>("trainmodel");
+        _output_directory = clp.get<std::string>("output");
+        _input_directory = clp.get<std::string>("trainoutput");
+        _train_model = clp.get<std::string>("trainmodel");
+        n = clp.get<int>("n");
+
+    }
+
+   std::string getInputDirectory() { return _input_directory; }//std::string ret = clp.get<std::string>("trainoutput"); return ret;}
+   std::string getOutputDirectory() { return _output_directory; } 
+   std::string getTrainModel() { return _train_model; } //return clp.get<std::string>("trainmodel"); }
+   int getN() { return n; }
+
+};
+
+struct CustomPatternModelOptions
+{
+    PatternModelOptions _pattern_model_options = PatternModelOptions();
+  
+  CustomPatternModelOptions()
+   {
+        _pattern_model_options.MAXLENGTH = 4;
+        _pattern_model_options.MINLENGTH = 1;
+        _pattern_model_options.DOSKIPGRAMS = false;
+        _pattern_model_options.DOREVERSEINDEX = true;
+        _pattern_model_options.QUIET = false;
+        _pattern_model_options.MINTOKENS = 1;
+   }
+
+    PatternModelOptions getPatternModelOptions() const { return _pattern_model_options; } 
+};
+
+struct ProgramOptions
+{
+    CommandLineOptions& clo;
+
+    ProgramOptions(CommandLineOptions& _clo) : clo(_clo)
+    {
+        
+        
+    }
+
+
+   std::string getBaseInputName() { return clo.getInputDirectory() + "/" + clo.getTrainModel(); }
+   std::string getInputClassFileName() { return getBaseInputName() + ".cls"; }
+   std::string getInputCorpusFileName() { return getBaseInputName() + ".dat"; }
+   std::string getInputPatternModelFileName() { return getBaseInputName() + ".patternmodel"; }
+
+   std::string getGeneralBaseOutputName() { return clo.getOutputDirectory() + "/" + clo.getTrainModel(); }
+   std::string getGeneralInterpolationFactorsOutputName() { return getGeneralBaseOutputName() + ".factors"; }
+};
+
+int main(int argc, char** argv) 
+{
+    CommandLineOptions clo = CommandLineOptions(argc, argv);
+    ProgramOptions po = ProgramOptions(clo);
+    CustomPatternModelOptions cpmo = CustomPatternModelOptions();
 
     ClassEncoder _class_encoder = ClassEncoder();
     ClassDecoder _class_decoder = ClassDecoder();
 
-    PatternModelOptions _pattern_model_options = PatternModelOptions();
-    _pattern_model_options.MAXLENGTH = 4;
-    _pattern_model_options.MINLENGTH = 1;
-    _pattern_model_options.DOSKIPGRAMS = false;
-    _pattern_model_options.DOREVERSEINDEX = true;
-    _pattern_model_options.QUIET = false;
-    _pattern_model_options.MINTOKENS = 1;
-
-   std::string _base_input_name = _input_directory + "/" + _input_run_name;
-   std::string _input_class_file_name = _base_input_name + ".cls";
-   std::string _input_corpus_file_name = _base_input_name + ".dat";
-   std::string _input_patternmodel_file_name = _base_input_name + ".patternmodel";
-
-   std::string _general_base_output_name = _output_directory + "/" + _input_run_name;
-   std::string _general_interpolationfactors_output_name = _general_base_output_name + ".factors";
-
    std::ofstream _general_output;
-   _general_output.open(_general_interpolationfactors_output_name);
+   _general_output.open(po.getGeneralInterpolationFactorsOutputName());
 
-   _class_encoder.load(_input_class_file_name);
+    std::cout << "Processing " << po.getInputClassFileName() << std::endl;
+
+   _class_encoder.load(po.getInputClassFileName());
    std::cout << "Done loading class encoder" << std::endl;
-   _class_decoder.load(_input_class_file_name);
+   _class_decoder.load(po.getInputClassFileName());
    std::cout << "Done loading class decoder" << std::endl;
 
-   IndexedCorpus _indexed_corpus = IndexedCorpus(_input_corpus_file_name);
+   IndexedCorpus _indexed_corpus = IndexedCorpus(po.getInputCorpusFileName());
    std::cout << "Done loading indexed corpus" << std::endl;
    
-   PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options, nullptr, &_indexed_corpus);
-   PatternSet<uint64_t> allWords = _train_pattern_model.extractset(1,1);
-    std::cout << "Done creating pattern set" << std::endl;
+   PatternModel<uint32_t> _train_pattern_model(po.getInputPatternModelFileName(), cpmo.getPatternModelOptions(), nullptr, &_indexed_corpus);
 
-    int bla = 0;
     for(int n = 1; n <= 4; ++n)
     {
-        
         PatternSet<uint64_t> allPatterns = _train_pattern_model.extractset(n,n);
         std::cout << "Done extracting set for " << n << std::endl;
         
@@ -96,23 +137,21 @@ int main(int argc, char** argv)
             Pattern prefix = Pattern(pattern, 0, n-1);
             if(prefix != previous_prefix)
             {
-
                 for(auto count : added_patterns)
                 {
                     double mle = count*1.0/sum;
                     llh -= log(mle);
                 }
     
-//                std::cout << previous_prefix.tostring(_class_decoder) << "\t" << added_patterns.size() << "\t" << -llh << "\t" << llh/added_patterns.size() << std::endl;
-                _general_output << previous_prefix.tostring(_class_decoder) << "\t" << added_patterns.size() << "\t" << -llh << "\t" << llh/added_patterns.size() << std::endl;
-//                std::cout << "----------------------------------------" << std::endl;
+                std::cout << previous_prefix.tostring(_class_decoder) << "\t" << added_patterns.size() << "\t" << -llh << "\t" << llh/added_patterns.size() << std::endl;
+//                _general_output << previous_prefix.tostring(_class_decoder) << "\t" << added_patterns.size() << "\t" << -llh << "\t" << llh/added_patterns.size() << std::endl;
                 previous_prefix = prefix;
 
                 llh = 0;
                 sum = 0;
                 added_patterns = std::vector<int>();
             }
-//            std::cout << "[" << prefix.tostring(_class_decoder) << "]\t" << pattern.tostring(_class_decoder) << std::endl;
+            
             int count = _train_pattern_model.occurrencecount(pattern);
             sum += count;
             added_patterns.push_back(count);
