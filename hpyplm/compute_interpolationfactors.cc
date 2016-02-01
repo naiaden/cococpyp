@@ -14,6 +14,9 @@
 #include <patternmodel.h>
 
 #include "cmdline.h"
+#include "DefaultPatternModelOptions.h"
+#include "ProgramOptions.h"
+#include "CoCoInitialiser.h"
 
 struct PatternComp
 {
@@ -23,109 +26,14 @@ struct PatternComp
     }
 };
 
-struct CommandLineOptions
-{
-    cmdline::parser clp;
-    std::string _output_directory;
-    std::string _input_directory;
-    std::string _train_model;
-    int n;
-
-    CommandLineOptions(int argc, char** argv)
-    {
-        clp.add<std::string>("trainoutput", 'O', "train output directory", true);
-        clp.add<std::string>("output", 'o', "output directory", true);
-        clp.add<std::string>("trainmodel", 'm', "the name of the training model", true);
-        clp.add<int>("n", 'n', "n", false, 4);
-
-        clp.parse_check(argc, argv);
-
-        _output_directory = clp.get<std::string>("output");
-        _input_directory = clp.get<std::string>("trainoutput");
-        _train_model = clp.get<std::string>("trainmodel");
-        n = clp.get<int>("n");
-
-    }
-
-   std::string getInputDirectory() { return _input_directory; }//std::string ret = clp.get<std::string>("trainoutput"); return ret;}
-   std::string getOutputDirectory() { return _output_directory; } 
-   std::string getTrainModel() { return _train_model; } //return clp.get<std::string>("trainmodel"); }
-   int getN() { return n; }
-
-};
-
-struct CustomPatternModelOptions
-{
-    PatternModelOptions _pattern_model_options = PatternModelOptions();
-  
-  CustomPatternModelOptions()
-   {
-        _pattern_model_options.MAXLENGTH = 4;
-        _pattern_model_options.MINLENGTH = 1;
-        _pattern_model_options.DOSKIPGRAMS = false;
-        _pattern_model_options.DOREVERSEINDEX = true;
-        _pattern_model_options.QUIET = false;
-        _pattern_model_options.MINTOKENS = 1;
-   }
-
-    PatternModelOptions getPatternModelOptions() const { return _pattern_model_options; } 
-};
-
-struct ProgramOptions
-{
-    CommandLineOptions& clo;
-
-    ProgramOptions(CommandLineOptions& _clo) : clo(_clo)
-    {
-    }
-
-
-   std::string getBaseInputName() { return clo.getInputDirectory() + "/" + clo.getTrainModel(); }
-   std::string getInputClassFileName() { return getBaseInputName() + ".cls"; }
-   std::string getInputCorpusFileName() { return getBaseInputName() + ".dat"; }
-   std::string getInputPatternModelFileName() { return getBaseInputName() + ".patternmodel"; }
-
-   std::string getGeneralBaseOutputName() { return clo.getOutputDirectory() + "/" + clo.getTrainModel(); }
-   std::string getGeneralInterpolationFactorsOutputName() { return getGeneralBaseOutputName() + ".factors"; }
-};
-
-struct CoCoInitialiser
-{
-    ClassEncoder classEncoder;
-    ClassDecoder classDecoder;
-    IndexedCorpus indexedCorpus;
-    PatternModel<uint32_t> trainPatternModel;
-
-    ClassEncoder& getClassEncoder() { return classEncoder; }
-    ClassDecoder& getClassDecoder() { return classDecoder; }
-    IndexedCorpus& getIndexedCorpus() { return indexedCorpus; }
-    PatternModel<uint32_t>& getTrainPatternModel() { return trainPatternModel; }
-
-    ProgramOptions& po;
-    CustomPatternModelOptions& cpmo;
-
-    CoCoInitialiser(ProgramOptions& _po, CustomPatternModelOptions& _cpmo) : po(_po), cpmo(_cpmo)
-    {
-       classEncoder.load(po.getInputClassFileName());
-       std::cout << "Done loading class encoder" << std::endl;
-       classDecoder.load(po.getInputClassFileName());
-       std::cout << "Done loading class decoder" << std::endl;
-
-       indexedCorpus = IndexedCorpus(po.getInputCorpusFileName());
-       std::cout << "Done loading indexed corpus" << std::endl;
-       
-       trainPatternModel = PatternModel<uint32_t>(po.getInputPatternModelFileName(), cpmo.getPatternModelOptions(), nullptr, &indexedCorpus);
-    }
-
-};
-
 int main(int argc, char** argv) 
 {
-    CommandLineOptions clo = CommandLineOptions(argc, argv);
-    ProgramOptions po = ProgramOptions(clo);
-    CustomPatternModelOptions cpmo = CustomPatternModelOptions();
+    SNCBWCommandLineOptions clo = SNCBWCommandLineOptions(argc, argv);
+    SNCBWProgramOptions po = SNCBWProgramOptions(clo);
+    DefaultPatternModelOptions dpmo = DefaultPatternModelOptions();
 
-    CoCoInitialiser cci = CoCoInitialiser(po, cpmo);
+    CoCoInitialiser cci = CoCoInitialiser(po, dpmo, true);
+
 
    std::ofstream _general_output;
    _general_output.open(po.getGeneralInterpolationFactorsOutputName());
