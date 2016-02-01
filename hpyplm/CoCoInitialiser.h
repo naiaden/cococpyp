@@ -18,7 +18,7 @@ struct CoCoInitialiser
     ProgramOptions& po;
     PatternModelOptions& pmo;
     QueryProgramOptions* qpo;
-   
+  
     /*
         Needs: po.getInputClassFileName, po.getInputCorpusFileName
      */
@@ -31,10 +31,10 @@ struct CoCoInitialiser
        if(!onlyClassEncoder)
        {
           classDecoder.load(po.trainClassFileName);
-          std::cout << "Done loading class decoder" << std::endl;
+          std::cout << "Done loading class decoder (" << po.trainClassFileName << ")" << std::endl;
           
           indexedCorpus = IndexedCorpus(po.trainCorpusFileName);
-          std::cout << "Done loading indexed corpus" << std::endl;
+          std::cout << "Done loading indexed corpus (" << po.trainCorpusFileName << ")" << std::endl;
           
           if(_trainPatternModel) trainThePatternModel();
       }

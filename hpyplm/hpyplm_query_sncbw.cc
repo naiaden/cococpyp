@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
     PatternModelOptions pmo = DefaultPatternModelOptions(false, kORDER).patternModelOptions;
     std::cout << "Loaded PMO" << std::endl;
 
-    CoCoInitialiser cci = CoCoInitialiser(po, pmo, false);
+    CoCoInitialiser cci = CoCoInitialiser(po, pmo, true);
     std::cout << "Loaded CCI" << std::endl;
 
   //  std::ofstream generalOutput;
