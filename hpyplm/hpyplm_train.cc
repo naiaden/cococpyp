@@ -29,153 +29,32 @@
 #include "hpyplm/uniform_vocab.h"
 #include "cmdline.h"
 
-void p2b(const std::string& s, std::ostream& os, std::ofstream& ofs) {
-
-    ofs << s;
-    os << s;
-}
-
-void p2bo(const std::string& s, std::ofstream& ofs) {
-    p2b(s, std::cout, ofs);
-}
-
-void p2be(const std::string& s, std::ofstream& ofs) {
-    p2b(s, std::cerr, ofs);
-}
-
 int main(int argc, char** argv) {
     cpyp::MT19937 _eng(1234);
 
     bool _ignore_errors = true;
 
-    time_t rawtime;
-    struct tm* timeinfo;
-    char buffer[80];
-
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-
-    strftime(buffer, 80, "%d-%m-%Y %H:%M:%S", timeinfo);
-    std::string _current_time(buffer);
+    std::cout << "Started at " << giveTime() << std::endl;
 
     std::stringstream oss;
     oss << kORDER;
     std::string _kORDER = oss.str();
 
-    cmdline::parser clp;
 
-    clp.add<std::string>("traininput", 'i', "train input directory", false);
-    clp.add<std::string>("traininputfile", 'f', "train input file", false);
-    clp.add<std::string>("trainoutput", 'o', "train output directory", true);
-    
-    clp.add<int>("samples", 's', "samples", false, 50);
-    clp.add<int>("burnin", 'b', "burnin", false, 0);
+    TrainCommandLineOptions tclo(argc, argv);
+    TrainProgramOptions po(tclo, std::stoi(_kORDER));
+    PatternModelOptions pmo = TrainPatternModelOptions(tclo.skipgrams, kORDER).patternModelOptions
+    CoCoInitialiser cci = CoCoInitialiser(po, pmo, true);
 
-    clp.add("skipgram", 'S', "train with skipgrams");
-    clp.add<int>("streshold", 'T', "treshold for skipgrams", false, 1);
-    clp.add<int>("treshold", 't', "treshold for ngrams", false, 1);
-    clp.add<int>("unigramtreshold", 'W', "unigram treshold", false, 1);
-    clp.add<int>("prunedonsubsumed", 'p', "prune all n-grams that are not subsumed by higher order n-grams", false, 0);
-
-    clp.add<std::string>("modelname", 'm', "the name of the training model", true);
-
-    clp.add<std::string>("loadtraincorpus", '\0', "load colibri encoded corpus", false, "");
-    clp.add<std::string>("loadtrainpatternmodel", '\0', "load colibri encoded pattern model", false, "");
-    clp.add<std::string>("loadtrainvocabulary", '\0', "load colibri class file", false, "");
-    clp.add<std::string>("extendmodel", 'E', "extend current model (with larger n or skips)", false, "");
-
-//    clp.add<int>("seed", 'R', "initialise with random seed", false, 0);
-
-    clp.parse_check(argc, argv);
-
-//    cpyp::MT19937 _eng;
-//    if(clp.get<int>("seed") > 0) {
-//        _eng = cpyp::MT19937(clp.get<int>("seed"));
-//        _eng = cpyp::MT19937(950562645);
-//    }
-//    _eng.seed(950562645);
-
-    std::string _train_input_file = clp.get<std::string>("traininputfile");
-
-    std::string _train_input_directory = clp.get<std::string>("traininput");
-    std::string _output_directory = clp.get<std::string>("trainoutput");
-
-    int _samples = clp.get<int>("samples");
-    int _burnin = clp.get<int>("burnin");
-
-    bool _do_skipgrams = clp.exist("skipgram");
-    int _min_skip_tokens = clp.get<int>("streshold");
-    int _min_tokens = clp.get<int>("treshold");
-    int _unigram_treshold = clp.get<int>("unigramtreshold");
-    int _pruned_on_subsume = clp.get<int>("prunedonsubsumed");
-
-    std::string _run_name = clp.get<std::string>("modelname");
-
-    std::string _load_train_corpus = clp.get<std::string>("loadtraincorpus");
-    std::string _load_train_patternmodel = clp.get<std::string>("loadtrainpatternmodel");
-    std::string _load_train_vocabulary = clp.get<std::string>("loadtrainvocabulary");
-    std::string _extend_model = clp.get<std::string>("extendmodel");
-
-//    if(_train_input_directory.empty() && (_load_train_corpus.empty() || _load_train_patternmodel.empty() || _load_train_vocabulary.empty())) {
-//        std::cerr << "Not enough arguments to start training. Double check for either an input directory, or for the proper colibri derivatives." << std::endl;
-//        return -8;
-//    }
-
-    ClassEncoder _class_encoder = ClassEncoder();
-    ClassDecoder _class_decoder = ClassDecoder();
-
-    PatternModelOptions _pattern_model_options = PatternModelOptions();
-    _pattern_model_options.MAXLENGTH = kORDER;
-    _pattern_model_options.MINLENGTH = 1;// A kORDER; // kORDER - 1
-    _pattern_model_options.DOSKIPGRAMS = _do_skipgrams;
-    _pattern_model_options.DOSKIPGRAMS_EXHAUSTIVE = _do_skipgrams;
-    _pattern_model_options.DOREVERSEINDEX = true;
-    _pattern_model_options.QUIET = false;
-    _pattern_model_options.MINTOKENS = _min_tokens;
-    _pattern_model_options.MINTOKENS_SKIPGRAMS = _min_skip_tokens;
-    _pattern_model_options.MINTOKENS_UNIGRAMS = _unigram_treshold;
-    _pattern_model_options.PRUNENONSUBSUMED = _pruned_on_subsume;
-
-    
-    std::vector<std::string> train_input_files;
-    if(!_train_input_directory.empty()) {
-        boost::filesystem::path background_dir(_train_input_directory);
-        boost::filesystem::directory_iterator bit(background_dir), beod;
-    
-        BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(bit, beod)) {
-            if(is_regular_file(p)) {
-                train_input_files.push_back(p.string());
-            }
-        }
-    } else {
-       train_input_files.push_back(_train_input_file); 
-    }
-    
-//    else if(_load_train_vocabulary.empty() || _load_train_corpus.empty() || _load_train_patternmodel.empty()) {
-//        std::cerr << "Unexpected situation. Neither training files nor colibri derivatives have been provided!" << std::endl;
-//        return -8;
-//    }
-
-    char hostname[128];
-
-    gethostname(hostname, sizeof hostname);
-    std::string _host_name(hostname);
-
-    std::string _base_name = _output_directory + "/" + _run_name + "_" + _kORDER + (_do_skipgrams ? "S" : "") + "_W" + std::to_string(_unigram_treshold) + "_t" + std::to_string(_min_tokens) + "_T" + std::to_string(_min_skip_tokens) + "_s" + std::to_string(_samples) +  "_p" + std::to_string(_pruned_on_subsume) + "_train";
-    std::string _class_file_name = _base_name + ".cls";
-    std::string _corpus_file_name = _base_name + ".dat";
-    std::string _patternmodel_file_name = _base_name + ".patternmodel";
-    std::string _serialised_file_name = _base_name + ".ser";
     
     std::ofstream _output;
-    std::string _output_filename = _base_name + ".output";
-    _output.open(_output_filename);
+    std::string outputFilename = po.generalBaseOutputName + ".output";
+    _output.open(outputFilename);
+    
+    std::cout << "Running on " << po.hostName << std::endl;
 
-    p2bo("Running on " + _host_name + "\n", _output);
-
-    p2bo("Train input file: " + _train_input_file + "\n", _output);
-    p2bo("Train input dir: " + _train_input_directory + "\n", _output);
-    p2bo("Train output dir: " + _output_directory + "\n", _output);
+    _output.close();
+} /*
     p2bo("Time: " + _current_time + "\n", _output);
 
     if(_load_train_vocabulary.empty()) {
@@ -326,4 +205,4 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
+*/

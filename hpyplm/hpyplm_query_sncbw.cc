@@ -71,10 +71,9 @@ int main(int argc, char** argv) {
     oss << kORDER;
     std::string _kORDER = oss.str();
 
-    QueryCommandLineOptions qclo = QueryCommandLineOptions(argc, argv);
+    SNCBWCommandLineOptions qclo = SNCBWCommandLineOptions(argc, argv);
     std::cout << "Loaded QCLO" << std::endl;
-    QueryProgramOptions po = QueryProgramOptions(qclo, std::stoi(_kORDER));
-    //ProgramOptions po = ProgramOptions(qclo);
+    SNCBWProgramOptions po = SNCBWProgramOptions(qclo, std::stoi(_kORDER));
     std::cout << "Loaded PO" << std::endl;
     PatternModelOptions pmo = DefaultPatternModelOptions(false, kORDER).patternModelOptions;
     std::cout << "Loaded PMO" << std::endl;
@@ -82,58 +81,42 @@ int main(int argc, char** argv) {
     CoCoInitialiser cci = CoCoInitialiser(po, pmo, true);
     std::cout << "Loaded CCI" << std::endl;
 
-  //  std::ofstream generalOutput;
-  //  std::string generalOutputFilename = po.generalBaseOutputName + ".output";
-  //  generalOutput.open(generalOutputFilename);
+    std::ofstream generalOutput;
+    std::string generalOutputFilename = po.generalBaseOutputName + ".output";
+    generalOutput.open(generalOutputFilename);
 
     std::cout << "Initialisation done at " << giveTime() << std::endl;
 
 
-
-  //  generalOutput.close();
-
-} /*
-
-    for(auto i : test_input_files) {
-        _class_encoder.encodefile(i, _general_output_corpus_file_name, 1, 1, 0, 1);
-    }
-
-    std::cout << "Ignore 2, just encoded the files\n";
-
-    _class_encoder.save(_general_output_class_file_name);
-
-    std::cout << "Ignore 3, just saved class encoder\n";
-
-    _class_decoder.load(_general_output_class_file_name);
-
-    std::cout << "Ignore 4, just loaded class decoder\n";
-
-    std::ifstream ifs(_input_serialised_file_name, std::ios::binary);
+    std::ifstream ifs(po.trainSerialisedFileName, std::ios::binary);
     if(!ifs.good()) {
-        std::cerr << "Something went wrong whilst reading the model: " << _input_serialised_file_name << std::endl;
+        std::cerr << "Something went wrong whilst reading the model: " << po.trainSerialisedFileName << std::endl;
     }
     boost::archive::binary_iarchive ia(ifs);
 
     cpyp::PYPLM<kORDER> lm;
     ia & lm;
+    std::cout << "Loaded serialised model" << std::endl;
+
+
+    PatternSet<uint64_t> allPatterns = cci.trainPatternModel.extractset();
+    std::cout << "Extracted all patterns" << std::endl;
+
+    std::cout << "Preparation done at " << giveTime() << std::endl;
+
+    generalOutput.close();
+
+
+
+
+
+
+} /*
+
 
     
-    IndexedCorpus _indexed_corpus = IndexedCorpus(_input_corpus_file_name);
 
-    PatternSet<uint64_t> allPatterns;
-    {
-        //PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options);
-        PatternModel<uint32_t> _train_pattern_model(_input_patternmodel_file_name, _pattern_model_options, nullptr, &_indexed_corpus);
-        allPatterns = _train_pattern_model.extractset();
-    }
 
-    time (&rawtime);
-    timeinfo = localtime(&rawtime);
-
-    strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
-    _current_time = std::string(buffer);
-
-    p2bo("Time: " + _current_time + "\n", _general_output);
 
     std::vector<Backoff> all_backoff_options = std::vector<Backoff>();
 

@@ -12,13 +12,18 @@ struct CoCoInitialiser
 {   
     ClassEncoder classEncoder;
     ClassDecoder classDecoder;
-    IndexedCorpus indexedCorpus;
+    IndexedCorpus* indexedCorpus;
     PatternModel<uint32_t> trainPatternModel;
     
     ProgramOptions& po;
     PatternModelOptions& pmo;
     QueryProgramOptions* qpo;
   
+    ~CoCoInitialiser() 
+    {
+        delete indexedCorpus;
+    }
+
     /*
         Needs: po.getInputClassFileName, po.getInputCorpusFileName
      */
@@ -33,7 +38,7 @@ struct CoCoInitialiser
           classDecoder.load(po.trainClassFileName);
           std::cout << "Done loading class decoder (" << po.trainClassFileName << ")" << std::endl;
           
-          indexedCorpus = IndexedCorpus(po.trainCorpusFileName);
+          indexedCorpus = new IndexedCorpus(po.trainCorpusFileName);
           std::cout << "Done loading indexed corpus (" << po.trainCorpusFileName << ")" << std::endl;
           
           if(_trainPatternModel) trainThePatternModel();
@@ -45,15 +50,15 @@ struct CoCoInitialiser
         std::cout << "Entering CCI for QPO" << std::endl;
         qpo = &_qpo; 
 
-     //   if(_extendEncoding)
-     //   {
-     //      extendEncoding(_qpo.testInputFiles);
-     //      }
+        if(_extendEncoding)
+        {
+           extendEncoding(_qpo.testInputFiles);
+           }
     }
 
     void trainThePatternModel()
     {
-       trainPatternModel = PatternModel<uint32_t>(po.trainPatternModelFileName, pmo, nullptr, &indexedCorpus);
+       trainPatternModel = PatternModel<uint32_t>(po.trainPatternModelFileName, pmo, nullptr, indexedCorpus);
     }
 
     void extendEncoding(std::vector<std::string> inputFiles)
