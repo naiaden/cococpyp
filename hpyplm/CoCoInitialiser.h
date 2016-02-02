@@ -82,9 +82,12 @@ struct CoCoInitialiser
             {
                 std::cout << "     " << i << std::endl;
             }
+
+            int append = 0;
             for(auto i : _tpo.trainInputFiles)
             {
-                classEncoder.encodefile(i, _tpo.trainCorpusFileName, 0, 0, 1, 0);
+                classEncoder.encodefile(i, _tpo.trainCorpusFileName, 0, 0, append, 0);
+                append = 1;
             }
             std::cout << "CCI: Loading corpus from " << _tpo.trainClassFileName << std::endl;
             classDecoder.load(_tpo.trainClassFileName);
