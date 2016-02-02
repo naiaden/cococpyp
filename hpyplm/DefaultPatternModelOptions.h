@@ -22,7 +22,7 @@ struct DefaultPatternModelOptions
 
 struct TrainPatternModelOptions : public DefaultPatternModelOptions
 {
-    TrainPatternModelOptions(TrainCommandLineOptions tclo, int maxLength = 4)
+    TrainPatternModelOptions(TrainCommandLineOptions& tclo, int maxLength = 4)
         : DefaultPatternModelOptions(tclo.skipgrams, maxLength)
     {
         patternModelOptions.MINTOKENS = tclo.nThreshold;

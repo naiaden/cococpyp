@@ -28,42 +28,6 @@
 #include "ProgramOptions.h"
 #include "CoCoInitialiser.h"
 
-std::vector<std::string> split(std::string const &input) { 
-    std::istringstream buffer(input);
-    std::vector<std::string> ret{std::istream_iterator<std::string>(buffer), 
-                                 std::istream_iterator<std::string>()};
-    return ret;
-}
-
-void p2b(const std::string& s, std::ostream& os, std::ofstream& ofs) {
-
-    ofs << s;
-    os << s;
-}
-
-void p2bo(const std::string& s, std::ofstream& ofs) {
-    p2b(s, std::cout, ofs);
-}
-
-void p2be(const std::string& s, std::ofstream& ofs) {
-    p2b(s, std::cerr, ofs);
-}
-
-std::string giveTime()
-{
-    time_t rawtime;
-    struct tm* timeinfo;
-    char buffer[80];
-
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-
-    strftime(buffer, 80, "%d-%m-%Y %H:%M:%S", timeinfo);
-    std::string _current_time(buffer);
-
-    return _current_time;
-}
-
 int main(int argc, char** argv) {
     std::cout << "Started at " << giveTime() << std::endl;
     

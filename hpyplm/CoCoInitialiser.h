@@ -30,7 +30,8 @@ struct CoCoInitialiser
     CoCoInitialiser(ProgramOptions& _po, PatternModelOptions& _pmo, bool _trainPatternModel = true, bool onlyClassEncoder = false) : po(_po), pmo(_pmo)
     {  
         std::cout << "Entering CCI for PO" << std::endl;
-      classEncoder.load(po.trainClassFileName);
+
+        classEncoder.load(po.trainClassFileName);
       std::cout << "Done loading class encoder" << std::endl;
     
        if(!onlyClassEncoder)
@@ -56,6 +57,68 @@ struct CoCoInitialiser
            }
     }
 
+    CoCoInitialiser(TrainProgramOptions& _tpo, PatternModelOptions& _pmo, bool computeStats = true, bool reportStats = true) : po(_tpo), pmo(_pmo)
+    {
+        if(_tpo.clo.loadTrainVocabulary.empty())
+        {
+            classEncoder.build(_tpo.trainInputFiles, true);
+            classEncoder.save(_tpo.trainClassFileName);
+        } else
+        {
+            classEncoder.load(_tpo.clo.loadTrainVocabulary);
+        }
+
+        if(_tpo.clo.loadTrainCorpus.empty())
+        {
+            for(auto i : _tpo.trainInputFiles)
+            {
+                classEncoder.encodefile(i, _tpo.trainCorpusFileName, 0, 0, 1, 0);
+            }
+            classDecoder.load(_tpo.trainClassFileName);
+        } else
+        {
+           // do nothing 
+        }
+
+        indexedCorpus = new IndexedCorpus(_tpo.trainCorpusFileName);
+
+        trainPatternModel = PatternModel<uint32_t>(indexedCorpus);
+
+        if(_tpo.extendModel.empty())
+        {
+            if(_tpo.clo.loadTrainPatternModel.empty())
+            {
+                trainPatternModel.train(_tpo.trainCorpusFileName, _pmo);
+                trainPatternModel.write(_tpo.trainPatternModelFileName);
+            } else
+            {
+                trainPatternModel.load(_tpo.trainPatternModelFileName, _pmo);
+            }
+        } else
+        {
+            if(_tpo.clo.loadTrainPatternModel.empty())
+            {
+                trainPatternModel.load(_tpo.extendModel, _pmo);
+                trainPatternModel.train(_tpo.clo.loadTrainCorpus, _pmo, nullptr, true, 1, true);
+                trainPatternModel.write(_tpo.trainPatternModelFileName);
+            } else
+            {   
+                trainPatternModel.load(_tpo.trainPatternModelFileName, _pmo);
+            }
+        }
+
+        if(computeStats)
+        {
+            trainPatternModel.computestats();
+            trainPatternModel.computecoveragestats();
+        }
+
+        if(reportStats)
+        {
+            trainPatternModel.report(&std::cerr);
+        }
+    }
+
     void trainThePatternModel()
     {
        trainPatternModel = PatternModel<uint32_t>(po.trainPatternModelFileName, pmo, nullptr, indexedCorpus);
@@ -76,9 +139,15 @@ struct CoCoInitialiser
 
         classDecoder.load(qpo->generalOutputClassFileName);
         std::cout << "Done loading the class decoder" << std::endl;
+    }
 
-
-
+    void printStats(int order = 4)
+    {
+        std::cout << "Pattern model stats" << std::endl
+                  << indexedCorpus->sentences() << " sentences" << std::endl
+                  << trainPatternModel.totalwordtypesingroup(0, 0) << " word types" << std::endl
+                  << trainPatternModel.totalpatternsingroup(0,order) << " pattern types" << std::endl
+                  << trainPatternModel.totaltokensingroup(0, 1) << " word tokens" << std::endl;
     }
 
 };

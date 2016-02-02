@@ -31,6 +31,7 @@ struct CommandLineOptions
 
     std::string trainModel;
     std::string trainModelInput;
+    std::string trainModelInputDirectory;
     std::string trainModelDirectory;
     std::string loadTrainVocabulary;
     std::string loadTrainCorpus;
@@ -39,29 +40,32 @@ struct CommandLineOptions
 
     CommandLineOptions(int argc, char** argv)
     {
+        initialise(argc, argv);
+    }
+    
+    void initialise(int argc, char** argv)
+    {
         clp.add<std::string>("traininput", 'i', "train input directory", false);
-        trainModelDirectory = clp.get<std::string>("traininput");
-
         clp.add<std::string>("traininputfile", 'f', "train input file", false);
-        trainModelInput = clp.get<std::string>("traininputfile");
-
         clp.add<std::string>("trainoutput", 'o', "train output directory", true);
-        trainModelDirectory = clp.get<std::string>("trainoutput");
-
         clp.add<std::string>("modelname", 'm', "the name of the training model", true);
-        trainModel = clp.get<std::string>("modelname");
-
 
         clp.add<std::string>("loadtraincorpus", '\0', "load colibri encoded corpus", false, "");
-        loadTrainCorpus = clp.get<std::string>("loadtraincorpus");
-
         clp.add<std::string>("loadtrainpatternmodel", '\0', "load colibri encoded pattern model", false, "");
-        loadTrainPatternModel = clp.get<std::string>("loadtrainpatternmodel");
-
         clp.add<std::string>("loadtrainvocabulary", '\0', "load colibri class file", false, "");
-        loadTrainVocabulary = clp.get<std::string>("loadtrainvocabulary");
-
         clp.add<std::string>("loadtrainserialisedmodel", '\0', "load colibri serialised model", false, "");
+    }
+
+    void retrieve()
+    {
+        trainModelInputDirectory = clp.get<std::string>("traininput");
+        trainModelInput = clp.get<std::string>("traininputfile");
+        trainModelDirectory = clp.get<std::string>("trainoutput");
+        trainModel = clp.get<std::string>("modelname");
+
+        loadTrainCorpus = clp.get<std::string>("loadtraincorpus");
+        loadTrainPatternModel = clp.get<std::string>("loadtrainpatternmodel");
+        loadTrainVocabulary = clp.get<std::string>("loadtrainvocabulary");
         loadTrainSerialisedFile = clp.get<std::string>("loadtrainserialisedmodel");
     }
 };
@@ -83,31 +87,28 @@ struct TrainCommandLineOptions : public CommandLineOptions
     TrainCommandLineOptions(int argc, char** argv) : CommandLineOptions(argc, argv)
     {
         clp.add<int>("samples", 's', "samples", false, 50);
-        samples = clp.get<int>("samples");
-
         clp.add<int>("burnin", 'b', "burnin", false, 0);
-        burnin = clp.get<int>("burnin");
-
         clp.add("skipgram", 'S', "train with skipgrams");
-        skipgrams = clp.exist("skipgram");
-
-
+        
         clp.add<int>("sthreshold", 'T', "threshold for skipgrams", false, 1);
-        sThreshold = clp.get<int>("sthreshold");
-
         clp.add<int>("threshold", 't', "threshold for ngrams", false, 1);
-        nThreshold = clp.get<int>("threshold");
-
         clp.add<int>("unigramthreshold", 'W', "unigram threshold", false, 1);
-        uThreshold = clp.get<int>("unigramthreshold");
-
         clp.add<int>("prunedonsubsumed", 'p', "prune all n-grams that are not subsumed by higher order n-grams", false, 0);
-        pruneLevel = clp.get<int>("prunedonsubsumed");
 
         clp.add<std::string>("extendmodel", 'E', "extend current model (with larger n or skips)", false, "");
-        extendModel = clp.get<std::string>("extendmodel");
-
         clp.parse_check(argc, argv);
+
+        retrieve();
+        samples = clp.get<int>("samples");
+        burnin = clp.get<int>("burnin");
+        skipgrams = clp.exist("skipgram");
+
+        sThreshold = clp.get<int>("sthreshold");
+        nThreshold = clp.get<int>("threshold");
+        uThreshold = clp.get<int>("unigramthreshold");
+        pruneLevel = clp.get<int>("prunedonsubsumed");
+
+        extendModel = clp.get<std::string>("extendmodel");
     }
 
 };
@@ -203,6 +204,7 @@ struct ProgramOptions
         std::string hostName(hostname);
 
        trainRunName = clo.trainModelDirectory + "/" + clo.trainModel;
+       std::cout << "PO: trainRunName = " << trainRunName << std::endl;
        
         if(clo.loadTrainVocabulary.empty())
         {
@@ -211,6 +213,7 @@ struct ProgramOptions
         {
             trainClassFileName = clo.loadTrainVocabulary;
         }
+        std::cout << "PO: trainClassFileName = " << trainClassFileName << std::endl;
 
         if(clo.loadTrainCorpus.empty())
         {
@@ -219,6 +222,7 @@ struct ProgramOptions
        {
         trainCorpusFileName = clo.loadTrainCorpus;
         }
+        std::cout << "PO: trainCorpusFileName = " << trainCorpusFileName << std::endl;
 
         if(clo.loadTrainPatternModel.empty())
         {
@@ -227,6 +231,7 @@ struct ProgramOptions
        {
        trainPatternModelFileName = clo.loadTrainCorpus;
        }
+       std::cout << "PO: trainPatternModelFileName = " << trainPatternModelFileName << std::endl;
 
         if(clo.loadTrainSerialisedFile.empty())
         {
@@ -235,6 +240,7 @@ struct ProgramOptions
        {
         trainSerialisedFileName = clo.loadTrainSerialisedFile;
        }
+       std::cout << "PO: trainSerialisedFileName = " << trainSerialisedFileName << std::endl;
     }
 };
 
@@ -249,9 +255,10 @@ struct SNCBWProgramOptions : public ProgramOptions
     {
         n = _n;
 
-       generalBaseOutputName = _clo.outputDirectory + "/" + clo.trainModel; 
+       generalBaseOutputName = _clo.outputDirectory + "/" + clo.trainModel;
+       std::cout << "SPO: generalBaseOutputName = " << generalBaseOutputName << std::endl;
        generalInterpolationFactorsOutputName = generalBaseOutputName + ".factors"; 
-
+       std::cout << "SPO: generalInterpolationFactorsOutputName = " << generalInterpolationFactorsOutputName << std::endl;
     }
 };
 
@@ -266,6 +273,9 @@ struct TrainProgramOptions : public ProgramOptions
     std::string generalBaseCorpusFileName;
     std::string generalBasePatternModelFileName;
     std::string generalBaseSerialisedFileName;
+
+    std::string extendModel;
+    int samples;
 
     TrainProgramOptions(TrainCommandLineOptions& _clo, int _n) : ProgramOptions(_clo)
     {
@@ -293,11 +303,14 @@ struct TrainProgramOptions : public ProgramOptions
                                                   + "_p" + std::to_string(_clo.pruneLevel)
                                                   + "_v2" 
                                                   + "_train";
+        std::cout << "TPO: generalBaseOutputName = " << generalBaseOutputName << std::endl;
         generalBaseClassFileName = generalBaseOutputName + ".cls";
         generalBaseCorpusFileName = generalBaseOutputName + ".dat";
         generalBasePatternModelFileName = generalBaseOutputName + ".patternmodel";
         generalBaseSerialisedFileName = generalBaseOutputName + ".ser";
 
+        extendModel = _clo.extendModel;
+        samples = _clo.samples;
     }
 };
 
