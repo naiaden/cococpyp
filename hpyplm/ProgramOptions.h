@@ -281,7 +281,7 @@ struct TrainProgramOptions : public ProgramOptions
     {
         n = _n;
 
-        if(!clo.trainModelDirectory.empty()) {
+        if(!clo.trainModelInputDirectory.empty()) {
             boost::filesystem::path background_dir(_clo.trainModelDirectory);
             boost::filesystem::directory_iterator bit(background_dir), beod;
 

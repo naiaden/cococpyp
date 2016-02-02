@@ -81,15 +81,9 @@ int main(int argc, char** argv) {
 
                 if(patternSize == 4) // kORDER
                 {
-                    if(patternSize == 1) 
-                    {
-                        focus = pattern[0];
-                    } else 
-                    {
-                        context = Pattern(pattern, 0, patternSize - 1);
-                        focus = pattern[patternSize - 1];
-                        ++patternsProcessed;
-                    }
+                    context = Pattern(pattern, 0, patternSize - 1);
+                    focus = pattern[patternSize - 1];
+                    ++patternsProcessed;
 
                     if(sample > 0) 
                     {
