@@ -201,7 +201,7 @@ struct ProgramOptions
     {
         char hostname[128];
         gethostname(hostname, sizeof hostname);
-        std::string hostName(hostname);
+        hostName = std::string(hostname);
 
        trainRunName = clo.trainModelDirectory + "/" + clo.trainModel;
        std::cout << "PO: trainRunName = " << trainRunName << std::endl;
@@ -229,7 +229,7 @@ struct ProgramOptions
        trainPatternModelFileName = trainRunName + ".patternmodel"; 
        } else
        {
-       trainPatternModelFileName = clo.loadTrainCorpus;
+       trainPatternModelFileName = clo.loadTrainPatternModel;
        }
        std::cout << "PO: trainPatternModelFileName = " << trainPatternModelFileName << std::endl;
 

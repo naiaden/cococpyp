@@ -33,17 +33,16 @@
 #include "CoCoInitialiser.h"
 #include "utils.h"
 
+#include "date.h"
+
+using date::operator<<;
+
 int main(int argc, char** argv) {
     cpyp::MT19937 _eng(1234);
-
-    bool _ignore_errors = true;
-
-    std::cout << "Started at " << giveTime() << std::endl;
 
     std::stringstream oss;
     oss << kORDER;
     std::string _kORDER = oss.str();
-
 
     TrainCommandLineOptions tclo(argc, argv);
     TrainProgramOptions po(tclo, std::stoi(_kORDER));
@@ -51,25 +50,22 @@ int main(int argc, char** argv) {
     CoCoInitialiser cci = CoCoInitialiser(po, pmo, true, true);
     cci.printStats(std::stoi(_kORDER));
     
-    std::ofstream _output;
-    std::string outputFilename = po.generalBaseOutputName + ".output";
-    _output.open(outputFilename);
+    std::string moutputFile(po.generalBaseOutputName + ".output");
+    my_ostream mout(moutputFile);
     
-    std::cout << "Running on " << po.hostName << std::endl;
+    mout << "Initialisation done at " << std::chrono::system_clock::now() << std::endl;
+    mout << "Running on " << po.hostName << std::endl;
 
+    TimeStatsPrinter tsp(cci.indexedCorpus->size());
 
     cpyp::PYPLM<kORDER> lm(cci.trainPatternModel.totalwordtypesingroup(0, 0), 1, 1, 1, 1);
     for(int sample = 0; sample < po.samples; ++sample) 
     {
-        int patternsProcessed = 0;
-        int patternsUnprocessed = 0;
-
-        size_t icSize = cci.indexedCorpus->size();
-        size_t counter = 0;
+        tsp.nextSample();
         for(IndexedCorpus::iterator iter = cci.indexedCorpus->begin(); iter != cci.indexedCorpus->end(); ++iter)
         {
-            std::cout << "\r" << "Sample [" << sample << "]\tPattern: " << counter;
-            
+            tsp.printTimeStats();
+
             Pattern pattern = iter.pattern();
         
             if(cci.trainPatternModel.has(pattern)) 
@@ -83,7 +79,6 @@ int main(int argc, char** argv) {
                 {
                     context = Pattern(pattern, 0, patternSize - 1);
                     focus = pattern[patternSize - 1];
-                    ++patternsProcessed;
 
                     if(sample > 0) 
                     {
@@ -97,28 +92,31 @@ int main(int argc, char** argv) {
 
         if(sample % 10 == 9) 
         {
-            std::cerr << " [LLH=" << lm.log_likelihood() << "]" << std::endl;
+            std::cout << std::endl;
+            mout << " [LLH=" << lm.log_likelihood() << "]" << std::endl;
             if(sample % 30u == 29) 
             {
                 lm.resample_hyperparameters(_eng);
             } else 
             {
-                std::cerr<< ".";
+                //
             }
         }
     }
 
+    mout << "Sampling done at " << std::chrono::system_clock::now() << std::endl;
 
     std::ofstream ofile(po.trainSerialisedFileName, std::ios::binary);
     if (!ofile.good()) 
     {
-        std::cout << "Failed to open " << po.trainSerialisedFileName << " for writing" << std::endl;
+        std::cerr << "Failed to open " << po.trainSerialisedFileName << " for writing" << std::endl;
         return 1;
     }
 
     boost::archive::binary_oarchive oa(ofile);
     oa << lm;
 
-    _output.close();
+    mout << "Saving to file done at " << std::chrono::system_clock::now() << std::endl;
+
 }
 
