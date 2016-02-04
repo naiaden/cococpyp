@@ -28,8 +28,14 @@
 #include "ProgramOptions.h"
 #include "CoCoInitialiser.h"
 
+#include "utils.h"
+#include "date.h"
+#include "strategies.h"
+
+using date::operator<<;
+
 int main(int argc, char** argv) {
-    std::cout << "Started at " << giveTime() << std::endl;
+    std::cout << "Started at " << std::chrono::system_clock::now()  << std::endl;
     
     std::stringstream oss;
     oss << kORDER;
@@ -45,11 +51,11 @@ int main(int argc, char** argv) {
     CoCoInitialiser cci = CoCoInitialiser(po, pmo, true);
     std::cout << "Loaded CCI" << std::endl;
 
-    std::ofstream generalOutput;
-    std::string generalOutputFilename = po.generalBaseOutputName + ".output";
-    generalOutput.open(generalOutputFilename);
 
-    std::cout << "Initialisation done at " << giveTime() << std::endl;
+    std::string moutputFile(po.generalBaseOutputName + ".output");
+    my_ostream mout(moutputFile);
+
+    mout << "Initialisation done at " << std::chrono::system_clock::now() << std::endl;
 
 
     std::ifstream ifs(po.trainSerialisedFileName, std::ios::binary);
@@ -60,158 +66,59 @@ int main(int argc, char** argv) {
 
     cpyp::PYPLM<kORDER> lm;
     ia & lm;
-    std::cout << "Loaded serialised model" << std::endl;
+    mout << "Loaded serialised model" << std::endl;
+
+/////////////////////////////////////////////////
+
+    PatternSet<uint64_t> allWords = cci.trainPatternModel.extractset(1,1);
+    mout << "Extracted all words" << std::endl;
+
+    mout << "Preparation done at " << std::chrono::system_clock::now() << std::endl;
 
 
-    PatternSet<uint64_t> allPatterns = cci.trainPatternModel.extractset();
-    std::cout << "Extracted all patterns" << std::endl;
-
-    std::cout << "Preparation done at " << giveTime() << std::endl;
-
-    generalOutput.close();
-
-
-
-
-
-
-} /*
-
-
+    NgramBackoffStrategy ngramBO(po, cci.classDecoder, lm);
     
 
-
-
-    std::vector<Backoff> all_backoff_options = std::vector<Backoff>();
-
-    if(_backoff_method == Backoff::ALL) {
-         all_backoff_options.push_back(Backoff::NGRAM);
-         all_backoff_options.push_back(Backoff::BOBACO);
-         all_backoff_options.push_back(Backoff::GLM);
-    } else 
+    for(std::string inputFileName : po.testInputFiles)                          // files
     {
-         all_backoff_options.push_back(_backoff_method);
-    }
-
-    for(Backoff i_backoff_method : all_backoff_options)
-    {
-        std::string _base_output_name = _output_directory + "/" + _output_run_name + "_" + toString(i_backoff_method) + "_" + _kORDER;
-        std::string _output_class_file_name = _base_output_name + ".cls";
-        std::string _output_corpus_file_name = _base_output_name + ".dat";
-        std::string _output_patternmodel_file_name = _base_output_name + ".patternmodel";
-        //std::string _output_serialised_file_name = _base_output_name + ".ser";
-        std::string _output_probabilities_file_name = _base_output_name + ".probs";
-
-        std::ofstream _output;
-        std::string _output_filename = _base_output_name + ".output";
-        _output.open(_output_filename);
-
-        std::ofstream _probs_file;
-        _probs_file.open(_output_probabilities_file_name);
-
-        std::cout << "Processing method " << toString(i_backoff_method) << std::endl;
-
-        time (&rawtime);
-        timeinfo = localtime(&rawtime);
-
-        strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
-        _current_time = std::string(buffer);
-
-        p2bo("Time: " + _current_time + "\n", _output);
-
-
-        double llh = 0;
-        unsigned cnt = 0;
-        unsigned oovs = 0;
+        std::cout << "> " << inputFileName << std::endl;
+        ngramBO.nextFile();
         
-
-
-        int nr_files = 0;
-        int nr_lines = 0;
-        std::map<int, int> backoff_administration;
-        for(std::string input_file_name : test_input_files)
+        std::ifstream file(inputFileName);
+        std::string retrievedString;
+        while(std::getline(file, retrievedString))                              // lines
         {
-            ++nr_files;
-            std::ifstream file(input_file_name);
+            ngramBO.nextLine();
+            std::vector<std::string> words = split(retrievedString);
 
-
-            std::string retrieved_string;
-            while( std::getline(file, retrieved_string))
+            if(words.size() >= po.n) // kORDER
             {
-                ++nr_lines;
-                std::vector<std::string> words = split(retrieved_string);
+               for(int i = (kORDER - 1); i < words.size(); ++i)                 // ngrams
+               {
+                    std::stringstream contextStream;
+                    contextStream << words[i-(kORDER-1)];
 
-                if(words.size() < kORDER)
-                {
-                } else
-                {
-                    // als kORDER = 4, dan is 3 het focuswoord
-                    for(int i = (kORDER-1); i < words.size(); ++i)
+                    for(int ii = 1; ii < kORDER - 1; ++ii)
                     {
-                        std::stringstream context_stream;
-                        context_stream << words[i-(kORDER-1)];
-
-                        for(int ii = 1; ii < kORDER-1 ; ++ii)
-                        {
-                            context_stream << " " << words[i-(kORDER-1)+ii];
-                        }
-
-                        Pattern context = _class_encoder.buildpattern(context_stream.str());
-                        Pattern focus = _class_encoder.buildpattern(words[i]);
-
-                        double lp;
-
-                        // deze moet er wel in natuurlijk
-                        bool backoff_to_skips = false;
-                        lp = log(lm.prob(focus, context, nullptr, backoff_to_skips, &backoff_administration))    /log(2);
-
-                        if(!allPatterns.has(focus)) {
-                            ++oovs;
-                            lp = 0;
-                            _probs_file << "***";
-                        }
-
-                        _probs_file << "p(" << focus.tostring(_class_decoder) << " |";
-                        _probs_file << context.tostring(_class_decoder) << ") = " << std::fixed << std::setprecision(20) << lp << std::endl;
-
-                        llh -= lp;
-                        ++cnt;
-
+                        contextStream << " " << words[i-(kORDER-1)+ii];
                     }
-                }
+
+                    std::cout << ": " << contextStream.str() << " " << words[i] << std::endl;
+
+                    Pattern context = cci.classEncoder.buildpattern(contextStream.str());
+                    Pattern focus = cci.classEncoder.buildpattern(words[i]);
+
+                    double lp = 0.0;
+                    std::string focusString = "";
+                    if(!allWords.has(focus))
+                    {
+                        focusString = words[i];
+                        std::cout << "----- " << focusString << std::endl;
+                    }
+                    lp = log(ngramBO.prob(focus, context, focusString));
+               }
             }
         }
-
-        for(auto key: backoff_administration)
-        {
-            std::cout << key.first << " " << key.second << std::endl;
-        }
-
-        std::cout << "Processed " << nr_files << " files and " << nr_lines << " lines" << std::endl;
-
-        cnt -= oovs;
-        double lprob = (-llh * log(2)) / log(10); // in cpyp: (-llh * log(2) / log(10))
-        p2be("  Log_10 prob: " + std::to_string(lprob) + "\n" , _output);
-        p2be("        Count: " + std::to_string(cnt) + "\n", _output);
-        p2be("         OOVs: " + std::to_string(oovs) + "\n", _output);
-        p2be("Cross-Entropy: " + std::to_string((llh / cnt)) + "\n", _output);
-        p2be("   Perplexity: " + std::to_string(pow(2, llh / cnt)) + "\n", _output);
-
-        time (&rawtime);
-        timeinfo = localtime(&rawtime);
-
-        strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
-        _current_time = std::string(buffer);
-
-        p2bo("Time: " + _current_time + "\n", _output);
-        _probs_file.close();
     }
-
-    p2be("Done for now\n" , _general_output);
-    _general_output.close();
-    
-
-    return 0;
-
 }
-*/
+

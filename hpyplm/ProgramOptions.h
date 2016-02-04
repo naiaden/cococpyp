@@ -5,21 +5,26 @@
 
 #include "cmdline.h"
 
-enum class Backoff { GLM, BOBACO, NGRAM, REL, ALL};
+enum class Backoff { NGRAM, LIMITED, FULL, ENTINT, FREQINT, ALL };
 
 Backoff fromString(const std::string& s) {
-    if(s.compare("glm") == 0) return Backoff::GLM;
-    else if(s.compare("bobaco") == 0) return Backoff::BOBACO;
-    else if(s.compare("relative") == 0) return Backoff::REL;
+    if(s.compare("ngram") == 0) return Backoff::NGRAM;
+    else if(s.compare("limited") == 0) return Backoff::LIMITED;
+    else if(s.compare("full") == 0) return Backoff::FULL;
+    else if(s.compare("entint") == 0) return Backoff::ENTINT;
+    else if(s.compare("freqint") == 0) return Backoff::FREQINT;
+    
     else if(s.compare("all") == 0) return Backoff::ALL;
+
     else return Backoff::NGRAM;
 }
 
 std::string toString(Backoff b) {
-    if(b == Backoff::GLM) return "glm";
-    if(b == Backoff::BOBACO) return "bobaco";
     if(b == Backoff::NGRAM) return "ngram";
-    if(b == Backoff::REL) return "relative";
+    if(b == Backoff::LIMITED) return "limited";
+    if(b == Backoff::FULL) return "full";
+    if(b == Backoff::ENTINT) return "entint";
+    if(b == Backoff::FREQINT) return "freqint";
     if(b == Backoff::ALL) return "all";
     return "unknown backoff method";
 }
@@ -115,18 +120,37 @@ struct TrainCommandLineOptions : public CommandLineOptions
 
 struct SNCBWCommandLineOptions : public CommandLineOptions
 {
+    std::string testInputDirectory;
+    std::string testInputFile;
+
     std::string outputDirectory;
+    std::string outputRunName;
     int n;
+
+    Backoff backoffMethod;
 
     SNCBWCommandLineOptions(int argc, char** argv) : CommandLineOptions(argc, argv)
     {
-        clp.add<std::string>("output", 'O', "output directory", true);
-        outputDirectory = clp.get<std::string>("output");
-
         clp.add<int>("n", 'n', "n", false, 4);
+        
+        clp.add<std::string>("testmodel", 'M', "the name of the testing model", true);
+        clp.add<std::string>("testinput", 'I', "test input directory", false);
+
+        clp.add<std::string>("testinputfile", 'F', "test input file", false); 
+        clp.add<std::string>("testoutput", 'O', "test output directory", false, "");
+        
+        clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram", cmdline::oneof<std::string>("glm", "bobaco", "ngram", "all"));
+        clp.parse_check(argc, argv);
+       
+        retrieve();
         n = clp.get<int>("n");
 
-        clp.parse_check(argc, argv);
+        outputRunName = clp.get<std::string>("testmodel");
+        testInputDirectory = clp.get<std::string>("testinput");
+        testInputFile = clp.get<std::string>("testinputfile");
+        outputDirectory = clp.get<std::string>("testoutput");
+
+        backoffMethod = fromString(clp.get<std::string>("backoff"));
     }
 };
 
@@ -246,19 +270,60 @@ struct ProgramOptions
 
 struct SNCBWProgramOptions : public ProgramOptions
 {
+//    int n;
+//
+//   std::string generalBaseOutputName; 
+//   std::string generalInterpolationFactorsOutputName; 
+//
+//    SNCBWProgramOptions(SNCBWCommandLineOptions& _clo, int _n) : ProgramOptions(_clo)
+//    {
+//        n = _n;
+//
+//       generalBaseOutputName = _clo.outputDirectory + "/" + clo.trainModel;
+//       std::cout << "SPO: generalBaseOutputName = " << generalBaseOutputName << std::endl;
+//       generalInterpolationFactorsOutputName = generalBaseOutputName + ".factors"; 
+//       std::cout << "SPO: generalInterpolationFactorsOutputName = " << generalInterpolationFactorsOutputName << std::endl;
+//    }
+    std::string testRunName;
     int n;
-
-   std::string generalBaseOutputName; 
-   std::string generalInterpolationFactorsOutputName; 
-
+    std::string baseOutputName;
+    std::string generalBaseOutputName;
+    std::string generalOutputClassFileName;
+    std::string generalOutputCorpusFileName;
+    std::vector<std::string> testInputFiles;
+    
     SNCBWProgramOptions(SNCBWCommandLineOptions& _clo, int _n) : ProgramOptions(_clo)
     {
         n = _n;
-
-       generalBaseOutputName = _clo.outputDirectory + "/" + clo.trainModel;
-       std::cout << "SPO: generalBaseOutputName = " << generalBaseOutputName << std::endl;
-       generalInterpolationFactorsOutputName = generalBaseOutputName + ".factors"; 
-       std::cout << "SPO: generalInterpolationFactorsOutputName = " << generalInterpolationFactorsOutputName << std::endl;
+        if(!_clo.testInputDirectory.empty()) 
+        {
+            boost::filesystem::path foreground_dir(_clo.testInputDirectory);
+            boost::filesystem::directory_iterator fit(foreground_dir), feod;
+            BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(fit, feod))
+            {
+                if(is_regular_file(p))
+                {
+                    testInputFiles.push_back(p.string());
+                }
+            }
+        } else 
+        {
+            if(_clo.testInputFile.empty())
+            {
+                std::cerr << "Did you use -f instead of -F? No input files for testing found." << std::endl;
+            }
+            testInputFiles.push_back(_clo.testInputFile);
+        }
+        for(auto f: testInputFiles)
+        {
+            std::cout << f << std::endl;
+        }
+       
+        baseOutputName = _clo.outputDirectory + "/" + _clo.outputRunName;
+        generalBaseOutputName = baseOutputName + "_" + toString(_clo.backoffMethod) 
+                                               + "-common_" + std::to_string(_n);
+        generalOutputClassFileName = generalBaseOutputName + ".cls";
+        generalOutputCorpusFileName = generalBaseOutputName + ".dat";
     }
 };
 
