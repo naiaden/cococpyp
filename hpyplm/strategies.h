@@ -92,7 +92,7 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-        //    lp = lm.prob(focus, context, &classDecoder);
+            lp = lm.prob(focus, context, &classDecoder);
             focusString = focus.tostring(classDecoder);
         } else // oov
         {

@@ -18,6 +18,7 @@ struct CoCoInitialiser
     ProgramOptions& po;
     PatternModelOptions& pmo;
     QueryProgramOptions* qpo;
+    SNCBWProgramOptions* spo;
   
     ~CoCoInitialiser() 
     {
@@ -55,6 +56,18 @@ struct CoCoInitialiser
         {
            extendEncoding(_qpo.testInputFiles);
            }
+    }
+
+    CoCoInitialiser(SNCBWProgramOptions& _spo, PatternModelOptions& _pmo, bool _extendEncoding = true, bool _trainPatternModel = true, bool onlyClassEncoder = false)
+        : CoCoInitialiser((ProgramOptions&) _spo, _pmo, _trainPatternModel, onlyClassEncoder)
+    {
+        std::cout << "Entering CCI for SNCBWPO" << std::endl;
+        spo = &_spo;
+
+        if(_extendEncoding)
+        {
+            extendEncoding(_spo.testInputFiles);
+        }
     }
 
     CoCoInitialiser(TrainProgramOptions& _tpo, PatternModelOptions& _pmo, bool computeStats = true, bool reportStats = true) : po(_tpo), pmo(_pmo)

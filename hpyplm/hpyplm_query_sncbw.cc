@@ -103,14 +103,15 @@ int main(int argc, char** argv) {
                         contextStream << " " << words[i-(kORDER-1)+ii];
                     }
 
-                    std::cout << ": " << contextStream.str() << " " << words[i] << std::endl;
+                    std::cout << std::endl << std::endl;
 
                     Pattern context = cci.classEncoder.buildpattern(contextStream.str());
                     Pattern focus = cci.classEncoder.buildpattern(words[i]);
 
+                    std::cout << ">>>>>>>>>>: " << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << " <<<<<<<<<<" << std::endl;
                     double lp = 0.0;
                     std::string focusString = "";
-                    if(!allWords.has(focus))
+                    if(focus.size() > 0 && !allWords.has(focus))
                     {
                         focusString = words[i];
                         std::cout << "----- " << focusString << std::endl;
