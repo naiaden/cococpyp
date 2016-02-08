@@ -32,12 +32,12 @@ template<> struct PYPLM<0> : public UniformVocabulary {
 	}
 };
 
-std::vector<PatternPointer> generateSkips(const PatternPointer& p) {
-    std::vector<PatternPointer> skip_patterns = std::vector<PatternPointer>();
+std::vector<Pattern> generateSkips(const Pattern& p) {
+    std::vector<Pattern> skip_patterns = std::vector<Pattern>();
 
     if(p.size() >= 1) {
         for(int i = 1; i < p.size(); ++i) {
-            PatternPointer q = p.addskip(std::pair<int, int>(i,1));
+            Pattern q = p.addskip(std::pair<int, int>(i,1));
             if(q!=p) {
                 skip_patterns.push_back(q);
             }
@@ -56,22 +56,20 @@ template<unsigned N> struct PYPLM {
 			backoff(vs, da, db, ss, sr), tr(da, db, ss, sr, 0.8, 0.0) {
 	}
 	template<typename Engine>
-	void increment(const PatternPointer& w, const PatternPointer& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
-                std::cout << "I" << N << " -------------" << std::endl;
-                std::cout << "  [" << context.tostring(*decoder) << "," << w.tostring(*decoder) << "]" << std::endl;
-                Pattern abc = context.pattern();
-                std::cout << ":  " << abc.tostring(*decoder) << std::endl;
-                abc = abc.reverse();
-                std::cout << ":: " << abc.tostring(*decoder) << std::endl;
-                PatternPointer rev = context.pattern().reverse();
-                PatternPointer lookup = PatternPointer(rev, 0, N-1);
-                std::cout << "  -- [" << rev.tostring(*decoder) << ";" << lookup.tostring(*decoder) << "]" << std::endl;
-
+	void increment(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
 		const double bo = backoff.prob(w, context, decoder, false);
+
+
+                std::cout << "I" << N << " -------------" << std::endl;
+                Pattern rev = context.reverse();
+                Pattern lookup = (N==1) ? Pattern() : Pattern(rev, 0, N-1); 
+                std::cout << lookup.tostring(*decoder) << std::endl;
+                std::cout << "-------------" << std::endl;
+
 
 		auto it = p.find(lookup);
 		if (it == p.end()) {
-			it = p.insert(make_pair(lookup, crp<PatternPointer>(0.8, 0))).first;
+			it = p.insert(make_pair(lookup, crp<Pattern>(0.8, 0))).first;
 			tr.insert(&it->second); // add to resampler
 		}
 
@@ -82,10 +80,10 @@ template<unsigned N> struct PYPLM {
 	}
 
 	template<typename Engine>
-	void decrement(const PatternPointer& w, const PatternPointer& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
-                PatternPointer rev = context.pattern().reverse();
-                PatternPointer pattern = PatternPointer(rev, 0, N-1);
-                PatternPointer shortened_context = pattern.pattern().reverse();
+	void decrement(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
+                Pattern rev = context.reverse();
+                Pattern pattern = Pattern(rev, 0, N-1);
+                Pattern shortened_context = pattern.reverse();
 
 		auto it = p.find(pattern);
 		assert(it != p.end());
@@ -95,15 +93,16 @@ template<unsigned N> struct PYPLM {
 		}
 	}
 
-	double prob(const PatternPointer& w, const PatternPointer& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false) const {
-                std::cout << "P" << N << " -------------" << std::endl;
+	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false) const {
 
-                PatternPointer rev = context.pattern().reverse();
-                PatternPointer lookup = PatternPointer(rev, 0, N-1);
-                std::cout << "\t(" << N << ") From:" << rev.tostring(*decoder) << " to:" << lookup.tostring(*decoder) << std::endl;
-                //PatternPointer r = (N==1) ? PatternPointer() : PatternPointer(context.pattern().reverse(), 0, N-1); 
-                
 		const double bo = backoff.prob(w, context, decoder, backoff_to_skips);
+
+
+                Pattern rev = context.reverse();
+                Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1); 
+
+                std::cout << "\t\t >" << lookup.tostring(*decoder) << "<" << std::endl;
+                
 		auto it = p.find(lookup);
 		if (it == p.end()) { // if the pattern is not in the train data
                     return bo;
@@ -129,8 +128,8 @@ template<unsigned N> struct PYPLM {
 	}
 
 	PYPLM<N - 1> backoff;
-	tied_parameter_resampler<crp<PatternPointer>> tr;
-	std::unordered_map<PatternPointer, crp<PatternPointer>> p;  // .first = context .second = CRP
+	tied_parameter_resampler<crp<Pattern>> tr;
+	std::unordered_map<Pattern, crp<Pattern>> p;  // .first = context .second = CRP
 };
 
 }
