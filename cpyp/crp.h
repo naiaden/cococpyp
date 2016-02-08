@@ -146,7 +146,7 @@ public:
 		++num_customers_;
 
 		if (show) {
-			std::cout << dish_locs_[dish].num_customers() << std::endl;
+			std::cout << "aaa: " << dish_locs_[dish].num_customers() << std::endl;
 		}
 
 		return (share_table ? 0 : 1);

@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
             sentencePointer.ngrams(patterns, std::stoi(_kORDER));
             for(auto pattern : patterns)                                            // *grams
             {
-                std::cout << pattern.tostring(cci.classDecoder) << std::endl;
+                //std::cout << pattern.tostring(cci.classDecoder) << std::endl;
         
      //           tsp.printTimeStats();
 

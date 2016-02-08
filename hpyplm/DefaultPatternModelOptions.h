@@ -12,7 +12,7 @@ struct DefaultPatternModelOptions
    {
         patternModelOptions.MAXLENGTH = maxLength;
         patternModelOptions.MINLENGTH = 1;
-        patternModelOptions.DOSKIPGRAMS = generateSkipgrams;
+//        patternModelOptions.DOSKIPGRAMS = generateSkipgrams;
         patternModelOptions.DOSKIPGRAMS_EXHAUSTIVE = generateSkipgrams;
         patternModelOptions.DOREVERSEINDEX = true;
         patternModelOptions.QUIET = false;
