@@ -61,8 +61,36 @@ int main(int argc, char** argv) {
     std::cout << "# word types: " << cci.trainPatternModel.totalwordtypesingroup(0,0) << std::endl;
     std::cout << "<" << pmo.MINLENGTH << "," << pmo.MAXLENGTH << ">" << std::endl;
     cpyp::PYPLM<kORDER> lm(cci.trainPatternModel.totalwordtypesingroup(0, 0), 1, 1, 1, 1);
+
     for(int sample = 0; sample < po.samples; ++sample) 
     {
+
+        tsp.nextSample();
+        for(IndexedCorpus::iterator iter = cci.indexedCorpus->begin(); iter != cci.indexedCorpus->end(); ++iter)
+        {
+            for(PatternPointer pattern : cci.trainPatternModel.getreverseindex(iter.index(), 0, 0, 4))
+            {
+                std::cout << pattern.tostring(cci.classDecoder) << std::endl;
+        
+     //           tsp.printTimeStats();
+
+                PatternPointer context = PatternPointer();
+                PatternPointer focus = PatternPointer();
+
+                context = PatternPointer(pattern, 0, std::stoi(_kORDER) - 1);
+                focus = PatternPointer(pattern, std::stoi(_kORDER)-1, 1);
+
+                if(sample > 0) 
+                {
+                    lm.decrement(focus, context, _eng);
+                }
+                lm.increment(focus, context, _eng, &cci.classDecoder);
+//              std::cout << "Adding: " << context.tostring(_class_decoder) << " " << focus.tostring(_class_decoder) << std::endl;
+
+            }
+        }
+
+/*
         tsp.nextSample();
         for(int i = 1; i < cci.indexedCorpus->sentences(); ++i)                     // sentences
         {
@@ -71,7 +99,7 @@ int main(int argc, char** argv) {
             sentencePointer.ngrams(patterns, std::stoi(_kORDER));
             for(auto pattern : patterns)                                            // *grams
             {
-                //std::cout << pattern.tostring(cci.classDecoder) << std::endl;
+                std::cout << pattern.tostring(cci.classDecoder) << std::endl;
         
      //           tsp.printTimeStats();
 
@@ -89,7 +117,7 @@ int main(int argc, char** argv) {
 //              std::cout << "Adding: " << context.tostring(_class_decoder) << " " << focus.tostring(_class_decoder) << std::endl;
             }
         }
-
+*/
         if(sample % 10 == 9) 
         {
             std::cout << std::endl;
