@@ -59,11 +59,7 @@ template<unsigned N> struct PYPLM {
 	void increment(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
 		const double bo = backoff.prob(w, context, decoder, false);
 
-                std::cout << "I" << N << " -------------" << std::endl;
-                Pattern rev = context.reverse();
-                Pattern lookup = (N==1) ? Pattern() : Pattern(rev, 0, N-1); 
-                std::cout << lookup.tostring(*decoder) << std::endl;
-                std::cout << "-------------" << std::endl;
+                Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1); 
 
 		auto it = p.find(lookup);
 		if (it == p.end()) {
@@ -78,9 +74,7 @@ template<unsigned N> struct PYPLM {
 
 	template<typename Engine>
 	void decrement(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
-                Pattern rev = context.reverse();
-                Pattern lookup = (N==1) ? Pattern() : Pattern(rev, 0, N-1); 
-                Pattern shortened_context = lookup.reverse();
+                Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1); 
 
 		auto it = p.find(lookup);
 		assert(it != p.end());
@@ -94,11 +88,8 @@ template<unsigned N> struct PYPLM {
 
 		const double bo = backoff.prob(w, context, decoder, backoff_to_skips);
 
-                Pattern rev = context.reverse();
                 Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1); 
 
-                //std::cout << "\t\t >" << lookup.tostring(*decoder) << "<" << std::endl;
-                
 		auto it = p.find(lookup);
 		if (it == p.end()) { // if the pattern is not in the train data
                     return bo;

@@ -72,6 +72,8 @@ struct CoCoInitialiser
 
     CoCoInitialiser(TrainProgramOptions& _tpo, PatternModelOptions& _pmo, bool computeStats = true, bool reportStats = true) : po(_tpo), pmo(_pmo)
     {
+        std::string cls;
+        
         if(_tpo.clo.loadTrainVocabulary.empty())
         {
             std::cout << "CCI: Training vocabulary from " << std::endl;
@@ -80,13 +82,19 @@ struct CoCoInitialiser
                 std::cout << "     " << i << std::endl;
             }
             classEncoder.build(_tpo.trainInputFiles, true);
-            std::cout << "CCI: Saving to " << _tpo.trainClassFileName << std::endl;
-            classEncoder.save(_tpo.trainClassFileName);
+            std::cout << "CCI: Saving to " << _tpo.generalBaseClassFileName << std::endl;
+            classEncoder.save(_tpo.generalBaseClassFileName);
+
+            cls = _tpo.generalBaseClassFileName;
         } else
         {
             std::cout << "CCI: Loading vocabulary from " << _tpo.clo.loadTrainVocabulary << std::endl;
             classEncoder.load(_tpo.clo.loadTrainVocabulary);
+
+            cls = _tpo.clo.loadTrainVocabulary;
         }
+
+        std::string dat;
 
         if(_tpo.clo.loadTrainCorpus.empty())
         {
@@ -99,18 +107,22 @@ struct CoCoInitialiser
             int append = 0;
             for(auto i : _tpo.trainInputFiles)
             {
-                classEncoder.encodefile(i, _tpo.trainCorpusFileName, 0, 0, append, 0);
+                classEncoder.encodefile(i, _tpo.generalBaseCorpusFileName, 0, 0, append, 0);
                 append = 1;
             }
-            std::cout << "CCI: Loading corpus from " << _tpo.trainClassFileName << std::endl;
-            classDecoder.load(_tpo.trainClassFileName);
+//            std::cout << "CCI: Loading corpus from " << _tpo.generalBaseClassFileName << std::endl;
+//            classDecoder.load(_tpo.generalBaseClassFileName);
+            std::cout << "CCI: Loading corpus from " << cls << std::endl;
+            classDecoder.load(cls);
+
+            dat = _tpo.generalBaseCorpusFileName;
         } else
         {
-           // do nothing 
+            dat = _tpo.trainCorpusFileName;
         }
+        std::cout << "CCI: Creating IndexedCorpus from " << dat << std::endl;
+        indexedCorpus = new IndexedCorpus(dat);
 
-        std::cout << "CCI: Creating IndexedCorpus from " << _tpo.trainCorpusFileName << std::endl;
-        indexedCorpus = new IndexedCorpus(_tpo.trainCorpusFileName);
 
         std::cout << "CCI: Creating pattern model from indexed corpus" << std::endl;
         trainPatternModel = PatternModel<uint32_t>(indexedCorpus);
@@ -119,10 +131,10 @@ struct CoCoInitialiser
         {
             if(_tpo.clo.loadTrainPatternModel.empty())
             {
-                std::cout << "CCI: Training pattern model from " << _tpo.trainCorpusFileName << std::endl;
-                trainPatternModel.train(_tpo.trainCorpusFileName, _pmo);
-                std::cout << "CCI: Writing pattern model to " << _tpo.trainPatternModelFileName << std::endl;
-                trainPatternModel.write(_tpo.trainPatternModelFileName);
+                std::cout << "CCI: Training pattern model from " << dat << std::endl;
+                trainPatternModel.train(dat, _pmo);
+                std::cout << "CCI: Writing pattern model to " << _tpo.generalBasePatternModelFileName << std::endl;
+                trainPatternModel.write(_tpo.generalBasePatternModelFileName);
             } else
             {
                 std::cout << "CCI: Load pattern model from " << _tpo.trainPatternModelFileName << std::endl;
@@ -136,8 +148,8 @@ struct CoCoInitialiser
                 trainPatternModel.load(_tpo.extendModel, _pmo);
                 std::cout << "CCI: Train the extended model from " << _tpo.clo.loadTrainCorpus << std::endl;
                 trainPatternModel.train(_tpo.clo.loadTrainCorpus, _pmo, nullptr, true, 1, true);
-                std::cout << "CCI: Write extended pattern model to " << _tpo.trainPatternModelFileName << std::endl;
-                trainPatternModel.write(_tpo.trainPatternModelFileName);
+                std::cout << "CCI: Write extended pattern model to " << _tpo.generalBasePatternModelFileName << std::endl;
+                trainPatternModel.write(_tpo.generalBasePatternModelFileName);
             } else
             {   
                 std::cout << "CCI: Load pattern model from " << _tpo.trainPatternModelFileName << std::endl;
@@ -184,8 +196,8 @@ struct CoCoInitialiser
         std::cout << "Pattern model stats" << std::endl
                   << indexedCorpus->sentences() << " sentences" << std::endl
                   << trainPatternModel.totalwordtypesingroup(0, 0) << " word types" << std::endl
-                  << trainPatternModel.totalpatternsingroup(0,order) << " pattern types" << std::endl
-                  << trainPatternModel.totaltokensingroup(0, 1) << " word tokens" << std::endl;
+                  << trainPatternModel.totalpatternsingroup(0,order) << " " << order << "-gram pattern types" << std::endl
+                  ;//<< trainPatternModel.totaltokensingroup(0, 1) << " word tokens" << std::endl;
     }
 
 };

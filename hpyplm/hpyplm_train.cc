@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
     TrainCommandLineOptions tclo(argc, argv);
     TrainProgramOptions po(tclo, std::stoi(_kORDER));
     PatternModelOptions pmo = TrainPatternModelOptions(tclo, std::stoi(_kORDER)).patternModelOptions;
-    CoCoInitialiser cci = CoCoInitialiser(po, pmo, true, true);
+    CoCoInitialiser cci(po, pmo, true, true);
     cci.printStats(std::stoi(_kORDER));
     
     std::string moutputFile(po.generalBaseOutputName + ".output");
@@ -56,68 +56,33 @@ int main(int argc, char** argv) {
     mout << "Initialisation done at " << std::chrono::system_clock::now() << std::endl;
     mout << "Running on " << po.hostName << std::endl;
 
-    TimeStatsPrinter tsp(cci.trainPatternModel.totalpatternsingroup(0,4));
+    TimeStatsPrinter tsp(cci.trainPatternModel.totaloccurrencesingroup(0,4));
 
-    std::cout << "# word types: " << cci.trainPatternModel.totalwordtypesingroup(0,0) << std::endl;
-    std::cout << "<" << pmo.MINLENGTH << "," << pmo.MAXLENGTH << ">" << std::endl;
     cpyp::PYPLM<kORDER> lm(cci.trainPatternModel.totalwordtypesingroup(0, 0), 1, 1, 1, 1);
-
     for(int sample = 0; sample < po.samples; ++sample) 
     {
-
         tsp.nextSample();
+
         for(IndexedCorpus::iterator iter = cci.indexedCorpus->begin(); iter != cci.indexedCorpus->end(); ++iter)
         {
-            for(PatternPointer pattern : cci.trainPatternModel.getreverseindex(iter.index(), 0, 0, 4))
+            for(PatternPointer patternp : cci.trainPatternModel.getreverseindex(iter.index(), 0, 0, std::stoi(_kORDER)))
             {
-                std::cout << pattern.tostring(cci.classDecoder) << std::endl;
-        
-     //           tsp.printTimeStats();
+                Pattern pattern(patternp);
 
-                PatternPointer context = PatternPointer();
-                PatternPointer focus = PatternPointer();
+                tsp.printTimeStats();
 
-                context = PatternPointer(pattern, 0, std::stoi(_kORDER) - 1);
-                focus = PatternPointer(pattern, std::stoi(_kORDER)-1, 1);
+                Pattern context(pattern, 0, std::stoi(_kORDER) - 1);
+                Pattern focus(pattern, std::stoi(_kORDER)-1, 1);
 
                 if(sample > 0) 
                 {
                     lm.decrement(focus, context, _eng);
                 }
+                
                 lm.increment(focus, context, _eng, &cci.classDecoder);
-//              std::cout << "Adding: " << context.tostring(_class_decoder) << " " << focus.tostring(_class_decoder) << std::endl;
-
             }
         }
 
-/*
-        tsp.nextSample();
-        for(int i = 1; i < cci.indexedCorpus->sentences(); ++i)                     // sentences
-        {
-            PatternPointer sentencePointer = cci.indexedCorpus->getsentence(i);
-            std::vector<PatternPointer> patterns;
-            sentencePointer.ngrams(patterns, std::stoi(_kORDER));
-            for(auto pattern : patterns)                                            // *grams
-            {
-                std::cout << pattern.tostring(cci.classDecoder) << std::endl;
-        
-     //           tsp.printTimeStats();
-
-                PatternPointer context = PatternPointer();
-                PatternPointer focus = PatternPointer();
-
-                context = PatternPointer(pattern, 0, std::stoi(_kORDER) - 1);
-                focus = PatternPointer(pattern, std::stoi(_kORDER)-1, 1);
-
-                if(sample > 0) 
-                {
-                    lm.decrement(focus, context, _eng);
-                }
-                lm.increment(focus, context, _eng, &cci.classDecoder);
-//              std::cout << "Adding: " << context.tostring(_class_decoder) << " " << focus.tostring(_class_decoder) << std::endl;
-            }
-        }
-*/
         if(sample % 10 == 9) 
         {
             std::cout << std::endl;
@@ -131,8 +96,8 @@ int main(int argc, char** argv) {
             }
         }
     }
-
-    mout << "Sampling done at " << std::chrono::system_clock::now() << std::endl;
+    
+    mout << "\nSampling done at " << std::chrono::system_clock::now() << std::endl;
 
     std::ofstream ofile(po.trainSerialisedFileName, std::ios::binary);
     if (!ofile.good()) 

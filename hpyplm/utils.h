@@ -87,8 +87,7 @@ public:
     {
         ++counter;
 
-
-        if(++counter < 1000 || counter % 1000 == 0 || counter == total)
+        if(counter == total)
         {
             currentTimePoint = std::chrono::system_clock::now();
             std::chrono::duration<double> elapsedSeconds = currentTimePoint-startTimePoint;
@@ -100,7 +99,22 @@ public:
                       << "\tPattern: " << std::setw(10) << counter 
                       <<  " (" << std::setw(4) << (counter*1.0/total*100) << "%) " 
                       << std::setw(8) << ((int) avgPerSecond) << "P/s"
-                      << " seconds remaining:" << (total-counter)*1.0/avgPerSecond ;
+                      << " took " << elapsedSeconds.count() << " seconds"; 
+            std::cout << std::flush;
+        } else if(counter < 20000 || counter % 20000 == 0)
+        {
+            currentTimePoint = std::chrono::system_clock::now();
+            std::chrono::duration<double> elapsedSeconds = currentTimePoint-startTimePoint;
+
+            double avgPerSecond = counter*1.0/elapsedSeconds.count();
+
+            std::cout << std::fixed << "\r" 
+                      << "Sample [" << sample << "]"
+                      << "\tPattern: " << std::setw(10) << counter 
+                      <<  " (" << std::setw(4) << (counter*1.0/total*100) << "%) " 
+                      << std::setw(8) << ((int) avgPerSecond) << "P/s"
+                      << " seconds remaining:" << (total-counter)*1.0/avgPerSecond; 
+            std::cout << std::flush;
         }
     }
 };
