@@ -44,6 +44,57 @@ class my_ostream // http://ideone.com/T5Cy1M
         std::ofstream my_fstream;
 };
 
+class QueryTimeStatsPrinter
+{
+    int sentences = 0;
+    int files = 0;
+    int counter = 0;
+    int oov = 0;
+
+    std::chrono::time_point<std::chrono::system_clock> startTimePoint, currentTimePoint;
+public:
+    QueryTimeStatsPrinter()
+    {
+
+    }
+
+    void nextFile()
+    {
+        ++files;
+    }
+
+    void start()
+    {
+        startTimePoint = std::chrono::system_clock::now();
+    }
+
+    void nextSentence()
+    {
+        ++sentences;
+    }
+
+    void printTimeStats(bool isOOV = false)
+    {
+        ++counter;
+        if(isOOV) ++oov;
+
+        if(counter < 50000 || counter % 50000 == 0)
+        {
+            currentTimePoint = std::chrono::system_clock::now();
+            std::chrono::duration<double> elapsedSeconds = currentTimePoint-startTimePoint;
+
+            double avgPerSecond = counter*1.0/elapsedSeconds.count();
+
+            std::cout << std::fixed << "\r" 
+                      << "\tPattern: " << std::setw(10) << counter 
+                      << " (" << (oov*1.0/counter*100) << " OOV) "
+                      << std::setw(8) << ((int) avgPerSecond) << "P/s"
+                      << " took " << elapsedSeconds.count() << " seconds"; 
+            std::cout << std::flush;
+        }
+    }
+};
+
 class TimeStatsPrinter
 {
     int counter = 0;

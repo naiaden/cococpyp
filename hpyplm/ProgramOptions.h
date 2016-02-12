@@ -35,8 +35,6 @@ struct CommandLineOptions
     cmdline::parser clp;
 
     std::string trainModel;
-    std::string trainModelInput;
-    std::string trainModelInputDirectory;
     std::string trainModelDirectory;
     std::string loadTrainVocabulary;
     std::string loadTrainCorpus;
@@ -50,8 +48,6 @@ struct CommandLineOptions
     
     void initialise(int argc, char** argv)
     {
-        clp.add<std::string>("traininput", 'i', "train input directory", false);
-        clp.add<std::string>("traininputfile", 'f', "train input file", false);
         clp.add<std::string>("trainoutput", 'o', "train output directory", true);
         clp.add<std::string>("modelname", 'm', "the name of the training model", true);
 
@@ -63,8 +59,6 @@ struct CommandLineOptions
 
     void retrieve()
     {
-        trainModelInputDirectory = clp.get<std::string>("traininput");
-        trainModelInput = clp.get<std::string>("traininputfile");
         trainModelDirectory = clp.get<std::string>("trainoutput");
         trainModel = clp.get<std::string>("modelname");
 
@@ -77,6 +71,9 @@ struct CommandLineOptions
 
 struct TrainCommandLineOptions : public CommandLineOptions
 {
+    std::string trainModelInput;
+    std::string trainModelInputDirectory;
+
     int samples;
     int burnin;
 
@@ -91,6 +88,9 @@ struct TrainCommandLineOptions : public CommandLineOptions
 
     TrainCommandLineOptions(int argc, char** argv) : CommandLineOptions(argc, argv)
     {
+        clp.add<std::string>("traininput", 'i', "train input directory", false);
+        clp.add<std::string>("traininputfile", 'f', "train input file", false);
+
         clp.add<int>("samples", 's', "samples", false, 50);
         clp.add<int>("burnin", 'b', "burnin", false, 0);
         clp.add("skipgram", 'S', "train with skipgrams");
@@ -104,6 +104,9 @@ struct TrainCommandLineOptions : public CommandLineOptions
         clp.parse_check(argc, argv);
 
         retrieve();
+        trainModelInputDirectory = clp.get<std::string>("traininput");
+        trainModelInput = clp.get<std::string>("traininputfile");
+
         samples = clp.get<int>("samples");
         burnin = clp.get<int>("burnin");
         skipgrams = clp.exist("skipgram");
@@ -346,7 +349,7 @@ struct TrainProgramOptions : public ProgramOptions
     {
         n = _n;
 
-        if(!clo.trainModelInputDirectory.empty()) {
+        if(!_clo.trainModelInputDirectory.empty()) {
             boost::filesystem::path background_dir(_clo.trainModelDirectory);
             boost::filesystem::directory_iterator bit(background_dir), beod;
 

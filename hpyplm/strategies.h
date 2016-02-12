@@ -88,8 +88,6 @@ public:
     {
         double lp = 0.0;
 
-        std::cout << "!! focus size = " << focus.size() << " context size = " << context.size() << std::endl;
-
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
             lp = lm.prob(focus, context, &classDecoder);
@@ -97,13 +95,13 @@ public:
         } else // oov
         {
             ++oovs;
-            probsFile << "***";
+//            std::cout << "***";
         }
 
-        /*probsFile*/ std::cout << "p(" << focusString << " |"
-                  << context.tostring(classDecoder) << ") = "
-                  << std::fixed << std::setprecision(20) << lp 
-                  << std::endl;
+//        /*probsFile*/ std::cout << "p(" << focusString << " |"
+//                  << context.tostring(classDecoder) << ") = "
+//                  << std::fixed << std::setprecision(20) << lp 
+//                  << std::endl;
 
         llh -= lp;
         ++count;

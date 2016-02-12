@@ -77,18 +77,21 @@ int main(int argc, char** argv) {
 
 
     NgramBackoffStrategy ngramBO(po, cci.classDecoder, lm);
-    
+    QueryTimeStatsPrinter tsp; 
+    tsp.start();
 
     for(std::string inputFileName : po.testInputFiles)                          // files
     {
         std::cout << "> " << inputFileName << std::endl;
         ngramBO.nextFile();
+        tsp.nextFile();
         
         std::ifstream file(inputFileName);
         std::string retrievedString;
         while(std::getline(file, retrievedString))                              // lines
         {
             ngramBO.nextLine();
+            tsp.nextSentence();
             std::vector<std::string> words = split(retrievedString);
 
             if(words.size() >= po.n) // kORDER
@@ -103,19 +106,16 @@ int main(int argc, char** argv) {
                         contextStream << " " << words[i-(kORDER-1)+ii];
                     }
 
-                    std::cout << std::endl << std::endl;
-
                     Pattern context = cci.classEncoder.buildpattern(contextStream.str());
                     Pattern focus = cci.classEncoder.buildpattern(words[i]);
 
-                    std::cout << ">>>>>>>>>>: " << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << " <<<<<<<<<<" << std::endl;
                     double lp = 0.0;
                     std::string focusString = "";
                     if(focus.size() > 0 && !allWords.has(focus))
                     {
                         focusString = words[i];
-                        std::cout << "----- " << focusString << std::endl;
                     }
+                    tsp.printTimeStats(focusString.empty());
                     lp = log(ngramBO.prob(focus, context, focusString));
                }
             }

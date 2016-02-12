@@ -67,16 +67,12 @@ int main(int argc, char** argv) {
         {
             for(PatternPointer patternp : cci.trainPatternModel.getreverseindex(iter.index(), 0, 0, std::stoi(_kORDER)))
             {
-                std::cout << std::chrono::system_clock::now() << "Begin patternp" << std::endl;
                 Pattern pattern(patternp);
-//                std::cout << std::chrono::system_clock::now() << "Made pattern" << std::endl;
 
-//                tsp.printTimeStats();
+                tsp.printTimeStats();
 
                 Pattern context(pattern, 0, std::stoi(_kORDER) - 1);
-//                std::cout << std::chrono::system_clock::now() << "Made context" << std::endl;
                 Pattern focus(pattern, std::stoi(_kORDER)-1, 1);
-//                std::cout << std::chrono::system_clock::now() << "Begin focus" << std::endl;
 
                 if(sample > 0) 
                 {
@@ -84,7 +80,6 @@ int main(int argc, char** argv) {
                 }
                 
                 lm.increment(focus, context, _eng, &cci.classDecoder);
-                std::cout << std::chrono::system_clock::now() << "Done increment" << std::endl;
             }
         }
 
@@ -104,10 +99,10 @@ int main(int argc, char** argv) {
     
     mout << "\nSampling done at " << std::chrono::system_clock::now() << std::endl;
 
-    std::ofstream ofile(po.trainSerialisedFileName, std::ios::binary);
+    std::ofstream ofile(po.generalBaseSerialisedFileName, std::ios::binary);
     if (!ofile.good()) 
     {
-        std::cerr << "Failed to open " << po.trainSerialisedFileName << " for writing" << std::endl;
+        std::cerr << "Failed to open " << po.generalBaseSerialisedFileName << " for writing" << std::endl;
         return 1;
     }
 
