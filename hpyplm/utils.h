@@ -46,12 +46,17 @@ class my_ostream // http://ideone.com/T5Cy1M
 
 class QueryTimeStatsPrinter
 {
-    int sentences = 0;
     int files = 0;
+
+    int sentences = 0;
     int counter = 0;
     int oov = 0;
 
-    std::chrono::time_point<std::chrono::system_clock> startTimePoint, currentTimePoint;
+    int fSentences = 0;
+    int fCounter = 0;
+    int fOOV = 0;
+
+    std::chrono::time_point<std::chrono::system_clock> startTimePoint, currentTimePoint, fStartTimePoint;
 public:
     QueryTimeStatsPrinter()
     {
@@ -61,6 +66,7 @@ public:
     void nextFile()
     {
         ++files;
+        fStartTimePoint = std::chrono::system_clock::now();
     }
 
     void start()
@@ -73,21 +79,50 @@ public:
         ++sentences;
     }
 
-    void printTimeStats(bool isOOV = false)
+    void done()
     {
-        ++counter;
-        if(isOOV) ++oov;
+        printTimeStats(false, true);
+        std::cout << std::endl;
 
-        if(counter < 50000 || counter % 50000 == 0)
+        sentences += fSentences;
+        counter += fCounter;
+        oov += fOOV;
+        
+        fSentences = 0;
+        fCounter = 0;
+        fOOV = 0;
+
+        currentTimePoint = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsedSeconds = currentTimePoint-startTimePoint;
+
+        double avgPerSecond = counter*1.0/elapsedSeconds.count();
+
+        std::cout << std::fixed << "\r" 
+                  << "\tPattern: " << std::setw(10) << counter 
+                  << " (" << std::setw(4) << (oov*1.0/counter*100) << "% OOV) "
+                  << std::setw(8) << ((int) avgPerSecond) << "P/s"
+                  << " took " << elapsedSeconds.count() << " seconds"; 
+        std::cout << std::endl;
+    }
+
+    void printTimeStats(bool isOOV = false, bool done = false)
+    {
+        if(!done)
+        {
+            ++fCounter;
+            if(isOOV) ++fOOV;
+        }
+
+        if(fCounter < 50000 || fCounter % 50000 == 0 || done)
         {
             currentTimePoint = std::chrono::system_clock::now();
-            std::chrono::duration<double> elapsedSeconds = currentTimePoint-startTimePoint;
+            std::chrono::duration<double> elapsedSeconds = currentTimePoint-fStartTimePoint;
 
-            double avgPerSecond = counter*1.0/elapsedSeconds.count();
+            double avgPerSecond = fCounter*1.0/elapsedSeconds.count();
 
             std::cout << std::fixed << "\r" 
-                      << "\tPattern: " << std::setw(10) << counter 
-                      << " (" << (oov*1.0/counter*100) << " OOV) "
+                      << "\tPattern: " << std::setw(10) << fCounter 
+                      << " (" << std::setw(4) << (fOOV*1.0/fCounter*100) << "% OOV) "
                       << std::setw(8) << ((int) avgPerSecond) << "P/s"
                       << " took " << elapsedSeconds.count() << " seconds"; 
             std::cout << std::flush;

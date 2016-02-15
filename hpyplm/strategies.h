@@ -12,6 +12,11 @@ public:
     unsigned count = 0;
     unsigned oovs = 0;
 
+    int fLines = 0;
+    double fLLH = 0.0;
+    unsigned fCount = 0;
+    unsigned fOOVs = 0;
+
     ClassDecoder& classDecoder;
 
     std::string baseOutputName;
@@ -34,24 +39,57 @@ public:
     
     int nextFile()
     {
-        return ++files;
+        ++files;
+
+        lines += fLines;
+        llh += fLLH;
+        count += fCount;
+        oovs += fOOVs;
+
+        fLines = 0;
+        fLLH = 0.0;
+        fCount = 0;
+        fOOVs = 0;
+
+        return files;
     }
 
     int nextLine()
     {
-        return ++lines;
+        return ++fLines;
+    }
+
+    void done()
+    {
+        lines += fLines;
+        llh += fLLH;
+        count += fCount;
+        oovs += fOOVs;
+    }
+
+    void printFileResults()
+    {
+        *mout << "\n===== OVERALL STATISTICS" << std::endl;
+
+        double lprob = (-fLLH * log(2)) / log(10); // in cpyp: (-llh * log(2) / log(10))
+        *mout << "        Lines: " << fLines << std::endl;
+        *mout << "  Log_10 prob: " << lprob << std::endl;
+        *mout << "        Count: " << fCount-fOOVs << std::endl;
+        *mout << "         OOVs: " << fOOVs << std::endl;
+        *mout << "Cross-Entropy: " << (fLLH/fCount) << std::endl;
+        *mout << "   Perplexity: " << pow(2, fLLH/fCount) << std::endl;
     }
 
     void printResults()
     {
         double lprob = (-llh * log(2)) / log(10); // in cpyp: (-llh * log(2) / log(10))
-        std::cout << "        Files: " << files << std::endl;
-        std::cout << "        Lines: " << lines << std::endl;
-        std::cout << "  Log_10 prob: " << lprob << std::endl;
-        std::cout << "        Count: " << count-oovs << std::endl;
-        std::cout << "         OOVs: " << oovs << std::endl;
-        std::cout << "Cross-Entropy: " << (llh/count) << std::endl;
-        std::cout << "   Perplexity: " << pow(2, llh/count) << std::endl;
+        *mout << "        Files: " << files << std::endl;
+        *mout << "        Lines: " << lines << std::endl;
+        *mout << "  Log_10 prob: " << lprob << std::endl;
+        *mout << "        Count: " << count-oovs << std::endl;
+        *mout << "         OOVs: " << oovs << std::endl;
+        *mout << "Cross-Entropy: " << (llh/count) << std::endl;
+        *mout << "   Perplexity: " << pow(2, llh/count) << std::endl;
     }
 };
 
@@ -64,18 +102,15 @@ public:
     NgramBackoffStrategy(SNCBWProgramOptions& _po, ClassDecoder& _classDecoder, cpyp::PYPLM<kORDER>& _lm) : BackoffStrategy(_classDecoder, _lm), po(_po)
     {
         std::cout << "Initialising backoff strategy: " << strategyName << std::endl;
-        
-        baseOutputName = _po.baseOutputName + "_" + strategyName + "_" + std::to_string(_po.n);
-//        outputClassFileName = baseOutputName + ".cls";
-//        outputPatternModelFileName = baseOutputName + ".patternmodel";
-//        outputCorpusFileName = baseOutputname + ".dat";
+       
+        baseOutputName = _po.generalBaseOutputName + "_" + strategyName + "_" + std::to_string(_po.n);
         outputProbabilitiesFileName = baseOutputName + ".probs";
         outputFile = baseOutputName + ".output";
 
+        std::cout << "Writing backoff output to " << outputFile << std::endl;
+
         mout = new my_ostream(outputFile);
         probsFile.open(outputProbabilitiesFileName);
-
-
     }
 
     ~NgramBackoffStrategy()
@@ -94,17 +129,17 @@ public:
             focusString = focus.tostring(classDecoder);
         } else // oov
         {
-            ++oovs;
-//            std::cout << "***";
+            ++fOOVs;
+            probsFile << "***";
         }
 
-//        /*probsFile*/ std::cout << "p(" << focusString << " |"
-//                  << context.tostring(classDecoder) << ") = "
-//                  << std::fixed << std::setprecision(20) << lp 
-//                  << std::endl;
+        probsFile << "p(" << focusString << " |"
+                  << context.tostring(classDecoder) << ") = "
+                  << std::fixed << std::setprecision(20) << lp 
+                  << std::endl;
 
-        llh -= lp;
-        ++count;
+        fLLH -= lp;
+        ++fCount;
 
         return lp;
     }

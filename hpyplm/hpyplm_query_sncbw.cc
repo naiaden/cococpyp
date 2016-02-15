@@ -120,6 +120,12 @@ int main(int argc, char** argv) {
                }
             }
         }
+        tsp.done();
+        ngramBO.printFileResults();
     }
+    ngramBO.done();
+    ngramBO.printResults();
 }
+
+
 
