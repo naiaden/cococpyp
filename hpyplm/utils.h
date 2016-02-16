@@ -48,13 +48,13 @@ class QueryTimeStatsPrinter
 {
     int files = 0;
 
-    int sentences = 0;
-    int counter = 0;
-    int oov = 0;
+    unsigned long sentences = 0;
+    unsigned long long counter = 0;
+    unsigned long long oov = 0;
 
-    int fSentences = 0;
-    int fCounter = 0;
-    int fOOV = 0;
+    unsigned long long fSentences = 0;
+    unsigned long long fCounter = 0;
+    unsigned long long fOOV = 0;
 
     std::chrono::time_point<std::chrono::system_clock> startTimePoint, currentTimePoint, fStartTimePoint;
 public:
@@ -132,13 +132,13 @@ public:
 
 class TimeStatsPrinter
 {
-    int counter = 0;
+    unsigned long long counter = 0;
     int sample = 0;
-    int total = 0;
+    unsigned long long total = 0;
     std::chrono::time_point<std::chrono::system_clock> startTimePoint, currentTimePoint;
 
 public:
-    TimeStatsPrinter(int totalCount)
+    TimeStatsPrinter(unsigned long long totalCount)
     {
         total = totalCount;
     }
@@ -148,7 +148,7 @@ public:
         startTimePoint = std::chrono::system_clock::now();
     }
 
-    void reset(bool alsoTimer = true, int newSample = 0, int newValue = 0) 
+    void reset(bool alsoTimer = true, int newSample = 0, unsigned long long newValue = 0) 
     {
         counter = newValue;
         sample = newSample;

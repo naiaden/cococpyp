@@ -7,15 +7,15 @@ class BackoffStrategy
 {
 public:
     int files = 0;
-    int lines = 0;
+    unsigned long lines = 0;
     double llh = 0.0;
-    unsigned count = 0;
-    unsigned oovs = 0;
+    unsigned long long count = 0;
+    unsigned long long oovs = 0;
 
-    int fLines = 0;
+    unsigned long fLines = 0;
     double fLLH = 0.0;
-    unsigned fCount = 0;
-    unsigned fOOVs = 0;
+    unsigned long long fCount = 0;
+    unsigned long long fOOVs = 0;
 
     ClassDecoder& classDecoder;
 
