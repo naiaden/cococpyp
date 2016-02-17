@@ -76,21 +76,26 @@ int main(int argc, char** argv) {
     mout << "Preparation done at " << std::chrono::system_clock::now() << std::endl;
 
 
-    NgramBackoffStrategy ngramBO(po, cci.classDecoder, lm);
     QueryTimeStatsPrinter tsp; 
     tsp.start();
 
+    BackoffStrategies backoffStrategies;
+    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci.classDecoder, lm));
+//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci.classDecoder, lm));
+//    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci.classDecoder, lm));
+    
     for(std::string inputFileName : po.testInputFiles)                          // files
     {
         std::cout << "> " << inputFileName << std::endl;
-        ngramBO.nextFile();
+   
+        backoffStrategies.nextFile();
         tsp.nextFile();
         
         std::ifstream file(inputFileName);
         std::string retrievedString;
         while(std::getline(file, retrievedString))                              // lines
         {
-            ngramBO.nextLine();
+            backoffStrategies.nextLine();
             tsp.nextSentence();
             std::vector<std::string> words = split(retrievedString);
 
@@ -116,15 +121,17 @@ int main(int argc, char** argv) {
                         focusString = words[i];
                     }
                     tsp.printTimeStats(focusString.empty());
-                    lp = log(ngramBO.prob(focus, context, focusString));
+                    backoffStrategies.prob(focus, context, focusString);
                }
             }
         }
         tsp.done();
-        ngramBO.printFileResults();
+        backoffStrategies.printFileResults();
     }
-    ngramBO.done();
-    ngramBO.printResults();
+    backoffStrategies.done();
+    backoffStrategies.printResults();
+    
+
 }
 
 

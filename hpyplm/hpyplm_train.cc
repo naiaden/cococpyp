@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
     mout << "Initialisation done at " << std::chrono::system_clock::now() << std::endl;
     mout << "Running on " << po.hostName << std::endl;
 
-    TimeStatsPrinter tsp(cci.trainPatternModel.totaloccurrencesingroup(0,4));
+    TimeStatsPrinter tsp(cci.trainPatternModel.totaloccurrencesingroup(0,std::stoi(_kORDER)));
 
     cpyp::PYPLM<kORDER> lm(cci.trainPatternModel.totalwordtypesingroup(0, 0), 1, 1, 1, 1);
     for(int sample = 0; sample < po.samples; ++sample) 

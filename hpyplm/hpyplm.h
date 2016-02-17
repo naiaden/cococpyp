@@ -35,10 +35,13 @@ template<> struct PYPLM<0> : public UniformVocabulary {
 std::vector<Pattern> generateSkips(const Pattern& p) {
     std::vector<Pattern> skip_patterns = std::vector<Pattern>();
 
-    if(p.size() >= 1) {
-        for(int i = 1; i < p.size(); ++i) {
+    if(p.size() > 1) 
+    {
+        for(int i = 1; i < p.size(); ++i) 
+        {
             Pattern q = p.addskip(std::pair<int, int>(i,1));
-            if(q!=p) {
+            if(q!=p) 
+            {
                 skip_patterns.push_back(q);
             }
         }
@@ -84,7 +87,80 @@ template<unsigned N> struct PYPLM {
 		}
 	}
 
-	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr, bool backoff_to_skips = false) const {
+
+	double probFull(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const 
+        {
+                std::vector<Pattern> sPatterns = generateSkips(context, 1);
+                sPatterns.push_back(context);
+                
+                std::vector<double> sPatternProbs;
+                for(const Pattern& pattern : sPatterns)
+                {
+                    // if pattern in patternmodel: STOP
+                    Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
+                    auto it = p.find(lookup);
+                    if(it == p.end())
+                    {
+                        sPatternProbs.push_back(backoff.probLimited(w, pattern, decoder);
+                    }
+                    sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
+                    //sPatternProbs.push_back(it->second.prob(w, 1.0)));
+                }
+
+                std::vector<double> sPatternWeights;
+                double sPatternWeightsSum = 0.0;
+                for(const Pattern& pattern : sPatterns)
+                {
+                    sPatternWeights.push_back(1.0);
+                    sPatternWeightsSum += 1.0;
+                }
+
+                double probSum = 0.0;
+                for(int i = 0; i < sPatterns.size(); ++i)
+                {
+                    probSum += (sPatternWeights[i] * sPatternProbs[i]);
+                }
+
+                return sum/sPatternWeightsSum;
+	}
+
+	double probLimited(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const 
+        {
+                std::vector<Pattern> sPatterns = generateSkips(context, 1);
+                sPatterns.push_back(context);
+                
+                std::vector<double> sPatternProbs;
+                for(const Pattern& pattern : sPatterns)
+                {
+                    // if pattern in patternmodel: STOP
+                    Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
+                    auto it = p.find(lookup);
+                    if(it == p.end())
+                    {
+                        sPatternProbs.push_back(backoff.probLimited(w, pattern, decoder);
+                    }
+                    //sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
+                    sPatternProbs.push_back(it->second.prob(w, 1.0)));
+                }
+
+                std::vector<double> sPatternWeights;
+                double sPatternWeightSum = 0.0;
+                for(const Pattern& pattern : sPatterns)
+                {
+                    sPatternWeights.push_back(1.0);
+                    sPatternWeightsSum += 1.0;
+                }
+
+                double probSum = 0.0;
+                for(int i = 0; i < sPatterns.size(); ++i)
+                {
+                    probSum += (sPatternWeights[i] * sPatternProbs[i]);
+                }
+
+                return sum/sPatternWeightSum;
+	}
+
+	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const {
 
 		const double bo = backoff.prob(w, context, decoder, backoff_to_skips);
 
