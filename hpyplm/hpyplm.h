@@ -90,7 +90,7 @@ template<unsigned N> struct PYPLM {
 
 	double probFull(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const 
         {
-                std::vector<Pattern> sPatterns = generateSkips(context, 1);
+                std::vector<Pattern> sPatterns = generateSkips(context);
                 sPatterns.push_back(context);
                 
                 std::vector<double> sPatternProbs;
@@ -101,7 +101,7 @@ template<unsigned N> struct PYPLM {
                     auto it = p.find(lookup);
                     if(it == p.end())
                     {
-                        sPatternProbs.push_back(backoff.probLimited(w, pattern, decoder);
+                        sPatternProbs.push_back(backoff.probLimited(w, pattern, decoder));
                     }
                     sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
                     //sPatternProbs.push_back(it->second.prob(w, 1.0)));
@@ -121,12 +121,12 @@ template<unsigned N> struct PYPLM {
                     probSum += (sPatternWeights[i] * sPatternProbs[i]);
                 }
 
-                return sum/sPatternWeightsSum;
+                return probSum/sPatternWeightsSum;
 	}
 
 	double probLimited(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const 
         {
-                std::vector<Pattern> sPatterns = generateSkips(context, 1);
+                std::vector<Pattern> sPatterns = generateSkips(context);
                 sPatterns.push_back(context);
                 
                 std::vector<double> sPatternProbs;
@@ -157,7 +157,7 @@ template<unsigned N> struct PYPLM {
                     probSum += (sPatternWeights[i] * sPatternProbs[i]);
                 }
 
-                return sum/sPatternWeightSum;
+                return probSum/sPatternWeightSum;
 	}
 
 	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const {
