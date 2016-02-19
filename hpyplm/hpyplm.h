@@ -127,7 +127,11 @@ template<unsigned N> struct PYPLM {
 
 	double probLimited(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const 
         {
-                std::vector<Pattern> sPatterns = generateSkips(context);
+                std::cout << N << " Getting: " << context.tostring(*decoder)
+                          << " " << w.tostring(*decoder)
+                          << std::endl;
+
+                std::vector<Pattern> sPatterns;// = generateSkips(context);
                 sPatterns.push_back(context);
                 
                 std::vector<double> sPatternProbs;
@@ -140,9 +144,9 @@ template<unsigned N> struct PYPLM {
                     {
                         sPatternProbs.push_back(backoff.probLimited(w, pattern, decoder));
                     }
-                    //sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
-                    sPatternProbs.push_back(4.0);
-                    //sPatternProbs.push_back(it->second.prob(w, 1.0));
+                    sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
+//                    sPatternProbs.push_back(4.0);
+//                    sPatternProbs.push_back(it->second.prob(w, bo));
                 }
 
                 std::vector<double> sPatternWeights;

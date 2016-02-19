@@ -120,12 +120,13 @@ int main(int argc, char** argv) {
                     {
                         focusString = words[i];
                     }
+                    std::cout << (!focusString.empty() ? "OOOOOOOOOOOOOOOOOOOOOOOOOV": "") << std::endl;
                     tsp.printTimeStats(focusString.empty());
-                    //std::cout << "[" << words[i] << "-" << focus.tostring(cci.classDecoder)
-                    //          << " " << contextStream.str() << "-" << context.tostring(cci.classDecoder)
-                    //          << "] --> " << focusString << std::endl;
+                    std::cout << "[" << words[i] << "-" << focus.tostring(cci.classDecoder)
+                              << " " << contextStream.str() << "-" << context.tostring(cci.classDecoder)
+                              << "] --> " << focusString << std::endl;
                     backoffStrategies.prob(focus, context, focusString);
-                    //std::cout << std::endl;
+                    std::cout << std::endl;
                }
             }
         }
