@@ -1,3 +1,4 @@
+[![Language Machines Badge](http://applejack.science.ru.nl/lamabadge.php/cococpyp)](http://applejack.science.ru.nl/languagemachines/)
 [![Build Status](https://travis-ci.org/naiaden/cococpyp.svg?branch=master)](https://travis-ci.org/naiaden/cococpyp)
 
 This repository contains the code for my PhD project "What's left in the bag for latent variable language modelling", a joint-doctorate project between the Radboud University Nijmegen, the Netherlands, and the KU Leuven, Belgium.
