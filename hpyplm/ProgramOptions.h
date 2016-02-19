@@ -224,6 +224,8 @@ struct ProgramOptions
    std::string trainPatternModelFileName; 
    std::string trainSerialisedFileName;
 
+    virtual ~ProgramOptions() {}
+
     ProgramOptions(CommandLineOptions& _clo) : clo(_clo)
     {
         char hostname[128];

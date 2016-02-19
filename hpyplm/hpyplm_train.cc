@@ -47,16 +47,19 @@ int main(int argc, char** argv) {
     TrainCommandLineOptions tclo(argc, argv);
     TrainProgramOptions po(tclo, std::stoi(_kORDER));
     PatternModelOptions pmo = TrainPatternModelOptions(tclo, std::stoi(_kORDER)).patternModelOptions;
-    CoCoInitialiser cci(po, pmo, true, true);
-    cci.printStats(std::stoi(_kORDER));
     
     std::string moutputFile(po.generalBaseOutputName + ".output");
     my_ostream mout(moutputFile);
     
+    CoCoInitialiser cci(po, pmo, true, true);
+    cci.printStats(&mout, std::stoi(_kORDER));
+
+
+
     mout << "Initialisation done at " << std::chrono::system_clock::now() << std::endl;
     mout << "Running on " << po.hostName << std::endl;
 
-    TimeStatsPrinter tsp(cci.trainPatternModel.totaloccurrencesingroup(0,std::stoi(_kORDER)));
+    TimeStatsPrinter tsp(cci.trainPatternModel.totaloccurrencesingroup(0,std::stoi(_kORDER)),&mout);
 
     cpyp::PYPLM<kORDER> lm(cci.trainPatternModel.totalwordtypesingroup(0, 0), 1, 1, 1, 1);
     for(int sample = 0; sample < po.samples; ++sample) 

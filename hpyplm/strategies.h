@@ -237,7 +237,7 @@ public:
     }
     SNCBWProgramOptions& po;
 
-    LimitedBackoffStrategy(SNCBWProgramOptions& _po, ClassDecoder& _classDecoder, cpyp::PYPLM<kORDER>& _lm) : BackoffStrategy(_classDecoder, _lm), po(_po)
+    FullBackoffStrategy(SNCBWProgramOptions& _po, ClassDecoder& _classDecoder, cpyp::PYPLM<kORDER>& _lm) : BackoffStrategy(_classDecoder, _lm), po(_po)
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        

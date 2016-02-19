@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
     PatternModelOptions pmo = DefaultPatternModelOptions(false, kORDER).patternModelOptions;
     std::cout << "Loaded PMO" << std::endl;
 
-    CoCoInitialiser cci = CoCoInitialiser(po, pmo, true);
+    SNCBWCoCoInitialiser cci(po, pmo, true);
     std::cout << "Loaded CCI" << std::endl;
 
 
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
     mout << "Preparation done at " << std::chrono::system_clock::now() << std::endl;
 
 
-    QueryTimeStatsPrinter tsp; 
+    QueryTimeStatsPrinter tsp(&mout); 
     tsp.start();
 
     BackoffStrategies backoffStrategies;
@@ -116,11 +116,14 @@ int main(int argc, char** argv) {
 
                     double lp = 0.0;
                     std::string focusString = "";
-                    if(focus.size() > 0 && !allWords.has(focus))
+                    if(/*focus.size() > 0 &&*/ !allWords.has(focus)) // empty if oov
                     {
                         focusString = words[i];
                     }
-                    tsp.printTimeStats(focusString.empty());
+                    //tsp.printTimeStats(focusString.empty());
+                    std::cout << "[" << words[i] << "-" << focus.tostring(cci.classDecoder)
+                              << " " << contextStream.str() << "-" << context.tostring(cci.classDecoder)
+                              << "] --> " << focusString << std::endl;
                     backoffStrategies.prob(focus, context, focusString);
                }
             }

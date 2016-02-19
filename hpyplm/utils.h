@@ -46,6 +46,8 @@ class my_ostream // http://ideone.com/T5Cy1M
 
 class QueryTimeStatsPrinter
 {
+    my_ostream* mout;
+
     int files = 0;
 
     unsigned long sentences = 0;
@@ -58,9 +60,9 @@ class QueryTimeStatsPrinter
 
     std::chrono::time_point<std::chrono::system_clock> startTimePoint, currentTimePoint, fStartTimePoint;
 public:
-    QueryTimeStatsPrinter()
+    QueryTimeStatsPrinter(my_ostream* m)
     {
-
+        mout = m;
     }
 
     void nextFile()
@@ -97,12 +99,12 @@ public:
 
         double avgPerSecond = counter*1.0/elapsedSeconds.count();
 
-        std::cout << std::fixed << "\r" 
-                  << "\tPattern: " << std::setw(10) << counter 
-                  << " (" << std::setw(4) << (oov*1.0/counter*100) << "% OOV) "
-                  << std::setw(8) << ((int) avgPerSecond) << "P/s"
-                  << " took " << elapsedSeconds.count() << " seconds"; 
-        std::cout << std::endl;
+        *mout << std::fixed << "\r" 
+              << "\tPattern: " << std::setw(10) << counter 
+              << " (" << std::setw(4) << (oov*1.0/counter*100) << "% OOV) "
+              << std::setw(8) << ((int) avgPerSecond) << "P/s"
+              << " took " << elapsedSeconds.count() << " seconds"; 
+        *mout << std::endl;
     }
 
     void printTimeStats(bool isOOV = false, bool done = false)
@@ -132,15 +134,18 @@ public:
 
 class TimeStatsPrinter
 {
+    my_ostream* mout;
+    
     unsigned long long counter = 0;
     int sample = 0;
     unsigned long long total = 0;
     std::chrono::time_point<std::chrono::system_clock> startTimePoint, currentTimePoint;
 
 public:
-    TimeStatsPrinter(unsigned long long totalCount)
+    TimeStatsPrinter(unsigned long long totalCount, my_ostream* m)
     {
         total = totalCount;
+        mout = m;
     }
 
     void start()
@@ -180,13 +185,13 @@ public:
 
             double avgPerSecond = counter*1.0/elapsedSeconds.count();
 
-            std::cout << std::fixed << "\r" 
-                      << "Sample [" << sample << "]"
-                      << "\tPattern: " << std::setw(10) << counter 
-                      <<  " (" << std::setw(4) << (counter*1.0/total*100) << "%) " 
-                      << std::setw(8) << ((int) avgPerSecond) << "P/s"
-                      << " took " << elapsedSeconds.count() << " seconds"; 
-            std::cout << std::flush;
+            *mout << std::fixed << "\r" 
+                  << "Sample [" << sample << "]"
+                  << "\tPattern: " << std::setw(10) << counter 
+                  <<  " (" << std::setw(4) << (counter*1.0/total*100) << "%) " 
+                  << std::setw(8) << ((int) avgPerSecond) << "P/s"
+                  << " took " << elapsedSeconds.count() << " seconds"; 
+            *mout << std::endl;
         } else if(counter < 20000 || counter % 20000 == 0)
         {
             currentTimePoint = std::chrono::system_clock::now();
