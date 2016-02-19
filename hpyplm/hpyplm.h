@@ -103,7 +103,8 @@ template<unsigned N> struct PYPLM {
                     {
                         sPatternProbs.push_back(backoff.probLimited(w, pattern, decoder));
                     }
-                    sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
+                    //sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
+                    sPatternProbs.push_back(4.0);
                     //sPatternProbs.push_back(it->second.prob(w, 1.0)));
                 }
 
@@ -140,7 +141,8 @@ template<unsigned N> struct PYPLM {
                         sPatternProbs.push_back(backoff.probLimited(w, pattern, decoder));
                     }
                     //sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
-                    sPatternProbs.push_back(it->second.prob(w, 1.0));
+                    sPatternProbs.push_back(4.0);
+                    //sPatternProbs.push_back(it->second.prob(w, 1.0));
                 }
 
                 std::vector<double> sPatternWeights;

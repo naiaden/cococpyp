@@ -42,7 +42,7 @@ public:
         return "I HAVE NO NAME";
     }
 
-    virtual double prob(const Pattern& focus, const Pattern& context, std::string& focusString)
+    virtual double prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
     {
         return 0.0;
     }
@@ -80,8 +80,6 @@ public:
 
     void printFileResults()
     {
-        *mout << "\n===== OVERALL STATISTICS" << std::endl;
-
         double lprob = (-fLLH * log(2)) / log(10); // in cpyp: (-llh * log(2) / log(10))
         *mout << "        Lines: " << fLines << std::endl;
         *mout << "  Log_10 prob: " << lprob << std::endl;
@@ -93,6 +91,8 @@ public:
 
     void printResults()
     {
+        *mout << "\n===== OVERALL STATISTICS for " << strategyName() << std::endl;
+
         double lprob = (-llh * log(2)) / log(10); // in cpyp: (-llh * log(2) / log(10))
         *mout << "        Files: " << files << std::endl;
         *mout << "        Lines: " << lines << std::endl;
@@ -109,7 +109,7 @@ class BackoffStrategies
 public:
     std::vector<BackoffStrategy*> backoffStrategies;
 
-    void prob(const Pattern& focus, const Pattern& context, std::string& focusString)
+    void prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
     {
         for(BackoffStrategy* bs: backoffStrategies)
         {
@@ -202,21 +202,27 @@ public:
         delete mout;
     }
 
-    double prob(const Pattern& focus, const Pattern& context, std::string& focusString)
+    double prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
     {
+        //std::cout << strategyName() << "[" << focus.tostring(classDecoder)
+        //                            << "/" << context.tostring(classDecoder) 
+        //                            << "] " << focusString
+        //                            << std::endl;
+
         double lp = 0.0;
+        std::string fS = focusString;
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
             lp = log(lm.prob(focus, context, &classDecoder));
-            focusString = focus.tostring(classDecoder);
+            fS = focus.tostring(classDecoder);
         } else // oov
         {
             ++fOOVs;
             probsFile << "***";
         }
 
-        probsFile << "p(" << focusString << " |"
+        probsFile << "p(" << fS << " |"
                   << context.tostring(classDecoder) << ") = "
                   << std::fixed << std::setprecision(20) << lp 
                   << std::endl;
@@ -257,21 +263,22 @@ public:
         delete mout;
     }
 
-    double prob(const Pattern& focus, const Pattern& context, std::string& focusString)
+    double prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
     {
         double lp = 0.0;
+        std::string fS = focusString;
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
             lp = lm.probFull(focus, context, &classDecoder);
-            focusString = focus.tostring(classDecoder);
+            fS = focus.tostring(classDecoder);
         } else // oov
         {
             ++fOOVs;
             probsFile << "***";
         }
 
-        probsFile << "p(" << focusString << " |"
+        probsFile << "p(" << fS << " |"
                   << context.tostring(classDecoder) << ") = "
                   << std::fixed << std::setprecision(20) << lp 
                   << std::endl;
@@ -312,21 +319,22 @@ public:
         delete mout;
     }
 
-    double prob(const Pattern& focus, const Pattern& context, std::string& focusString)
+    double prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
     {
         double lp = 0.0;
+        std::string fS = focusString;
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
             lp = lm.probLimited(focus, context, &classDecoder);
-            focusString = focus.tostring(classDecoder);
+            fS = focus.tostring(classDecoder);
         } else // oov
         {
             ++fOOVs;
             probsFile << "***";
         }
 
-        probsFile << "p(" << focusString << " |"
+        probsFile << "p(" << fS << " |"
                   << context.tostring(classDecoder) << ") = "
                   << std::fixed << std::setprecision(20) << lp 
                   << std::endl;

@@ -81,8 +81,8 @@ int main(int argc, char** argv) {
 
     BackoffStrategies backoffStrategies;
     backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci.classDecoder, lm));
-//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci.classDecoder, lm));
-//    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci.classDecoder, lm));
+    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci.classDecoder, lm));
+    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci.classDecoder, lm));
     
     for(std::string inputFileName : po.testInputFiles)                          // files
     {
@@ -120,11 +120,12 @@ int main(int argc, char** argv) {
                     {
                         focusString = words[i];
                     }
-                    //tsp.printTimeStats(focusString.empty());
-                    std::cout << "[" << words[i] << "-" << focus.tostring(cci.classDecoder)
-                              << " " << contextStream.str() << "-" << context.tostring(cci.classDecoder)
-                              << "] --> " << focusString << std::endl;
+                    tsp.printTimeStats(focusString.empty());
+                    //std::cout << "[" << words[i] << "-" << focus.tostring(cci.classDecoder)
+                    //          << " " << contextStream.str() << "-" << context.tostring(cci.classDecoder)
+                    //          << "] --> " << focusString << std::endl;
                     backoffStrategies.prob(focus, context, focusString);
+                    //std::cout << std::endl;
                }
             }
         }
@@ -132,6 +133,7 @@ int main(int argc, char** argv) {
         backoffStrategies.printFileResults();
     }
     backoffStrategies.done();
+    std::cout << "\n\n" << std::endl;
     backoffStrategies.printResults();
     
 
