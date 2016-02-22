@@ -137,14 +137,17 @@ template<unsigned N> struct PYPLM {
                 std::vector<double> sPatternProbs;
                 for(const Pattern& pattern : sPatterns)
                 {
+                	double bla = backoff.probLimited(w, pattern, decoder);
+
                     // if pattern in patternmodel: STOP
                     Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
+                    std::cout << "\t" << N << " LOOKUP: " << lookup.tostring(*decoder) << std::endl;
                     auto it = p.find(lookup);
-                    if(it == p.end())
+                    if(it != p.end())
                     {
-                        sPatternProbs.push_back(backoff.probLimited(w, pattern, decoder));
+                    	sPatternProbs.push_back(it->second.prob(w, bla));
                     }
-                    sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
+                    sPatternProbs.push_back(bla);
 //                    sPatternProbs.push_back(4.0);
 //                    sPatternProbs.push_back(it->second.prob(w, bo));
                 }
@@ -171,6 +174,8 @@ template<unsigned N> struct PYPLM {
 		const double bo = backoff.prob(w, context, decoder);
 
                 Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1); 
+
+                std::cout << "\t" << N << " LOOKUP: " << lookup.tostring(*decoder) << std::endl;
 
 		auto it = p.find(lookup);
 		if (it == p.end()) { // if the pattern is not in the train data

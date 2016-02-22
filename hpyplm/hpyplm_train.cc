@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
     std::string moutputFile(po.generalBaseOutputName + ".output");
     my_ostream mout(moutputFile);
     
-    CoCoInitialiser cci(po, pmo, true, true);
+    TrainCoCoInitialiser cci(po, pmo, true, true);
     cci.printStats(&mout, std::stoi(_kORDER));
 
 
