@@ -79,20 +79,7 @@ int main(int argc, char** argv) {
     QueryTimeStatsPrinter tsp(&mout); 
     tsp.start();
 
-//    std::unordered_map<Pattern, long int> contextCounts;
     ContextCounts contextCounts(cci);
-//    for(IndexedCorpus::iterator iter = cci.indexedCorpus->begin(); iter != cci.indexedCorpus->end(); ++iter)
-//	{
-//		for(PatternPointer patternp : cci.trainPatternModel.getreverseindex(iter.index(), 0, 0, 0/*std::stoi(_kORDER)*/))
-//		{
-//			Pattern pattern(patternp);
-//
-//			tsp.printTimeStats();
-//
-//			Pattern context(pattern, 0, std::stoi(_kORDER) - 1);
-//			Pattern focus(pattern, std::stoi(_kORDER)-1, 1);
-//		}
-//	}
 
     std::cout << "DONE" << std::endl;
     return(0);
