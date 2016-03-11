@@ -234,6 +234,19 @@ public:
 		}
 	}
 
+	template<typename F>
+	F probLimited(const Dish& dish, const F& p0, const double invDelta) const {
+		if (num_tables_ == 0)
+			return p0;
+		auto it = dish_locs_.find(dish);
+		const F r = F(invDelta * (num_tables_ * discount_ + strength_));
+		if (it == dish_locs_.end()) {
+			return r * p0 / F(num_customers_ + invDelta * strength_);
+		} else {
+			return (F(it->second.num_customers() - invDelta * discount_ * it->second.num_tables()) + r * p0) / F(num_customers_ + invDelta * strength_);
+		}
+	}
+
 	double log_likelihood() const {
 		return llh_;
 //    return log_likelihood(discount_, strength_);

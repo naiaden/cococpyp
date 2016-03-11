@@ -79,9 +79,27 @@ int main(int argc, char** argv) {
     QueryTimeStatsPrinter tsp(&mout); 
     tsp.start();
 
+//    std::unordered_map<Pattern, long int> contextCounts;
+    ContextCounts contextCounts(cci);
+//    for(IndexedCorpus::iterator iter = cci.indexedCorpus->begin(); iter != cci.indexedCorpus->end(); ++iter)
+//	{
+//		for(PatternPointer patternp : cci.trainPatternModel.getreverseindex(iter.index(), 0, 0, 0/*std::stoi(_kORDER)*/))
+//		{
+//			Pattern pattern(patternp);
+//
+//			tsp.printTimeStats();
+//
+//			Pattern context(pattern, 0, std::stoi(_kORDER) - 1);
+//			Pattern focus(pattern, std::stoi(_kORDER)-1, 1);
+//		}
+//	}
+
+    std::cout << "DONE" << std::endl;
+    return(0);
+
     BackoffStrategies backoffStrategies;
-    //backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci.classDecoder, lm));
-    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci.classDecoder, lm));
+    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci.classDecoder, lm));
+    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci.classDecoder, lm, &contextCounts));
     //backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci.classDecoder, lm));
     
     for(std::string inputFileName : po.testInputFiles)                          // files
@@ -120,13 +138,12 @@ int main(int argc, char** argv) {
                     {
                         focusString = words[i];
                     }
-                    std::cout << (!focusString.empty() ? "OOOOOOOOOOOOOOOOOOOOOOOOOV": "") << std::endl;
+//                    std::cout << (!focusString.empty() ? "OOOOOOOOOOOOOOOOOOOOOOOOOV": "") << std::endl;
                     tsp.printTimeStats(!focusString.empty());
-                    std::cout << "[" << words[i] << "-" << focus.tostring(cci.classDecoder)
-                              << " " << contextStream.str() << "-" << context.tostring(cci.classDecoder)
-                              << "] --> " << focusString << std::endl;
+//                    std::cout << "[" << words[i] << "-" << focus.tostring(cci.classDecoder)
+//                              << " " << contextStream.str() << "-" << context.tostring(cci.classDecoder)
+//                              << "] --> " << focusString << std::endl;
                     backoffStrategies.prob(focus, context, focusString);
-                    std::cout << std::endl;
                }
             }
         }

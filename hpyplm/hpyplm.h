@@ -88,7 +88,7 @@ template<unsigned N> struct PYPLM {
 	}
 
 
-	double probFull(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const 
+	double probFull(const Pattern& w, const Pattern& context, ContextCounts* contextCounts, ClassDecoder * const decoder = nullptr) const
         {
                 std::vector<Pattern> sPatterns = generateSkips(context);
                 sPatterns.push_back(context);
@@ -101,7 +101,7 @@ template<unsigned N> struct PYPLM {
                     auto it = p.find(lookup);
                     if(it == p.end())
                     {
-                        sPatternProbs.push_back(backoff.probLimited(w, pattern, decoder));
+                        sPatternProbs.push_back(backoff.probLimited(w, pattern, contextCounts, decoder));
                     }
                     //sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
                     sPatternProbs.push_back(4.0);
@@ -125,11 +125,11 @@ template<unsigned N> struct PYPLM {
                 return probSum/sPatternWeightsSum;
 	}
 
-	double probLimited(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const 
+	double probLimited(const Pattern& w, const Pattern& context, ContextCounts* contextCounts, ClassDecoder * const decoder = nullptr) const
         {
-                std::cout << N << " Getting: " << context.tostring(*decoder)
-                          << " " << w.tostring(*decoder)
-                          << std::endl;
+//                std::cout << N << " Getting: " << context.tostring(*decoder)
+//                          << " " << w.tostring(*decoder)
+//                          << std::endl;
 
                 std::vector<Pattern> sPatterns;// = generateSkips(context);
                 sPatterns.push_back(context);
@@ -137,19 +137,22 @@ template<unsigned N> struct PYPLM {
                 std::vector<double> sPatternProbs;
                 for(const Pattern& pattern : sPatterns)
                 {
-                	double bla = backoff.probLimited(w, pattern, decoder);
+                	double bla = backoff.probLimited(w, pattern, contextCounts, decoder);
 
                     // if pattern in patternmodel: STOP
                     Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
-                    std::cout << "\t" << N << " LOOKUP: " << lookup.tostring(*decoder) << std::endl;
+//                    std::cout << "\t" << N << " LOOKUP: " << lookup.tostring(*decoder) << std::endl;
                     auto it = p.find(lookup);
                     if(it != p.end())
                     {
-                    	sPatternProbs.push_back(it->second.prob(w, bla));
-                    }
+                    	const double invDelta = 0;//contextCounts[Pattern()] - contextCounts[context];
+                    	sPatternProbs.push_back(it->second.probLimited(w, bla, invDelta));
+                    } else
+                    {
                     sPatternProbs.push_back(bla);
 //                    sPatternProbs.push_back(4.0);
 //                    sPatternProbs.push_back(it->second.prob(w, bo));
+                    }
                 }
 
                 std::vector<double> sPatternWeights;
@@ -175,7 +178,7 @@ template<unsigned N> struct PYPLM {
 
                 Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1); 
 
-                std::cout << "\t" << N << " LOOKUP: " << lookup.tostring(*decoder) << std::endl;
+//                std::cout << "\t" << N << " LOOKUP: " << lookup.tostring(*decoder) << std::endl;
 
 		auto it = p.find(lookup);
 		if (it == p.end()) { // if the pattern is not in the train data

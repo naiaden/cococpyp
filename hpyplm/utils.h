@@ -13,6 +13,7 @@
 #include <iostream>
 #include <fstream>
 
+
 std::vector<std::string> split(std::string const &input) {
     std::istringstream buffer(input);
     std::vector<std::string> ret{std::istream_iterator<std::string>(buffer),
@@ -20,7 +21,6 @@ std::vector<std::string> split(std::string const &input) {
     return ret;
 }
 
- 
 class my_ostream // http://ideone.com/T5Cy1M
 {
     public:
@@ -43,6 +43,18 @@ class my_ostream // http://ideone.com/T5Cy1M
     private:
         std::ofstream my_fstream;
 };
+
+struct PatternComp
+{
+    bool operator() (const Pattern& lhs, const Pattern& rhs) const
+    {
+        return lhs>rhs;
+    }
+};
+
+
+ 
+
 
 class QueryTimeStatsPrinter
 {

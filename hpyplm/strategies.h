@@ -236,6 +236,8 @@ public:
 
 class FullBackoffStrategy : public BackoffStrategy
 {
+	ContextCounts* contextCounts;
+
 public:
     std::string strategyName()
     {
@@ -243,7 +245,7 @@ public:
     }
     SNCBWProgramOptions& po;
 
-    FullBackoffStrategy(SNCBWProgramOptions& _po, ClassDecoder& _classDecoder, cpyp::PYPLM<kORDER>& _lm) : BackoffStrategy(_classDecoder, _lm), po(_po)
+    FullBackoffStrategy(SNCBWProgramOptions& _po, ClassDecoder& _classDecoder, cpyp::PYPLM<kORDER>& _lm, ContextCounts* _contextCounts) : BackoffStrategy(_classDecoder, _lm), contextCounts(_contextCounts), po(_po)
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        
@@ -270,7 +272,7 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-            lp = lm.probFull(focus, context, &classDecoder);
+            lp = lm.probFull(focus, context, contextCounts, &classDecoder);
             fS = focus.tostring(classDecoder);
         } else // oov
         {
@@ -292,6 +294,8 @@ public:
 
 class LimitedBackoffStrategy : public BackoffStrategy
 {
+	ContextCounts* contextCounts;
+
 public:
     std::string strategyName()
     {
@@ -299,7 +303,7 @@ public:
     }
     SNCBWProgramOptions& po;
 
-    LimitedBackoffStrategy(SNCBWProgramOptions& _po, ClassDecoder& _classDecoder, cpyp::PYPLM<kORDER>& _lm) : BackoffStrategy(_classDecoder, _lm), po(_po)
+    LimitedBackoffStrategy(SNCBWProgramOptions& _po, ClassDecoder& _classDecoder, cpyp::PYPLM<kORDER>& _lm, ContextCounts* _contextCounts) : BackoffStrategy(_classDecoder, _lm), contextCounts(_contextCounts), po(_po)
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        
@@ -313,7 +317,7 @@ public:
         probsFile.open(outputProbabilitiesFileName);
     }
 
-    ~LimitedBackoffStrategy()
+    virtual ~LimitedBackoffStrategy()
     {
         probsFile.close();
         delete mout;
@@ -326,7 +330,7 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-            lp = lm.probLimited(focus, context, &classDecoder);
+            lp = lm.probLimited(focus, context, contextCounts, &classDecoder);
             fS = focus.tostring(classDecoder);
         } else // oov
         {

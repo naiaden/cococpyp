@@ -5,6 +5,9 @@
 
 #include "cmdline.h"
 
+#include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+
 enum class Backoff { NGRAM, LIMITED, FULL, ENTINT, FREQINT, ALL };
 
 Backoff fromString(const std::string& s) {
