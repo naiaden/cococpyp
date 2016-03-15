@@ -24,6 +24,16 @@ public:
 		initialise(cci);
 	}
 
+	long int get(const Pattern& pattern) const
+	{
+		std::unordered_map<Pattern,long int>::const_iterator iter = contextCounts.find(pattern);
+
+		  if ( iter == contextCounts.end() )
+		    return 0;
+		  else
+		    return iter->second;
+	}
+
 	void initialise(SNCBWCoCoInitialiser& cci)
 	{
 		int wordsPerContext = 0 ;
@@ -38,15 +48,20 @@ public:
 			for(auto pattern : allPatterns)
 			{
 				ordered_patterns.insert(pattern);
+				//ordered_patterns.insert(pattern.reverse());
 			}
 			std::cout << "Done ordering the set" << std::endl;
 
 			std::vector<int> added_patterns = std::vector<int>();
 			for(auto pattern: ordered_patterns)
 			{
+
 				//std::cout << pattern.tostring(cci.classDecoder) << "\twpc:" << wordsPerContext << std::endl;
 
+				//Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
 				Pattern prefix = pattern.size() == 1 ? Pattern() : Pattern(pattern, 0, n-1);
+				//Pattern prefix = pattern.size() == 1 ? Pattern() : Pattern(pattern, 1, n);
+				//Pattern prefix = pattern.size() == 1 ? Pattern() : Pattern(pattern.reverse(), 0, n-1);
 				if(prefix != previousPrefix)
 				{
 					contextCounts[previousPrefix] = wordsPerContext;

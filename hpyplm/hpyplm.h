@@ -127,13 +127,42 @@ template<unsigned N> struct PYPLM {
 
 	double probLimited(const Pattern& w, const Pattern& context, ContextCounts* contextCounts, ClassDecoder * const decoder = nullptr) const
         {
-//                std::cout << N << " Getting: " << context.tostring(*decoder)
-//                          << " " << w.tostring(*decoder)
-//                          << std::endl;
-
-                std::vector<Pattern> sPatterns;// = generateSkips(context);
-                sPatterns.push_back(context);
+				Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
+                std::vector<Pattern> sPatterns;
+                if(N!=kORDER)
+                	sPatterns = generateSkips(context);
+                if(N==1 && context.size()==1)
+                {
+                	sPatterns.push_back(context);
+                } else
+                {
+                	sPatterns.push_back(pContext);
+                }
                 
+//                if(N==1)
+//                {
+//                	std::cout << "ADDED from " << context.tostring(*decoder) << std::endl;
+//                	for(const Pattern& pattern : sPatterns)
+//                	{
+//
+//                		std::cout << "\t" << pattern.tostring(*decoder) << " ";
+//                		int pSize = pattern.size();
+//                		for(int pS = 0; pS < pSize; ++pS)
+//                		{
+//                			if(Pattern(pattern, pS, 1).isskipgram())
+//                			{
+//                				std::cout << "S";
+//                			} else
+//                			{
+//                				std::cout << "c";
+//                			}
+//
+//
+//                		}
+//                		std::cout << std::endl;
+//                	}
+//                }
+
                 std::vector<double> sPatternProbs;
                 for(const Pattern& pattern : sPatterns)
                 {
@@ -141,17 +170,15 @@ template<unsigned N> struct PYPLM {
 
                     // if pattern in patternmodel: STOP
                     Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
-//                    std::cout << "\t" << N << " LOOKUP: " << lookup.tostring(*decoder) << std::endl;
                     auto it = p.find(lookup);
                     if(it != p.end())
                     {
-                    	const double invDelta = 0;//contextCounts[Pattern()] - contextCounts[context];
+                    	const double invDelta = contextCounts->get(Pattern()) - contextCounts->get(lookup.reverse());
+                    	//std::cout << "[" << N << "] INVDELTA( " << lookup.reverse().tostring(*decoder) << ") = " << invDelta << " = " << contextCounts->get(Pattern()) << " - " << contextCounts->get(lookup.reverse()) << std::endl;
                     	sPatternProbs.push_back(it->second.probLimited(w, bla, invDelta));
                     } else
                     {
-                    sPatternProbs.push_back(bla);
-//                    sPatternProbs.push_back(4.0);
-//                    sPatternProbs.push_back(it->second.prob(w, bo));
+                    	sPatternProbs.push_back(bla);
                     }
                 }
 

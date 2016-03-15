@@ -81,9 +81,6 @@ int main(int argc, char** argv) {
 
     ContextCounts contextCounts(cci);
 
-    std::cout << "DONE" << std::endl;
-    return(0);
-
     BackoffStrategies backoffStrategies;
     backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci.classDecoder, lm));
     backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci.classDecoder, lm, &contextCounts));
