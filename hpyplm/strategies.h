@@ -330,6 +330,7 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
+        	std::cout << "----------------- PROCESSING " << context.tostring(classDecoder) << " " << focus.tostring(classDecoder) << std::endl;
             lp = lm.probLimited(focus, context, contextCounts, &classDecoder);
             fS = focus.tostring(classDecoder);
         } else // oov

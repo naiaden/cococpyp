@@ -235,11 +235,11 @@ public:
 	}
 
 	template<typename F>
-	F probLimited(const Dish& dish, const F& p0, const double invDelta) const {
+	F probLimited(const Dish& dish, const F& p0, bool backoff, const double invDelta) const {
 		if (num_tables_ == 0)
 			return p0;
 		auto it = dish_locs_.find(dish);
-		const F r = F(invDelta * (num_tables_ * discount_ + strength_));
+		const F r = F(num_tables_ * discount_ + strength_);
 		if (it == dish_locs_.end()) {
 			return r * p0 / F(num_customers_ + invDelta * strength_);
 		} else {
