@@ -82,8 +82,8 @@ int main(int argc, char** argv) {
     ContextCounts contextCounts(cci);
 
     BackoffStrategies backoffStrategies;
-    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci.classDecoder, lm));
-    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci.classDecoder, lm, &contextCounts));
+    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
+    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &contextCounts));
     //backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci.classDecoder, lm));
     
     for(std::string inputFileName : po.testInputFiles)                          // files

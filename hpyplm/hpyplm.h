@@ -88,7 +88,7 @@ template<unsigned N> struct PYPLM {
 	}
 
 
-	double probFull(const Pattern& w, const Pattern& context, ContextCounts* contextCounts, ClassDecoder * const decoder = nullptr) const
+	double probFull(const Pattern& w, const Pattern& context, ContextCounts* contextCounts, SNCBWCoCoInitialiser * const cci = nullptr) const
         {
                 std::vector<Pattern> sPatterns = generateSkips(context);
                 sPatterns.push_back(context);
@@ -101,7 +101,7 @@ template<unsigned N> struct PYPLM {
                     auto it = p.find(lookup);
                     if(it == p.end())
                     {
-                        sPatternProbs.push_back(backoff.probLimited(w, pattern, contextCounts, decoder));
+                        sPatternProbs.push_back(backoff.probLimited(w, pattern, contextCounts, cci));
                     }
                     //sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
                     sPatternProbs.push_back(4.0);
@@ -125,7 +125,7 @@ template<unsigned N> struct PYPLM {
                 return probSum/sPatternWeightsSum;
 	}
 
-	double probLimited(const Pattern& w, const Pattern& context, ContextCounts* contextCounts, ClassDecoder * const decoder = nullptr) const
+	double probLimited(const Pattern& w, const Pattern& context, ContextCounts* contextCounts, SNCBWCoCoInitialiser * const cci = nullptr) const
 	{
 		Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
 		std::vector<Pattern> sPatterns;
@@ -142,16 +142,17 @@ template<unsigned N> struct PYPLM {
 		std::vector<double> sPatternProbs;
 		for(const Pattern& pattern : sPatterns)
 		{
-			double bla = backoff.probLimited(w, pattern, contextCounts, decoder);
+			double bla = backoff.probLimited(w, pattern, contextCounts, cci);
 
-			// if pattern in patternmodel: STOP
 			Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
 			auto it = p.find(lookup);
 			if(it != p.end())
 			{
-				const double invDelta = contextCounts->get(Pattern()) - contextCounts->get(lookup.reverse());
-//				sPatternProbs.push_back(it->second.probLimited(w, bla, invDelta));
-				sPatternProbs.push_back(it->second.prob(w, bla));
+				const long int invDelta = contextCounts->V - contextCounts->get(lookup.reverse());
+
+//				bool backoff = cci->trainPatternModel.frequency(pattern + w) > 0 ? false : true;
+
+				sPatternProbs.push_back(it->second.probLimited(w, bla, invDelta));
 			} else
 			{
 				sPatternProbs.push_back(bla);
@@ -169,22 +170,15 @@ template<unsigned N> struct PYPLM {
 		double probSum = 0.0;
 		for(int i = 0; i < sPatterns.size(); ++i)
 		{
-			for(int o = 1; o < N; ++o)
-				std::cout << "\t";
-
-			std::cout << "(" << sPatterns[i].tostring(*decoder) << "/" << w.tostring(*decoder) << ")"
-					  << " has prob " << sPatternProbs[i] << " with weight " << sPatternWeights[i]
-					  << " and invDelta " << contextCounts->get(Pattern()) - contextCounts->get(((N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1)).reverse()) << std::endl;
-
 			probSum += (sPatternWeights[i] * sPatternProbs[i]);
 		}
 
 		return probSum/sPatternWeightSum;
 	}
 
-	double prob(const Pattern& w, const Pattern& context, ClassDecoder * const decoder = nullptr) const {
+	double prob(const Pattern& w, const Pattern& context, SNCBWCoCoInitialiser * const cci = nullptr) const {
 
-		const double bo = backoff.prob(w, context, decoder);
+		const double bo = backoff.prob(w, context, cci);
 
                 Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1); 
 

@@ -17,7 +17,7 @@ public:
     unsigned long long fCount = 0;
     unsigned long long fOOVs = 0;
 
-    ClassDecoder& classDecoder;
+    SNCBWCoCoInitialiser& cci;
 
     std::string baseOutputName;
     std::string outputClassFileName;
@@ -31,8 +31,8 @@ public:
 
     cpyp::PYPLM<kORDER>& lm;
 
-    BackoffStrategy(ClassDecoder& _classDecoder, cpyp::PYPLM<kORDER>& _lm)
-        : classDecoder(_classDecoder), lm(_lm)
+    BackoffStrategy(SNCBWCoCoInitialiser& _cci, cpyp::PYPLM<kORDER>& _lm)
+        : cci(_cci), lm(_lm)
     {
         
     }
@@ -182,7 +182,7 @@ public:
     }
     SNCBWProgramOptions& po;
 
-    NgramBackoffStrategy(SNCBWProgramOptions& _po, ClassDecoder& _classDecoder, cpyp::PYPLM<kORDER>& _lm) : BackoffStrategy(_classDecoder, _lm), po(_po)
+    NgramBackoffStrategy(SNCBWProgramOptions& _po, SNCBWCoCoInitialiser& _cci, cpyp::PYPLM<kORDER>& _lm) : BackoffStrategy(_cci, _lm), po(_po)
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        
@@ -214,8 +214,8 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-            lp = log(lm.prob(focus, context, &classDecoder));
-            fS = focus.tostring(classDecoder);
+            lp = log(lm.prob(focus, context, &cci));
+            fS = focus.tostring(cci.classDecoder);
         } else // oov
         {
             ++fOOVs;
@@ -223,7 +223,7 @@ public:
         }
 
         probsFile << "p(" << fS << " |"
-                  << context.tostring(classDecoder) << ") = "
+                  << context.tostring(cci.classDecoder) << ") = "
                   << std::fixed << std::setprecision(20) << lp 
                   << std::endl;
 
@@ -245,7 +245,7 @@ public:
     }
     SNCBWProgramOptions& po;
 
-    FullBackoffStrategy(SNCBWProgramOptions& _po, ClassDecoder& _classDecoder, cpyp::PYPLM<kORDER>& _lm, ContextCounts* _contextCounts) : BackoffStrategy(_classDecoder, _lm), contextCounts(_contextCounts), po(_po)
+    FullBackoffStrategy(SNCBWProgramOptions& _po, SNCBWCoCoInitialiser& _cci, cpyp::PYPLM<kORDER>& _lm, ContextCounts* _contextCounts) : BackoffStrategy(_cci, _lm), contextCounts(_contextCounts), po(_po)
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        
@@ -272,8 +272,8 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-            lp = lm.probFull(focus, context, contextCounts, &classDecoder);
-            fS = focus.tostring(classDecoder);
+            lp = lm.probFull(focus, context, contextCounts, &cci);
+            fS = focus.tostring(cci.classDecoder);
         } else // oov
         {
             ++fOOVs;
@@ -281,7 +281,7 @@ public:
         }
 
         probsFile << "p(" << fS << " |"
-                  << context.tostring(classDecoder) << ") = "
+                  << context.tostring(cci.classDecoder) << ") = "
                   << std::fixed << std::setprecision(20) << lp 
                   << std::endl;
 
@@ -303,7 +303,7 @@ public:
     }
     SNCBWProgramOptions& po;
 
-    LimitedBackoffStrategy(SNCBWProgramOptions& _po, ClassDecoder& _classDecoder, cpyp::PYPLM<kORDER>& _lm, ContextCounts* _contextCounts) : BackoffStrategy(_classDecoder, _lm), contextCounts(_contextCounts), po(_po)
+    LimitedBackoffStrategy(SNCBWProgramOptions& _po, SNCBWCoCoInitialiser& _cci, cpyp::PYPLM<kORDER>& _lm, ContextCounts* _contextCounts) : BackoffStrategy(_cci, _lm), contextCounts(_contextCounts), po(_po)
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        
@@ -330,9 +330,11 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-        	std::cout << "----------------- PROCESSING " << context.tostring(classDecoder) << " " << focus.tostring(classDecoder) << std::endl;
-            lp = lm.probLimited(focus, context, contextCounts, &classDecoder);
-            fS = focus.tostring(classDecoder);
+//        	std::cout << "\n----------------- PROCESSING " << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
+            lp = log(lm.probLimited(focus, context, contextCounts, &cci));
+//            lp = log(lm.prob(focus, context));
+//            std::cout << "----------------- LPROB: " << lp << std::endl << std::endl;
+            fS = focus.tostring(cci.classDecoder);
         } else // oov
         {
             ++fOOVs;
@@ -340,7 +342,7 @@ public:
         }
 
         probsFile << "p(" << fS << " |"
-                  << context.tostring(classDecoder) << ") = "
+                  << context.tostring(cci.classDecoder) << ") = "
                   << std::fixed << std::setprecision(20) << lp 
                   << std::endl;
 

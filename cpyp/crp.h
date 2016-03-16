@@ -227,6 +227,7 @@ public:
 			return p0;
 		auto it = dish_locs_.find(dish);
 		const F r = F(num_tables_ * discount_ + strength_);
+
 		if (it == dish_locs_.end()) {
 			return r * p0 / F(num_customers_ + strength_);
 		} else {
@@ -235,15 +236,29 @@ public:
 	}
 
 	template<typename F>
-	F probLimited(const Dish& dish, const F& p0, bool backoff, const double invDelta) const {
+	F probLimited(const Dish& dish, const F& p0, const long int invDelta) const {
 		if (num_tables_ == 0)
 			return p0;
 		auto it = dish_locs_.find(dish);
-		const F r = F(num_tables_ * discount_ + strength_);
+
+
+		const F divisor = F(num_customers_ +  strength_);
+
 		if (it == dish_locs_.end()) {
-			return r * p0 / F(num_customers_ + invDelta * strength_);
+			const F r = F( num_tables_ * discount_ + strength_);
+			return F(r * p0 / divisor);
 		} else {
-			return (F(it->second.num_customers() - invDelta * discount_ * it->second.num_tables()) + r * p0) / F(num_customers_ + invDelta * strength_);
+
+			const F pr = F(it->second.num_customers() - discount_ * it->second.num_tables());
+			if(invDelta > 0)
+			{
+				const F r = F( num_tables_ / invDelta * discount_ + strength_/invDelta);
+				return (pr + r * p0) / divisor;
+			} else
+			{
+				return (pr) / divisor;
+			}
+
 		}
 	}
 

@@ -19,6 +19,8 @@ class ContextCounts
 public:
 	std::unordered_map<Pattern, long int> contextCounts;
 
+	long int V = 0;
+
 	ContextCounts(SNCBWCoCoInitialiser& cci)
 	{
 		initialise(cci);
@@ -76,6 +78,8 @@ public:
 				++wordsPerContext;
 			}
 		}
+
+		V = get(Pattern());
 	}
 
 };
