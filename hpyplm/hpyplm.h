@@ -178,9 +178,12 @@ template<unsigned N> struct PYPLM {
 
 		std::vector<double> sPatternWeights;
 		double sPatternWeightSum = 0.0;
+
+		std::cout << "\n\n" << std::endl;
 		for(const Pattern& pattern : sPatterns)
 		{
 			double weight = contextValues->get(pattern);
+			std::cout << pattern.tostring(cci->classDecoder) << ": " << weight << std::endl;
 			sPatternWeights.push_back(weight);
 			sPatternWeightSum += weight;
 		}

@@ -84,9 +84,9 @@ int main(int argc, char** argv) {
 //    UniformCounts mleCounts(cci);
 
     BackoffStrategies backoffStrategies;
-    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
+//    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
     backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &mleCounts));
+//    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &mleCounts));
     
     for(std::string inputFileName : po.testInputFiles)                          // files
     {
