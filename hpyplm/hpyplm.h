@@ -18,6 +18,8 @@
 
 #include <pattern.h>
 
+#include "ContextValues.h"
+
 // A not very memory-efficient implementation of an N-gram LM based on PYPs
 // as described in Y.-W. Teh. (2006) A Hierarchical Bayesian Language Model
 // based on Pitman-Yor Processes. In Proc. ACL.
@@ -88,7 +90,7 @@ template<unsigned N> struct PYPLM {
 	}
 
 
-	double probFull(const Pattern& w, const Pattern& context, SNCBWCoCoInitialiser * const cci = nullptr) const
+	double probFull(const Pattern& w, const Pattern& context, ContextValues* contextValues, SNCBWCoCoInitialiser * const cci = nullptr) const
 	{
 		Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
 		std::vector<Pattern> sPatterns;
@@ -105,7 +107,7 @@ template<unsigned N> struct PYPLM {
 		std::vector<double> sPatternProbs;
 		for(const Pattern& pattern : sPatterns)
 		{
-			double bla = backoff.probFull(w, pattern, cci);
+			double bla = backoff.probFull(w, pattern, contextValues, cci);
 
 			Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
 			auto it = p.find(lookup);
@@ -122,8 +124,11 @@ template<unsigned N> struct PYPLM {
 		double sPatternWeightSum = 0.0;
 		for(const Pattern& pattern : sPatterns)
 		{
-			sPatternWeights.push_back(1.0);
-			sPatternWeightSum += 1.0;
+			double weight = contextValues->get(pattern);
+			sPatternWeights.push_back(weight);
+			sPatternWeightSum += weight;
+//			sPatternWeights.push_back(1.0);
+//			sPatternWeightSum += 1.0;
 		}
 
 		double probSum = 0.0;
@@ -135,7 +140,9 @@ template<unsigned N> struct PYPLM {
 		return probSum/sPatternWeightSum;
 	}
 
-	double probLimited(const Pattern& w, const Pattern& context, ContextCounts* contextCounts, SNCBWCoCoInitialiser * const cci = nullptr) const
+	double probLimited(const Pattern& w, const Pattern& context,
+			ContextCounts* contextCounts, ContextValues* contextValues,
+			SNCBWCoCoInitialiser * const cci = nullptr) const
 	{
 		Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
 		std::vector<Pattern> sPatterns;
@@ -152,7 +159,7 @@ template<unsigned N> struct PYPLM {
 		std::vector<double> sPatternProbs;
 		for(const Pattern& pattern : sPatterns)
 		{
-			double bla = backoff.probLimited(w, pattern, contextCounts, cci);
+			double bla = backoff.probLimited(w, pattern, contextCounts, contextValues, cci);
 
 			Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
 			auto it = p.find(lookup);
@@ -173,8 +180,9 @@ template<unsigned N> struct PYPLM {
 		double sPatternWeightSum = 0.0;
 		for(const Pattern& pattern : sPatterns)
 		{
-			sPatternWeights.push_back(1.0);
-			sPatternWeightSum += 1.0;
+			double weight = contextValues->get(pattern);
+			sPatternWeights.push_back(weight);
+			sPatternWeightSum += weight;
 		}
 
 		double probSum = 0.0;

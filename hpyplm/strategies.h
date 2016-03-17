@@ -237,6 +237,7 @@ public:
 class FullBackoffStrategy : public BackoffStrategy
 {
 	ContextCounts* contextCounts;
+	ContextValues* contextValues;
 
 public:
     std::string strategyName()
@@ -245,7 +246,8 @@ public:
     }
     SNCBWProgramOptions& po;
 
-    FullBackoffStrategy(SNCBWProgramOptions& _po, SNCBWCoCoInitialiser& _cci, cpyp::PYPLM<kORDER>& _lm) : BackoffStrategy(_cci, _lm), po(_po)
+    FullBackoffStrategy(SNCBWProgramOptions& _po, SNCBWCoCoInitialiser& _cci,
+    		cpyp::PYPLM<kORDER>& _lm, ContextValues* _contextValues) : BackoffStrategy(_cci, _lm), contextValues(_contextValues), po(_po)
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        
@@ -272,7 +274,7 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-            lp = log(lm.probFull(focus, context, &cci));
+            lp = log(lm.probFull(focus, context, contextValues, &cci));
             fS = focus.tostring(cci.classDecoder);
         } else // oov
         {
@@ -295,6 +297,7 @@ public:
 class LimitedBackoffStrategy : public BackoffStrategy
 {
 	ContextCounts* contextCounts;
+	ContextValues* contextValues;
 
 public:
     std::string strategyName()
@@ -303,7 +306,12 @@ public:
     }
     SNCBWProgramOptions& po;
 
-    LimitedBackoffStrategy(SNCBWProgramOptions& _po, SNCBWCoCoInitialiser& _cci, cpyp::PYPLM<kORDER>& _lm, ContextCounts* _contextCounts) : BackoffStrategy(_cci, _lm), contextCounts(_contextCounts), po(_po)
+    LimitedBackoffStrategy(SNCBWProgramOptions& _po,
+    		SNCBWCoCoInitialiser& _cci,
+    		cpyp::PYPLM<kORDER>& _lm,
+			ContextCounts* _contextCounts,
+			ContextValues* _contextValues)
+    : BackoffStrategy(_cci, _lm), contextCounts(_contextCounts), contextValues(_contextValues), po(_po)
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        
@@ -331,7 +339,7 @@ public:
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
 //        	std::cout << "\n----------------- PROCESSING " << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
-            lp = log(lm.probLimited(focus, context, contextCounts, &cci));
+            lp = log(lm.probLimited(focus, context, contextCounts, contextValues, &cci));
 //            lp = log(lm.prob(focus, context));
 //            std::cout << "----------------- LPROB: " << lp << std::endl << std::endl;
             fS = focus.tostring(cci.classDecoder);

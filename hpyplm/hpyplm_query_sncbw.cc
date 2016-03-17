@@ -80,11 +80,13 @@ int main(int argc, char** argv) {
     tsp.start();
 
     ContextCounts contextCounts(cci);
+    MLECounts mleCounts(cci);
+//    UniformCounts mleCounts(cci);
 
     BackoffStrategies backoffStrategies;
     backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
-    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &contextCounts));
-    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm));
+    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &mleCounts));
     
     for(std::string inputFileName : po.testInputFiles)                          // files
     {
