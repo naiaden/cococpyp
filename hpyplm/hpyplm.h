@@ -88,41 +88,51 @@ template<unsigned N> struct PYPLM {
 	}
 
 
-	double probFull(const Pattern& w, const Pattern& context, ContextCounts* contextCounts, SNCBWCoCoInitialiser * const cci = nullptr) const
-        {
-                std::vector<Pattern> sPatterns = generateSkips(context);
-                sPatterns.push_back(context);
-                
-                std::vector<double> sPatternProbs;
-                for(const Pattern& pattern : sPatterns)
-                {
-                    // if pattern in patternmodel: STOP
-                    Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
-                    auto it = p.find(lookup);
-                    if(it == p.end())
-                    {
-                        sPatternProbs.push_back(backoff.probLimited(w, pattern, contextCounts, cci));
-                    }
-                    //sPatternProbs.push_back(it->second.prob(w, backoff.probLimited(w, pattern, decoder)));
-                    sPatternProbs.push_back(4.0);
-                    //sPatternProbs.push_back(it->second.prob(w, 1.0)));
-                }
+	double probFull(const Pattern& w, const Pattern& context, SNCBWCoCoInitialiser * const cci = nullptr) const
+	{
+		Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
+		std::vector<Pattern> sPatterns;
+		if(N!=kORDER)
+			sPatterns = generateSkips(context);
+		if(N==1 && context.size()==1)
+		{
+			sPatterns.push_back(context);
+		} else
+		{
+			sPatterns.push_back(pContext);
+		}
 
-                std::vector<double> sPatternWeights;
-                double sPatternWeightsSum = 0.0;
-                for(const Pattern& pattern : sPatterns)
-                {
-                    sPatternWeights.push_back(1.0);
-                    sPatternWeightsSum += 1.0;
-                }
+		std::vector<double> sPatternProbs;
+		for(const Pattern& pattern : sPatterns)
+		{
+			double bla = backoff.probFull(w, pattern, cci);
 
-                double probSum = 0.0;
-                for(int i = 0; i < sPatterns.size(); ++i)
-                {
-                    probSum += (sPatternWeights[i] * sPatternProbs[i]);
-                }
+			Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
+			auto it = p.find(lookup);
+			if(it != p.end())
+			{
+				sPatternProbs.push_back(it->second.prob(w, bla));
+			} else
+			{
+				sPatternProbs.push_back(bla);
+			}
+		}
 
-                return probSum/sPatternWeightsSum;
+		std::vector<double> sPatternWeights;
+		double sPatternWeightSum = 0.0;
+		for(const Pattern& pattern : sPatterns)
+		{
+			sPatternWeights.push_back(1.0);
+			sPatternWeightSum += 1.0;
+		}
+
+		double probSum = 0.0;
+		for(int i = 0; i < sPatterns.size(); ++i)
+		{
+			probSum += (sPatternWeights[i] * sPatternProbs[i]);
+		}
+
+		return probSum/sPatternWeightSum;
 	}
 
 	double probLimited(const Pattern& w, const Pattern& context, ContextCounts* contextCounts, SNCBWCoCoInitialiser * const cci = nullptr) const

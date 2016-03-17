@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
     BackoffStrategies backoffStrategies;
     backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
     backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &contextCounts));
-    //backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci.classDecoder, lm));
+    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm));
     
     for(std::string inputFileName : po.testInputFiles)                          // files
     {
