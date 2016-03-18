@@ -29,7 +29,7 @@ struct TrainPatternModelOptions : public DefaultPatternModelOptions
         patternModelOptions.MINTOKENS_SKIPGRAMS = tclo.sThreshold;
         patternModelOptions.MINTOKENS_UNIGRAMS = tclo.uThreshold;
         patternModelOptions.PRUNENONSUBSUMED = tclo.pruneLevel;
-        patternModelOptions.MINLENGTH = maxLength-1;
+        patternModelOptions.MINLENGTH = 0;
     }
 };
 
