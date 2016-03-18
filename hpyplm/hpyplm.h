@@ -61,8 +61,8 @@ template<unsigned N> struct PYPLM {
 			backoff(vs, da, db, ss, sr), tr(da, db, ss, sr, 0.8, 0.0) {
 	}
 	template<typename Engine>
-	void increment(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
-		const double bo = backoff.prob(w, context, decoder);
+	void increment(const Pattern& w, const Pattern& context, Engine& eng, CoCoInitialiser * const cci = nullptr) {
+		const double bo = backoff.prob(w, context, cci);
 
                 Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1); 
 
@@ -73,24 +73,24 @@ template<unsigned N> struct PYPLM {
 		}
 
 		if (it->second.increment(w, bo, eng)) {
-			backoff.increment(w, context, eng, decoder);
+			backoff.increment(w, context, eng, cci);
 		}
 	}
 
 	template<typename Engine>
-	void decrement(const Pattern& w, const Pattern& context, Engine& eng, ClassDecoder * const decoder = nullptr) {
+	void decrement(const Pattern& w, const Pattern& context, Engine& eng, CoCoInitialiser * const cci = nullptr) {
                 Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1); 
 
 		auto it = p.find(lookup);
 		assert(it != p.end());
 
 		if (it->second.decrement(w, eng)) {
-			backoff.decrement(w, context, eng, decoder);
+			backoff.decrement(w, context, eng, cci);
 		}
 	}
 
 
-	double probFull(const Pattern& w, const Pattern& context, ContextValues* contextValues, SNCBWCoCoInitialiser * const cci = nullptr) const
+	double probFull(const Pattern& w, const Pattern& context, ContextValues* contextValues, CoCoInitialiser * const cci = nullptr) const
 	{
 		Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
 		std::vector<Pattern> sPatterns;
@@ -142,7 +142,7 @@ template<unsigned N> struct PYPLM {
 
 	double probLimited(const Pattern& w, const Pattern& context,
 			ContextCounts* contextCounts, ContextValues* contextValues,
-			SNCBWCoCoInitialiser * const cci = nullptr) const
+			CoCoInitialiser * const cci = nullptr) const
 	{
 		Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
 		std::vector<Pattern> sPatterns;
@@ -197,7 +197,7 @@ template<unsigned N> struct PYPLM {
 		return probSum/sPatternWeightSum;
 	}
 
-	double prob(const Pattern& w, const Pattern& context, SNCBWCoCoInitialiser * const cci = nullptr) const {
+	double prob(const Pattern& w, const Pattern& context, CoCoInitialiser * const cci = nullptr) const {
 
 		const double bo = backoff.prob(w, context, cci);
 
