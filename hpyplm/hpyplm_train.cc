@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
                     lm.decrement(focus, context, _eng);
                 }
                 
-                lm.increment(focus, context, _eng, &cci.classDecoder);
+                lm.increment(focus, context, _eng, &cci);
             }
         }
 
@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
         {
             std::cout << std::endl;
             mout << " [LLH=" << lm.log_likelihood() << "]" << std::endl;
-            if(sample % 30u == 29) 
+            if(sample % 10u == 9)
             {
                 lm.resample_hyperparameters(_eng);
             } else 
