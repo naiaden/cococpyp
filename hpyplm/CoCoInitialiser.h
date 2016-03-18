@@ -202,6 +202,7 @@ struct TrainCoCoInitialiser : public CoCoInitialiser
 
         if(computeStats)
         {
+        	std::cout << "CCI: Computing stats" << std::endl;
             trainPatternModel.computestats();
             trainPatternModel.computecoveragestats();
         }
