@@ -79,8 +79,19 @@ int main(int argc, char** argv) {
     QueryTimeStatsPrinter tsp(&mout); 
     tsp.start();
 
-    ContextCounts contextCounts(cci);
-    MLECounts mleCounts(cci);
+    ContextCounts contextCounts;
+    contextCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.1");
+	contextCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.2");
+	contextCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.3");
+	contextCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.4");
+	contextCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.5");
+	PatternCounts patternCounts;
+	patternCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.1");
+	patternCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.2");
+	patternCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.3");
+	patternCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.4");
+	patternCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.5");
+    MLECounts mleCounts(cci, &patternCounts);
 //    UniformCounts mleCounts(cci);
 
     BackoffStrategies backoffStrategies;
