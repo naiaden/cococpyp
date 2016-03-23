@@ -18,6 +18,49 @@ public:
 	virtual double get(const Pattern& pattern) const = 0;
 };
 
+/**
+ * For each context (or pattern) we store how often it occurs
+ * (according to the train data)
+ */
+class PatternCounts
+{
+
+public:
+	std::unordered_map<Pattern, long int> patternCounts;
+
+	void fromFile(SNCBWCoCoInitialiser& cci, const std::string& fileName)
+	{
+		std::ifstream file(fileName);
+		std::string   line;
+
+		const bool allowUnknown = false;
+		const bool autoAddUnknown = false;
+
+		while(std::getline(file, line))
+		{
+			std::stringstream   linestream(line);
+			std::string         patternString;
+			long int            patternCount;
+
+			linestream >> patternString >> patternCount;
+
+			Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+
+			patternCounts[pattern] = patternCount;
+		}
+	}
+
+	long int get(const Pattern& pattern) const
+	{
+		std::unordered_map<Pattern,long int>::const_iterator iter = patternCounts.find(pattern);
+
+		  if ( iter == patternCounts.end() )
+			return 0;
+		  else
+			return iter->second;
+	}
+};
+
 class UniformCounts : public ContextValues
 {
 public:
@@ -38,9 +81,9 @@ class MLECounts : public ContextValues
 
 	long int V = 0;
 
-	MLECounts(SNCBWCoCoInitialiser& cci)
+	MLECounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
 	{
-		initialise(cci);
+		initialise(cci, patternCounts);
 	}
 
 	double get(const Pattern& pattern) const
@@ -53,11 +96,13 @@ class MLECounts : public ContextValues
 		    return iter->second;
 	}
 
-	void initialise(SNCBWCoCoInitialiser& cci)
+
+
+	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
 	{
 		Pattern previousPrefix = Pattern();
 		double llh = 0;
-		int sum = 0;
+		long int sum = 0;
 
 		for(int n = 1; n <= 4; ++n)
 		{
@@ -73,7 +118,7 @@ class MLECounts : public ContextValues
 			std::cout << "Done ordering the set" << std::endl;
 			std::cout << "Unordered: " << allPatterns.size() << " Ordered: " << ordered_patterns.size() << std::endl;
 
-			std::vector<int> added_patterns = std::vector<int>();
+			std::vector<long int> added_patterns;
 			for(auto pattern: ordered_patterns)
 			{
 				std::cout << "Processing " << pattern.tostring(cci.classDecoder) << std::endl;
@@ -95,11 +140,18 @@ class MLECounts : public ContextValues
 
 					llh = 0;
 					sum = 0;
-					added_patterns = std::vector<int>();
+					added_patterns = std::vector<long int>();
 					previousPrefix = prefix;
 				}
 
-				int count = cci.trainPatternModel.occurrencecount(pattern);
+				long int count;
+				if(patternCounts)
+				{
+					patternCounts->get(pattern);
+				} else
+				{
+					cci.trainPatternModel.occurrencecount(pattern);
+				}
 				sum += count;
 				added_patterns.push_back(count);
 			}
@@ -110,18 +162,47 @@ class MLECounts : public ContextValues
 
 };
 
+
+
+/**
+ * For each context we store by how many focus words it can be followed
+ * (according to the train data)
+ */
 class ContextCounts
 {
 
-
 public:
 	std::unordered_map<Pattern, long int> contextCounts;
-
 	long int V = 0;
 
-	ContextCounts(SNCBWCoCoInitialiser& cci)
+	void fromFile(SNCBWCoCoInitialiser& cci, const std::string& fileName)
 	{
-		initialise(cci);
+
+		std::ifstream file(fileName);
+		std::string   line;
+
+		std::set<Pattern, PatternComp> orderedPatterns;
+
+		const bool allowUnknown = false;
+		const bool autoAddUnknown = false;
+
+		while(std::getline(file, line))
+		{
+		    std::stringstream   linestream(line);
+		    std::string         patternString;
+		    long int            patternCount;
+
+		    linestream >> patternString >> patternCount;
+
+		    Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+
+		    orderedPatterns.insert(pattern);
+		}
+		std::cout << "Done ordering the set" << std::endl;
+
+		count(orderedPatterns);
+
+		V = get(Pattern());
 	}
 
 	long int get(const Pattern& pattern) const
@@ -134,40 +215,46 @@ public:
 		    return iter->second;
 	}
 
-	void initialise(SNCBWCoCoInitialiser& cci)
+	void fromData(SNCBWCoCoInitialiser& cci)
 	{
-		int wordsPerContext = 0 ;
-		Pattern previousPrefix = Pattern();
 		for(int n = 1; n <= 4; ++n)
 		{
 			PatternSet<uint64_t> allPatterns = cci.trainPatternModel.extractset(n,n);
 			std::cout << "Done extracting set for " << n << std::endl;
 
-			std::set<Pattern, PatternComp> ordered_patterns;
+			std::set<Pattern, PatternComp> orderedPatterns;
 
 			for(auto pattern : allPatterns)
 			{
-				ordered_patterns.insert(pattern);
+				orderedPatterns.insert(pattern);
 			}
 			std::cout << "Done ordering the set" << std::endl;
 
-			std::vector<int> added_patterns = std::vector<int>();
-			for(auto pattern: ordered_patterns)
-			{
-				Pattern prefix = pattern.size() == 1 ? Pattern() : Pattern(pattern, 0, n-1);
-				if(prefix != previousPrefix)
-				{
-					contextCounts[previousPrefix] = wordsPerContext;
-
-					wordsPerContext = 0;
-					previousPrefix = prefix;
-				}
-
-				++wordsPerContext;
-			}
+			count(orderedPatterns);
 		}
 
 		V = get(Pattern());
+	}
+
+	void count(const std::set<Pattern, PatternComp>& orderedPatterns)
+	{
+		Pattern previousPrefix = Pattern();
+		int wordsPerContext = 0 ;
+
+		std::vector<int> added_patterns = std::vector<int>();
+		for(auto pattern: orderedPatterns)
+		{
+			Pattern prefix = pattern.size() == 1 ? Pattern() : Pattern(pattern, 0, pattern.size()-1);
+			if(prefix != previousPrefix)
+			{
+				contextCounts[previousPrefix] = wordsPerContext;
+
+				wordsPerContext = 0;
+				previousPrefix = prefix;
+			}
+
+			++wordsPerContext;
+		}
 	}
 
 };
