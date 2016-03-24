@@ -80,26 +80,26 @@ int main(int argc, char** argv) {
     tsp.start();
 
     ContextCounts contextCounts;
-    contextCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.1");
-	contextCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.2");
-	contextCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.3");
-	contextCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.4");
-	contextCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.5");
+    contextCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.1");
+	contextCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.2");
+	contextCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.3");
+	contextCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.4");
+	contextCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.5");
 	PatternCounts patternCounts;
-	patternCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.1");
-	patternCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.2");
-	patternCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.3");
-	patternCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.4");
-	patternCounts.fromFile(cci, "/scratch/lonrust/cococpypv2/derived/train-jrc.5");
+	patternCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.1");
+	patternCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.2");
+	patternCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.3");
+	patternCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.4");
+	patternCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.5");
     MLECounts mleCounts(cci, &patternCounts);
     UniformCounts uniformCounts(cci);
 
     BackoffStrategies backoffStrategies;
     backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
-    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &mleCounts));
-    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
-    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &uniformCounts));
+//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+//    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &mleCounts));
+//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+//    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &uniformCounts));
     
     for(std::string inputFileName : po.testInputFiles)                          // files
     {

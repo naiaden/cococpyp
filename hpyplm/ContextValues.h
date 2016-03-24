@@ -40,9 +40,12 @@ public:
 		{
 			std::stringstream   linestream(line);
 			std::string         patternString;
+			std::string         patternCountString;
 			long int            patternCount;
 
-			linestream >> patternString >> patternCount;
+			std::getline(linestream, patternString, '\t');
+			std::getline(linestream, patternCountString, '\t');
+			patternCount = std::stol(patternCountString);
 
 			Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
 
@@ -54,10 +57,10 @@ public:
 	{
 		std::unordered_map<Pattern,long int>::const_iterator iter = patternCounts.find(pattern);
 
-		  if ( iter == patternCounts.end() )
-			return 0;
+		  if ( iter != patternCounts.end() )
+			return iter->second;//0;
 		  else
-			return iter->second;
+			return 0;//iter->second;
 	}
 };
 
@@ -100,6 +103,11 @@ class MLECounts : public ContextValues
 
 	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
 	{
+		if(patternCounts)
+		{
+			std::cout << "I'M USING PATTERNCOUNTS" << std::endl;
+		}
+
 		Pattern previousPrefix = Pattern();
 		double llh = 0;
 		long int sum = 0;
@@ -192,9 +200,10 @@ public:
 		    std::string         patternString;
 		    long int            patternCount;
 
-		    linestream >> patternString >> patternCount;
+		    std::getline(linestream, patternString, '\t');
 
 		    Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+//		    std::cout << fileName << "\tP:" << pattern.tostring(cci.classDecoder) << std::endl;
 
 		    orderedPatterns.insert(pattern);
 		}
