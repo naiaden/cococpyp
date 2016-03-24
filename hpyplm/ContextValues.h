@@ -50,6 +50,7 @@ public:
 			Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
 
 			patternCounts[pattern] = patternCount;
+//			std::cout << "P:" << pattern.tostring(cci.classDecoder) << " C:" << patternCount << "(" << patternCounts[pattern] << ")" << std::endl;
 		}
 	}
 
@@ -155,11 +156,13 @@ class MLECounts : public ContextValues
 				long int count;
 				if(patternCounts)
 				{
-					patternCounts->get(pattern);
+					count = patternCounts->get(pattern);
 				} else
 				{
-					cci.trainPatternModel.occurrencecount(pattern);
+					count = cci.trainPatternModel.occurrencecount(pattern);
 				}
+
+
 				sum += count;
 				added_patterns.push_back(count);
 			}
