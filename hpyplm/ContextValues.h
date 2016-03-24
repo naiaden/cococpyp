@@ -161,7 +161,7 @@ class MLECounts : public ContextValues
 				{
 					count = cci.trainPatternModel.occurrencecount(pattern);
 				}
-
+//				std::cout << "P:" << pattern.tostring(cci.classDecoder) << " C:" << count << std::endl;
 
 				sum += count;
 				added_patterns.push_back(count);
