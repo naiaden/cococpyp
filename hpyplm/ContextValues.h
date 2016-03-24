@@ -50,6 +50,7 @@ public:
 			Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
 
 			patternCounts[pattern] = patternCount;
+			std::cout << "P:" << pattern.tostring(cci.classDecoder) << " C:" << patternCount << std::endl;
 		}
 	}
 
