@@ -131,6 +131,9 @@ struct SNCBWCommandLineOptions : public CommandLineOptions
 
     std::string outputDirectory;
     std::string outputRunName;
+
+    std::string countFileBase;
+
     int n;
 
     Backoff backoffMethod;
@@ -145,6 +148,8 @@ struct SNCBWCommandLineOptions : public CommandLineOptions
         clp.add<std::string>("testinputfile", 'F', "test input file", false); 
         clp.add<std::string>("testoutput", 'O', "test output directory", false, "");
         
+        clp.add<std::string>("countfile", 'C', "count file base", false, "");
+
         clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram", cmdline::oneof<std::string>("glm", "bobaco", "ngram", "all"));
         clp.parse_check(argc, argv);
        
@@ -155,6 +160,7 @@ struct SNCBWCommandLineOptions : public CommandLineOptions
         testInputDirectory = clp.get<std::string>("testinput");
         testInputFile = clp.get<std::string>("testinputfile");
         outputDirectory = clp.get<std::string>("testoutput");
+        countFileBase = clp.get<std::string>("countfile");
 
         backoffMethod = fromString(clp.get<std::string>("backoff"));
     }
@@ -300,6 +306,8 @@ struct SNCBWProgramOptions : public ProgramOptions
     std::string generalOutputCorpusFileName;
     std::vector<std::string> testInputFiles;
     
+    std::string countFilesBase;
+
     SNCBWProgramOptions(SNCBWCommandLineOptions& _clo, int _n) : ProgramOptions(_clo)
     {
         n = _n;
@@ -332,6 +340,8 @@ struct SNCBWProgramOptions : public ProgramOptions
                                                + "-common_" + std::to_string(_n);
         generalOutputClassFileName = generalBaseOutputName + ".cls";
         generalOutputCorpusFileName = generalBaseOutputName + ".dat";
+
+        countFilesBase = _clo.countFileBase;
     }
 };
 

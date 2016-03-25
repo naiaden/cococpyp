@@ -28,29 +28,33 @@ class PatternCounts
 public:
 	std::unordered_map<Pattern, long int> patternCounts;
 
-	void fromFile(SNCBWCoCoInitialiser& cci, const std::string& fileName)
+	void fromFile(SNCBWCoCoInitialiser& cci)
 	{
-		std::ifstream file(fileName);
-		std::string   line;
-
-		const bool allowUnknown = false;
-		const bool autoAddUnknown = false;
-
-		while(std::getline(file, line))
+		for(int i = 0; i < kORDER; ++i)
 		{
-			std::stringstream   linestream(line);
-			std::string         patternString;
-			std::string         patternCountString;
-			long int            patternCount;
+			SNCBWProgramOptions* spo = (SNCBWProgramOptions*) cci.po;
+			std::ifstream file(spo->countFilesBase + "." + std::to_string(i));
+			std::string   line;
 
-			std::getline(linestream, patternString, '\t');
-			std::getline(linestream, patternCountString, '\t');
-			patternCount = std::stol(patternCountString);
+			const bool allowUnknown = false;
+			const bool autoAddUnknown = false;
 
-			Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+			while(std::getline(file, line))
+			{
+				std::stringstream   linestream(line);
+				std::string         patternString;
+				std::string         patternCountString;
+				long int            patternCount;
 
-			patternCounts[pattern] = patternCount;
-//			std::cout << "P:" << pattern.tostring(cci.classDecoder) << " C:" << patternCount << "(" << patternCounts[pattern] << ")" << std::endl;
+				std::getline(linestream, patternString, '\t');
+				std::getline(linestream, patternCountString, '\t');
+				patternCount = std::stol(patternCountString);
+
+				Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+
+				patternCounts[pattern] = patternCount;
+	//			std::cout << "P:" << pattern.tostring(cci.classDecoder) << " C:" << patternCount << "(" << patternCounts[pattern] << ")" << std::endl;
+			}
 		}
 	}
 
@@ -186,35 +190,38 @@ public:
 	std::unordered_map<Pattern, long int> contextCounts;
 	long int V = 0;
 
-	void fromFile(SNCBWCoCoInitialiser& cci, const std::string& fileName)
+	void fromFile(SNCBWCoCoInitialiser& cci)
 	{
-
-		std::ifstream file(fileName);
-		std::string   line;
-
-		std::set<Pattern, PatternComp> orderedPatterns;
-
-		const bool allowUnknown = false;
-		const bool autoAddUnknown = false;
-
-		while(std::getline(file, line))
+		for(int i = 0; i < kORDER; ++i)
 		{
-		    std::stringstream   linestream(line);
-		    std::string         patternString;
-		    long int            patternCount;
+			SNCBWProgramOptions* spo = (SNCBWProgramOptions*) cci.po;
+			std::ifstream file(spo->countFilesBase + "." + std::to_string(i));
+			std::string   line;
 
-		    std::getline(linestream, patternString, '\t');
+			std::set<Pattern, PatternComp> orderedPatterns;
 
-		    Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
-//		    std::cout << fileName << "\tP:" << pattern.tostring(cci.classDecoder) << std::endl;
+			const bool allowUnknown = false;
+			const bool autoAddUnknown = false;
 
-		    orderedPatterns.insert(pattern);
+			while(std::getline(file, line))
+			{
+				std::stringstream   linestream(line);
+				std::string         patternString;
+				long int            patternCount;
+
+				std::getline(linestream, patternString, '\t');
+
+				Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+	//		    std::cout << fileName << "\tP:" << pattern.tostring(cci.classDecoder) << std::endl;
+
+				orderedPatterns.insert(pattern);
+			}
+			std::cout << "Done ordering the set" << std::endl;
+
+			count(orderedPatterns);
+
+			V = get(Pattern());
 		}
-		std::cout << "Done ordering the set" << std::endl;
-
-		count(orderedPatterns);
-
-		V = get(Pattern());
 	}
 
 	long int get(const Pattern& pattern) const
