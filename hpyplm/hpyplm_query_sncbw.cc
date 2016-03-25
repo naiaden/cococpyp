@@ -80,17 +80,9 @@ int main(int argc, char** argv) {
     tsp.start();
 
     ContextCounts contextCounts;
-    contextCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.1");
-	contextCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.2");
-	contextCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.3");
-	contextCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.4");
-	contextCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.5");
+    contextCounts.fromFile(cci);
 	PatternCounts patternCounts;
-	patternCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.1");
-	patternCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.2");
-	patternCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.3");
-	patternCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.4");
-	patternCounts.fromFile(cci, "/home/louis/experiments/1/train-jrc.5");
+	patternCounts.fromFile(cci);
     MLECounts mleCounts(cci, &patternCounts);
     UniformCounts uniformCounts(cci);
 
