@@ -150,7 +150,7 @@ class MLECounts : public ContextValues
 //					std::cout << "\t\tIts llh is then: " << llh << "(sum=" << sum << ")" << std::endl;
 
 					// llh = 0 if there is only one option, > 0 otherwise
-					mleCounts[previousPrefix] = llh;
+					mleCounts[previousPrefix] = 1+llh;
 
 					llh = 0;
 					sum = 0;
