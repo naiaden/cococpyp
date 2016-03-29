@@ -144,7 +144,7 @@ class MLECounts : public ContextValues
 					for(auto count : added_patterns)
 					{
 						double mle = count*1.0/sum;
-						std::cout << "\t\tWith count: " << count << std::endl;
+						std::cout << "\t\tWith count: " << count << "(mle " << mle << ")" << std::endl;
 						llh -= log(mle);
 					}
 					std::cout << "\t\tIts llh is then: " << llh << "(sum=" << sum << ")" << std::endl;
