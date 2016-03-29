@@ -134,21 +134,22 @@ class MLECounts : public ContextValues
 			std::vector<long int> added_patterns;
 			for(auto pattern: ordered_patterns)
 			{
-				std::cout << "Processing " << pattern.tostring(cci.classDecoder) << std::endl;
+//				std::cout << "Processing " << pattern.tostring(cci.classDecoder) << std::endl;
 
 				Pattern prefix = pattern.size() == 1 ? Pattern() : Pattern(pattern, 0, n-1);
 				if(prefix != previousPrefix)
 				{
-					std::cout << "\tNew prefix! " << prefix.tostring(cci.classDecoder) << std::endl;
-					std::cout << "\t\tFound " << added_patterns.size() << " elements for the old prefix: " << previousPrefix.tostring(cci.classDecoder) << std::endl;
+//					std::cout << "\tNew prefix! " << prefix.tostring(cci.classDecoder) << std::endl;
+//					std::cout << "\t\tFound " << added_patterns.size() << " elements for the old prefix: " << previousPrefix.tostring(cci.classDecoder) << std::endl;
 					for(auto count : added_patterns)
 					{
 						double mle = count*1.0/sum;
-						std::cout << "\t\tWith count: " << count << "(mle " << mle << ")" << std::endl;
+//						std::cout << "\t\tWith count: " << count << "(mle " << mle << ")" << std::endl;
 						llh -= log(mle);
 					}
-					std::cout << "\t\tIts llh is then: " << llh << "(sum=" << sum << ")" << std::endl;
+//					std::cout << "\t\tIts llh is then: " << llh << "(sum=" << sum << ")" << std::endl;
 
+					// llh = 0 if there is only one option, > 0 otherwise
 					mleCounts[previousPrefix] = llh;
 
 					llh = 0;
