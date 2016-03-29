@@ -98,10 +98,10 @@ class MLECounts : public ContextValues
 	{
 		std::unordered_map<Pattern, double>::const_iterator iter = mleCounts.find(pattern);
 
-		  if ( iter == mleCounts.end() )
-		    return 0;
+		  if ( iter != mleCounts.end() )
+		    return 1+iter->second;
 		  else
-		    return iter->second;
+		    return 1;//iter->second;
 	}
 
 
@@ -150,7 +150,7 @@ class MLECounts : public ContextValues
 //					std::cout << "\t\tIts llh is then: " << llh << "(sum=" << sum << ")" << std::endl;
 
 					// llh = 0 if there is only one option, > 0 otherwise
-					mleCounts[previousPrefix] = 1+llh;
+					mleCounts[previousPrefix] = llh;
 
 					llh = 0;
 					sum = 0;
