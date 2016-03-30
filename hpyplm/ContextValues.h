@@ -197,7 +197,7 @@ public:
 
 	void fromFile(SNCBWCoCoInitialiser& cci)
 	{
-		for(int i = 0; i < kORDER; ++i)
+		for(int i = 0; i <= kORDER; ++i)
 		{
 			SNCBWProgramOptions* spo = (SNCBWProgramOptions*) cci.po;
 			std::ifstream file(spo->countFilesBase + "." + std::to_string(i));
