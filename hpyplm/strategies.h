@@ -251,7 +251,7 @@ public:
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        
-        baseOutputName = _po.generalBaseOutputName + "_" + strategyName() + "_" + std::to_string(_po.n);
+        baseOutputName = _po.generalBaseOutputName + "_" + strategyName() + "_" + std::to_string(_po.n) + "_" + _contextValues->name();
         outputProbabilitiesFileName = baseOutputName + ".probs";
         outputFile = baseOutputName + ".output";
 
@@ -315,7 +315,7 @@ public:
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        
-        baseOutputName = _po.generalBaseOutputName + "_" + strategyName() + "_" + std::to_string(_po.n);
+        baseOutputName = _po.generalBaseOutputName + "_" + strategyName() + "_" + std::to_string(_po.n) + "_" + _contextValues->name();
         outputProbabilitiesFileName = baseOutputName + ".probs";
         outputFile = baseOutputName + ".output";
 
