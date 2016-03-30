@@ -16,6 +16,7 @@ class ContextValues
 {
 public:
 	virtual double get(const Pattern& pattern) const = 0;
+	virtual std::string name() const = 0;
 };
 
 /**
@@ -72,6 +73,11 @@ public:
 class UniformCounts : public ContextValues
 {
 public:
+	std::string name() const
+	{
+		return "uniform";
+	}
+
 	UniformCounts(SNCBWCoCoInitialiser& cci)
 	{
 	}
@@ -85,6 +91,11 @@ public:
 class MLECounts : public ContextValues
 {
 	public:
+	std::string name() const
+	{
+		return "mle";
+	}
+
 	std::unordered_map<Pattern, double> mleCounts;
 
 	long int V = 0;
