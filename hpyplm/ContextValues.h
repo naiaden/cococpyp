@@ -30,7 +30,7 @@ public:
 
 	void fromFile(SNCBWCoCoInitialiser& cci)
 	{
-		for(int i = 0; i < kORDER; ++i)
+		for(int i = 1; i <= kORDER; ++i)
 		{
 			SNCBWProgramOptions* spo = (SNCBWProgramOptions*) cci.po;
 			std::ifstream file(spo->countFilesBase + "." + std::to_string(i));
@@ -117,7 +117,7 @@ class MLECounts : public ContextValues
 		double llh = 0;
 		long int sum = 0;
 
-		for(int n = 1; n <= 4; ++n)
+		for(int n = 1; n <= kORDER; ++n)
 		{
 			PatternSet<uint64_t> allPatterns = cci.trainPatternModel.extractset(n,n);
 			std::cout << "Done extracting set for " << n << std::endl;
@@ -197,7 +197,7 @@ public:
 
 	void fromFile(SNCBWCoCoInitialiser& cci)
 	{
-		for(int i = 0; i < kORDER; ++i)
+		for(int i = 1; i <= kORDER; ++i)
 		{
 			SNCBWProgramOptions* spo = (SNCBWProgramOptions*) cci.po;
 			std::ifstream file(spo->countFilesBase + "." + std::to_string(i));
@@ -241,7 +241,7 @@ public:
 
 	void fromData(SNCBWCoCoInitialiser& cci)
 	{
-		for(int n = 1; n <= 4; ++n)
+		for(int n = 1; n <= kORDER; ++n)
 		{
 			PatternSet<uint64_t> allPatterns = cci.trainPatternModel.extractset(n,n);
 			std::cout << "Done extracting set for " << n << std::endl;
