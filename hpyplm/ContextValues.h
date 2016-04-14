@@ -35,6 +35,7 @@ public:
 		{
 			SNCBWProgramOptions* spo = (SNCBWProgramOptions*) cci.po;
 			std::ifstream file(spo->countFilesBase + "." + std::to_string(i));
+			std::cout << "Reading countFile " << spo->countFilesBase + "." + std::to_string(i) << std::endl;
 			std::string   line;
 
 			const bool allowUnknown = false;
