@@ -58,6 +58,12 @@ public:
 	//			std::cout << "P:" << pattern.tostring(cci.classDecoder) << " C:" << patternCount << "(" << patternCounts[pattern] << ")" << std::endl;
 			}
 		}
+
+//		for(auto pc : patternCounts)
+//		{
+//			if(pc.second > 1)
+//			std::cout << "\"" << pc.first.tostring(cci.classDecoder) << "\"" << pc.second << std::endl;
+//		}
 	}
 
 	long int get(const Pattern& pattern) const
