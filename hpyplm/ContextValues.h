@@ -153,50 +153,51 @@ public:
 
 	double get(const Pattern& pattern) const
 	{
-		return mleCounts[pattern];
+		std::unordered_map<Pattern, double>::const_iterator iter = mleCounts.find(pattern);
+		if ( iter != mleCounts.end() )
+			return iter->second;
+		else
+			return 0;//iter->second;
 	}
 };
 
-class ENTROPYCounts : public ContextValues
+class EntropyCounts : public ContextValues
 {
 	public:
 	std::string name() const
 	{
-		return "mle";
+		return "entropy";
 	}
 
-	std::unordered_map<Pattern, double> mleCounts;
+	std::unordered_map<Pattern, double> entropyCounts;
 
 	long int V = 0;
 
-	ENTROPYCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
+	EntropyCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
 	{
 		initialise(cci, patternCounts);
-		for (auto mc: mleCounts)
+		for (auto mc: entropyCounts)
 		{
 			std::cout << "\"" << mc.first.tostring(cci.classDecoder) << "\"" << mc.second << std::endl;
 		}
 	}
 
+
+	// FIX
 	double get(const Pattern& pattern) const
 	{
-		std::unordered_map<Pattern, double>::const_iterator iter = mleCounts.find(pattern);
+		std::unordered_map<Pattern, double>::const_iterator iter = entropyCounts.find(pattern);
 
-		  if ( iter != mleCounts.end() )
-		    return 1+iter->second;
+		  if ( iter != entropyCounts.end() )
+		    return 1.0/iter->second;
 		  else
-		    return 1;//iter->second;
+		    return 1.0;//iter->second;
 	}
 
 
 
-	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
+	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts)
 	{
-		if(patternCounts)
-		{
-			std::cout << "I'M USING PATTERNCOUNTS" << std::endl;
-		}
-
 		Pattern previousPrefix = Pattern();
 		double llh = 0;
 		long int sum = 0;
@@ -215,46 +216,35 @@ class ENTROPYCounts : public ContextValues
 			std::cout << "Done ordering the set" << std::endl;
 			std::cout << "Unordered: " << allPatterns.size() << " Ordered: " << ordered_patterns.size() << std::endl;
 
+			//
+
 			std::vector<long int> added_patterns;
 			for(auto pattern: ordered_patterns)
 			{
-//				std::cout << "Processing " << pattern.tostring(cci.classDecoder) << std::endl;
-
 				Pattern prefix = pattern.size() == 1 ? Pattern() : Pattern(pattern, 0, n-1);
 				if(prefix != previousPrefix)
 				{
-//					std::cout << "\tNew prefix! " << prefix.tostring(cci.classDecoder) << std::endl;
-//					std::cout << "\t\tFound " << added_patterns.size() << " elements for the old prefix: " << previousPrefix.tostring(cci.classDecoder) << std::endl;
+					double entropySum = 0;
 					for(auto count : added_patterns)
 					{
-						double mle = count*1.0/sum;
-//						std::cout << "\t\tWith count: " << count << "(mle " << mle << ")" << std::endl;
-//						llh -= log(mle);
-						if(isnan(llh))
-						{
-//							std::cout << "ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN" << std::endl;
-						}
+						double mle = 1.0*count/sum;
+						entropySum += mle * log(mle);
 					}
-//					std::cout << "\t\tIts llh is then: " << llh << "(sum=" << sum << ")" << std::endl;
 
-					// llh = 0 if there is only one option, > 0 otherwise
-					mleCounts[previousPrefix] = llh;
+//					std::cout << "\t\tFound " << added_patterns.size() << " elements"
+//							<< " for the prefix: " << previousPrefix.tostring(cci.classDecoder)
+//							<< " with sum: " << sum
+//							<< " resulting in entropy: " << -entropySum
+//							<<   std::endl;
 
-					llh = 0;
+					entropyCounts[previousPrefix] = -entropySum;
+
 					sum = 0;
 					added_patterns = std::vector<long int>();
 					previousPrefix = prefix;
 				}
 
-				long int count;
-				if(patternCounts)
-				{
-					count = patternCounts->get(pattern);
-				} else
-				{
-					count = cci.trainPatternModel.occurrencecount(pattern);
-				}
-//				std::cout << "P:" << pattern.tostring(cci.classDecoder) << " C:" << count << std::endl;
+				long int count = patternCounts->get(pattern);
 
 				sum += count;
 				added_patterns.push_back(count);
