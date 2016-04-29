@@ -207,6 +207,8 @@ public:
 	std::unordered_map<Pattern, long int> contextCounts;
 	long int V = 0;
 
+	// The empty pattern can be followed by any word, so get(Pattern()) = V
+	//
 	void fromFile(SNCBWCoCoInitialiser& cci)
 	{
 		for(int i = 1; i <= kORDER; ++i)
@@ -237,8 +239,17 @@ public:
 
 			count(orderedPatterns);
 
-			V = get(Pattern());
+			if(i == 1)
+			{
+				V = orderedPatterns.size();//get(Pattern());
+			}
+
+
 		}
+//		for(auto cc : contextCounts)
+//		{
+//			std::cout << "\"" << cc.first.tostring(cci.classDecoder) << "\"" << cc.second << std::endl;
+//		}
 	}
 
 	long int get(const Pattern& pattern) const
@@ -246,9 +257,15 @@ public:
 		std::unordered_map<Pattern,long int>::const_iterator iter = contextCounts.find(pattern);
 
 		  if ( iter == contextCounts.end() )
+		  {
 		    return 0;
-		  else
+		  } else if(pattern == Pattern())
+		  {
+			 return V;
+		  } else
+		  {
 		    return iter->second;
+		  }
 	}
 
 	void fromData(SNCBWCoCoInitialiser& cci)

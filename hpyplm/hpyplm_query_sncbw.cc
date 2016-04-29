@@ -81,6 +81,7 @@ int main(int argc, char** argv) {
 
     ContextCounts contextCounts;
     contextCounts.fromFile(cci);
+    exit(1);
 	PatternCounts patternCounts;
 	patternCounts.fromFile(cci);
     MLECounts mleCounts(cci, &patternCounts);
