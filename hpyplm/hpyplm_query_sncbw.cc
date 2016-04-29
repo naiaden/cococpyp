@@ -87,7 +87,6 @@ int main(int argc, char** argv) {
 
     MLECounts mleCounts(cci, &patternCounts);
     EntropyCounts entropyCounts(cci, &patternCounts);
-    exit(1);
     UniformCounts uniformCounts(cci);
 
     BackoffStrategies backoffStrategies;

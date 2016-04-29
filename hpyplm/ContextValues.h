@@ -178,7 +178,7 @@ class EntropyCounts : public ContextValues
 		initialise(cci, patternCounts);
 		for (auto mc: entropyCounts)
 		{
-			std::cout << "\"" << mc.first.tostring(cci.classDecoder) << "\"" << mc.second << std::endl;
+//			std::cout << "\"" << mc.first.tostring(cci.classDecoder) << "\"" << mc.second << std::endl;
 		}
 	}
 

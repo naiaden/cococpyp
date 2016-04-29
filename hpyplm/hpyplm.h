@@ -167,7 +167,7 @@ template<unsigned N> struct PYPLM {
 			{
 				// invDelta = delta_{u_m}
 				const long int invDelta = contextCounts->V - contextCounts->get(lookup.reverse());
-				std::cout << "\t\t" << lookup.reverse().tostring(cci->classDecoder) << "\t\tinvDelta: " << contextCounts->V << " - " << contextCounts->get(lookup.reverse()) << std::endl;
+//				std::cout << "\t\t" << lookup.reverse().tostring(cci->classDecoder) << "\t\tinvDelta: " << contextCounts->V << " - " << contextCounts->get(lookup.reverse()) << std::endl;
 
 //				bool backoff = cci->trainPatternModel.frequency(pattern + w) > 0 ? false : true;
 
