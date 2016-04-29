@@ -97,6 +97,68 @@ public:
 
 class MLECounts : public ContextValues
 {
+public:
+	std::string name() const
+	{
+		return "mle";
+	}
+
+	std::unordered_map<Pattern, double> mleCounts;
+
+	MLECounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts)
+	{
+		initialise(cci, patternCounts);
+	}
+
+	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts)
+	{
+		for(int n = 1; n <= kORDER; ++n)
+		{
+			PatternSet<uint64_t> allPatterns = cci.trainPatternModel.extractset(n,n);
+			std::cout << "Done extracting set for " << n << std::endl;
+
+			long int countAllUnigrams = 0;
+			if(n==1)
+			{
+				for(auto pattern: allPatterns)
+				{
+					countAllUnigrams += patternCounts->get(pattern);
+				}
+				mleCounts[Pattern()] = countAllUnigrams;
+			}
+
+			for(auto pattern : allPatterns)
+			{
+				Pattern smallerPattern = (n==1) ? Pattern() : Pattern(pattern, 0, n-1);
+
+				long int smallerCount = 0;
+				if(n==1)
+				{
+					smallerCount = countAllUnigrams;
+				} else
+				{
+
+					smallerCount = patternCounts->get(smallerPattern);
+				}
+
+//				std::cout << "\"" << pattern.tostring(cci.classDecoder) << "\"\t"
+//						<< " c(" << pattern.tostring(cci.classDecoder) << ") = " << patternCounts->get(pattern)
+//						<< " / c(" << smallerPattern.tostring(cci.classDecoder) << ") = " << smallerCount
+//						<< "\t= " << 1.0 * patternCounts->get(pattern) / smallerCount
+//						<< std::endl;
+				mleCounts[pattern] = 1.0 * patternCounts->get(pattern) / smallerCount;
+			}
+		}
+	}
+
+	double get(const Pattern& pattern) const
+	{
+		return mleCounts[pattern];
+	}
+};
+
+class ENTROPYCounts : public ContextValues
+{
 	public:
 	std::string name() const
 	{
@@ -107,9 +169,13 @@ class MLECounts : public ContextValues
 
 	long int V = 0;
 
-	MLECounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
+	ENTROPYCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
 	{
 		initialise(cci, patternCounts);
+		for (auto mc: mleCounts)
+		{
+			std::cout << "\"" << mc.first.tostring(cci.classDecoder) << "\"" << mc.second << std::endl;
+		}
 	}
 
 	double get(const Pattern& pattern) const
@@ -163,7 +229,7 @@ class MLECounts : public ContextValues
 					{
 						double mle = count*1.0/sum;
 //						std::cout << "\t\tWith count: " << count << "(mle " << mle << ")" << std::endl;
-						llh -= log(mle);
+//						llh -= log(mle);
 						if(isnan(llh))
 						{
 //							std::cout << "ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN" << std::endl;

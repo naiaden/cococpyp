@@ -86,6 +86,7 @@ int main(int argc, char** argv) {
 	patternCounts.fromFile(cci);
 
     MLECounts mleCounts(cci, &patternCounts);
+    exit(1);
     UniformCounts uniformCounts(cci);
 
     BackoffStrategies backoffStrategies;
