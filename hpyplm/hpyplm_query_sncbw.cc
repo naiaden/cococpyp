@@ -168,7 +168,18 @@ int main(int argc, char** argv) {
     std::cout << "\t" << g6w.tostring(cci.classDecoder) << "\t" << patternCounts.get(g6w) << std::endl;
 	mleCounts.get(g6h, g6w, &cci);
 
-    exit(1);
+
+	Pattern g7 = cci.classEncoder.buildpattern("brr {*} {*} common", false, false);
+	std::cout << "G7: " << g7.tostring(cci.classDecoder) << std::endl;
+
+	Pattern g7w = cci.classEncoder.buildpattern("common", false, false);
+	Pattern g7h = cci.classEncoder.buildpattern("rules {*} {*}", false, false);
+	std::cout << "\t" << g7.tostring(cci.classDecoder) << "\t" << patternCounts.get(g7) << std::endl;
+	std::cout << "\t" << g7h.tostring(cci.classDecoder) << "\t" << patternCounts.get(g7h) << std::endl;
+	std::cout << "\t" << g7w.tostring(cci.classDecoder) << "\t" << patternCounts.get(g7w) << std::endl;
+	mleCounts.get(g7h, g7w, &cci);
+
+//    exit(1);
 
     BackoffStrategies backoffStrategies;
 //    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));

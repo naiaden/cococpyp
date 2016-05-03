@@ -160,6 +160,8 @@ template<unsigned N> struct PYPLM {
 		for(const Pattern& pattern : sPatterns)
 		{
 			double bla = backoff.probLimited(w, pattern, contextCounts, contextValues, cci);
+			if(isnan(bla))
+				bla = 0.00000000001;
 
 			Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
 			auto it = p.find(lookup);
@@ -171,11 +173,13 @@ template<unsigned N> struct PYPLM {
 //				bool backoff = cci->trainPatternModel.frequency(pattern + w) > 0 ? false : true;
 
 				double boob = it->second.probLimited(w, bla, invDelta);
+				if(isnan(boob))
+					boob = 0.00000000001;
 				sPatternProbs.push_back(boob);
 
-				std::cout << "\t\t|" << lookup.reverse().tostring(cci->classDecoder) << "|\t\tinvDelta: " << contextCounts->V << " - " << contextCounts->get(lookup.reverse()) << std::endl;
-				std::cout << "\t\t\t bo prob: " << bla << std::endl;
-				std::cout << "\t\t\t    prob: " << boob << std::endl;
+//				std::cout << "\t\t|" << lookup.reverse().tostring(cci->classDecoder) << "|\t\tinvDelta: " << contextCounts->V << " - " << contextCounts->get(lookup.reverse()) << std::endl;
+//				std::cout << "\t\t\t bo prob: " << bla << std::endl;
+//				std::cout << "\t\t\t    prob: " << boob << std::endl;
 
 			} else
 			{
@@ -190,7 +194,7 @@ template<unsigned N> struct PYPLM {
 		for(const Pattern& pattern : sPatterns)
 		{
 			double weight = contextValues->get(pattern, w, cci);
-			std::cout << "\t" << pattern.tostring(cci->classDecoder) << ": " << weight << std::endl;
+//			std::cout << "\t" << pattern.tostring(cci->classDecoder) << ": " << weight << std::endl;
 			sPatternWeights.push_back(weight);
 			sPatternWeightSum += weight;
 		}

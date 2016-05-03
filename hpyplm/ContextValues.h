@@ -221,7 +221,7 @@ public:
 			if(cci)
 			{
 				Pattern l = pattern + w;
-				std::cout << "\t\t|| Getting MLE Count for \"" << l.tostring(cci->classDecoder) << "\"\t" << iter->second << std::endl;
+//				std::cout << "\t\t|| Getting MLE Count for \"" << l.tostring(cci->classDecoder) << "\"\t" << iter->second << std::endl;
 			}
 
 			return iter->second;
@@ -230,7 +230,7 @@ public:
 			if(cci)
 			{
 				Pattern l =  pattern + w; // omgekeerd?
-				std::cout << "\t\t|| Getting MLE Count for \"" << l.tostring(cci->classDecoder) << "\"\t unexisting: " << 0.00000000001 << std::endl;
+//				std::cout << "\t\t|| Getting MLE Count for \"" << l.tostring(cci->classDecoder) << "\"\t unexisting: " << 0.00000000001 << std::endl;
 			}
 
 			return 0.00000000001;//iter->second;
