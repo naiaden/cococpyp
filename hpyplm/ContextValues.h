@@ -174,7 +174,7 @@ public:
 				}
 				else
 				{
-					mleCounts[pattern] = 0.00000000001;
+					mleCounts[pattern] = CoCoInitialiser::epsilon;
 //					std::cout << "\t n= " << 0.00000000001
 //							<< std::endl;
 				}
@@ -201,7 +201,7 @@ public:
 					}
 					else
 					{
-						mleCounts[skipPattern] = 0.00000000001;
+						mleCounts[skipPattern] = CoCoInitialiser::epsilon;
 //						std::cout << "\t nu= " << 0.00000000001
 //								<< std::endl;
 					}
@@ -233,7 +233,7 @@ public:
 //				std::cout << "\t\t|| Getting MLE Count for \"" << l.tostring(cci->classDecoder) << "\"\t unexisting: " << 0.00000000001 << std::endl;
 			}
 
-			return 0.00000000001;//iter->second;
+			return CoCoInitialiser::epsilon;//iter->second;
 		}
 
 	}

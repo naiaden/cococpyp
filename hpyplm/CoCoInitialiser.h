@@ -20,6 +20,8 @@ struct CoCoInitialiser
     ProgramOptions* po;
     PatternModelOptions& pmo;
   
+    static constexpr double epsilon = 0.0000000000000001;
+
     ~CoCoInitialiser() 
     {
         delete indexedCorpus;

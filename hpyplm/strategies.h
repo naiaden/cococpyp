@@ -214,8 +214,10 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
+//        	std::cout << "+++ Processing [" << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
             lp = log(lm.prob(focus, context, &cci));
             fS = focus.tostring(cci.classDecoder);
+//            std::cout << "--- logprob = " << lp << std::endl;
         } else // oov
         {
             ++fOOVs;
@@ -246,8 +248,12 @@ public:
     }
     SNCBWProgramOptions& po;
 
-    FullBackoffStrategy(SNCBWProgramOptions& _po, SNCBWCoCoInitialiser& _cci,
-    		cpyp::PYPLM<kORDER>& _lm, ContextValues* _contextValues) : BackoffStrategy(_cci, _lm), contextValues(_contextValues), po(_po)
+    FullBackoffStrategy(SNCBWProgramOptions& _po,
+    					SNCBWCoCoInitialiser& _cci,
+						cpyp::PYPLM<kORDER>& _lm,
+						ContextCounts* _contextCounts,
+						ContextValues* _contextValues)
+    : BackoffStrategy(_cci, _lm), contextCounts(_contextCounts), contextValues(_contextValues), po(_po)
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        
@@ -274,7 +280,7 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-            lp = log(lm.probFull(focus, context, contextValues, &cci));
+            lp = log(lm.probFull(focus, context, contextCounts, contextValues, &cci));
             fS = focus.tostring(cci.classDecoder);
         } else // oov
         {
@@ -305,13 +311,15 @@ public:
         return "limited";
     }
     SNCBWProgramOptions& po;
+    PatternCounts* patternCounts;
 
     LimitedBackoffStrategy(SNCBWProgramOptions& _po,
     		SNCBWCoCoInitialiser& _cci,
     		cpyp::PYPLM<kORDER>& _lm,
+			PatternCounts* _patternCounts,
 			ContextCounts* _contextCounts,
 			ContextValues* _contextValues)
-    : BackoffStrategy(_cci, _lm), contextCounts(_contextCounts), contextValues(_contextValues), po(_po)
+    : BackoffStrategy(_cci, _lm), patternCounts(_patternCounts), contextCounts(_contextCounts), contextValues(_contextValues), po(_po)
     {
         std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
        
@@ -338,10 +346,11 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-//        	std::cout << "\n----------------- PROCESSING " << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
-            lp = log(lm.probLimited(focus, context, contextCounts, contextValues, &cci));
-//            std::cout << "----------------- LPROB: " << lp << std::endl << std::endl;
+//        	std::cout << "\n+++ Processing [" << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
+            lp = log(lm.probLimited(focus, context, patternCounts, contextCounts, contextValues, &cci));
             fS = focus.tostring(cci.classDecoder);
+//            std::cout << "--- logprob = " << lp << std::endl;
+
         } else // oov
         {
             ++fOOVs;

@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
 
     MLECounts mleCounts(cci, &patternCounts);
 //    EntropyCounts entropyCounts(cci, &patternCounts);
-//    UniformCounts uniformCounts(cci);
+    UniformCounts uniformCounts(cci);
 
     Pattern h = cci.classEncoder.buildpattern("{*}", false, false);
     std::cout << "H: " << h.tostring(cci.classDecoder) << std::endl;
@@ -183,9 +183,9 @@ int main(int argc, char** argv) {
 
     BackoffStrategies backoffStrategies;
 //    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
-    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-//    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &mleCounts));
-//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
+//    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
 //    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &uniformCounts));
     
     for(std::string inputFileName : po.testInputFiles)                          // files
