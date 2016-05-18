@@ -124,6 +124,22 @@ struct TrainCommandLineOptions : public CommandLineOptions
 
 };
 
+struct AnalysisCommandLineOptions : public CommandLineOptions
+{
+    std::string outputDirectory;
+
+    AnalysisCommandLineOptions(int argc, char** argv) : CommandLineOptions(argc, argv)
+    {
+        clp.add<std::string>("analysisoutput", 'O', "analysis output directory", false, "");
+
+        clp.parse_check(argc, argv);
+
+        retrieve();
+
+        outputDirectory = clp.get<std::string>("analysisoutput");
+    }
+};
+
 struct SNCBWCommandLineOptions : public CommandLineOptions
 {
     std::string testInputDirectory;
@@ -279,6 +295,24 @@ struct ProgramOptions
         trainSerialisedFileName = clo.loadTrainSerialisedFile;
        }
        std::cout << "PO: trainSerialisedFileName = " << trainSerialisedFileName << std::endl;
+    }
+};
+
+struct AnalysisProgramOptions : public ProgramOptions
+{
+
+    std::string baseOutputName;
+    std::string generalBaseOutputName;
+
+
+    std::string countFilesBase;
+
+    AnalysisProgramOptions(AnalysisCommandLineOptions& _clo) : ProgramOptions(_clo)
+    {
+
+        baseOutputName = _clo.outputDirectory + "/" + _clo.trainModel + "-analysis";
+        generalBaseOutputName = baseOutputName + ".res";
+
     }
 };
 

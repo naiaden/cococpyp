@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
 	patternCounts.fromFile(cci);
 
     MLECounts mleCounts(cci, &patternCounts);
-//    EntropyCounts entropyCounts(cci, &patternCounts);
+    EntropyCounts entropyCounts(cci, &patternCounts);
     UniformCounts uniformCounts(cci);
 
     Pattern h = cci.classEncoder.buildpattern("{*}", false, false);
@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
     std::cout << "\t" << g1.tostring(cci.classDecoder) << "\t" << patternCounts.get(g1) << std::endl;
     std::cout << "\t" << g1h.tostring(cci.classDecoder) << "\t" << patternCounts.get(g1h) << std::endl;
     std::cout << "\t" << g1w.tostring(cci.classDecoder) << "\t" << patternCounts.get(g1w) << std::endl;
-    mleCounts.get(g1h, g1w, &cci);
+    entropyCounts.get(g1h, g1w, &cci);
 
 
 	Pattern g2 = cci.classEncoder.buildpattern("of", false, false);
@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
     std::cout << "\t" << g2.tostring(cci.classDecoder) << "\t" << patternCounts.get(g2) << std::endl;
     std::cout << "\t" << g2h.tostring(cci.classDecoder) << "\t" << patternCounts.get(g2h) << std::endl;
     std::cout << "\t" << g2w.tostring(cci.classDecoder) << "\t" << patternCounts.get(g2w) << std::endl;
-	mleCounts.get(g2h, g2w, &cci);
+    entropyCounts.get(g2h, g2w, &cci);
 
 
 	Pattern g3 = cci.classEncoder.buildpattern("of {*} common", false, false);
@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
     std::cout << "\t" << g3.tostring(cci.classDecoder) << "\t" << patternCounts.get(g3) << std::endl;
     std::cout << "\t" << g3h.tostring(cci.classDecoder) << "\t" << patternCounts.get(g3h) << std::endl;
     std::cout << "\t" << g3w.tostring(cci.classDecoder) << "\t" << patternCounts.get(g3w) << std::endl;
-	mleCounts.get(g3h, g3w, &cci);
+    entropyCounts.get(g3h, g3w, &cci);
 
 
 	Pattern g4 = cci.classEncoder.buildpattern("rules of the common", false, false);
@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
     std::cout << "\t" << g4.tostring(cci.classDecoder) << "\t" << patternCounts.get(g4) << std::endl;
     std::cout << "\t" << g4h.tostring(cci.classDecoder) << "\t" << patternCounts.get(g4h) << std::endl;
     std::cout << "\t" << g4w.tostring(cci.classDecoder) << "\t" << patternCounts.get(g4w) << std::endl;
-	mleCounts.get(g4h, g4w, &cci);
+    entropyCounts.get(g4h, g4w, &cci);
 
 
 	Pattern g5 = cci.classEncoder.buildpattern("rules {*} {*} common", false, false);
@@ -155,7 +155,7 @@ int main(int argc, char** argv) {
     std::cout << "\t" << g5.tostring(cci.classDecoder) << "\t" << patternCounts.get(g5) << std::endl;
     std::cout << "\t" << g5h.tostring(cci.classDecoder) << "\t" << patternCounts.get(g5h) << std::endl;
     std::cout << "\t" << g5w.tostring(cci.classDecoder) << "\t" << patternCounts.get(g5w) << std::endl;
-	mleCounts.get(g5h, g5w, &cci);
+    entropyCounts.get(g5h, g5w, &cci);
 
 
 	Pattern g6 = cci.classEncoder.buildpattern("of the", false, false);
@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
     std::cout << "\t" << g6.tostring(cci.classDecoder) << "\t" << patternCounts.get(g6) << std::endl;
     std::cout << "\t" << g6h.tostring(cci.classDecoder) << "\t" << patternCounts.get(g6h) << std::endl;
     std::cout << "\t" << g6w.tostring(cci.classDecoder) << "\t" << patternCounts.get(g6w) << std::endl;
-	mleCounts.get(g6h, g6w, &cci);
+    entropyCounts.get(g6h, g6w, &cci);
 
 
 	Pattern g7 = cci.classEncoder.buildpattern("brr {*} {*} common", false, false);
@@ -177,16 +177,18 @@ int main(int argc, char** argv) {
 	std::cout << "\t" << g7.tostring(cci.classDecoder) << "\t" << patternCounts.get(g7) << std::endl;
 	std::cout << "\t" << g7h.tostring(cci.classDecoder) << "\t" << patternCounts.get(g7h) << std::endl;
 	std::cout << "\t" << g7w.tostring(cci.classDecoder) << "\t" << patternCounts.get(g7w) << std::endl;
-	mleCounts.get(g7h, g7w, &cci);
+	entropyCounts.get(g7h, g7w, &cci);
 
 //    exit(1);
 
     BackoffStrategies backoffStrategies;
-//    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
-    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
+    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
+//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
 //    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
 //    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
 //    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &uniformCounts));
+//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
+    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
     
     for(std::string inputFileName : po.testInputFiles)                          // files
     {

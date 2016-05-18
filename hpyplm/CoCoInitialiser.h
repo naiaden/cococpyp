@@ -69,6 +69,21 @@ struct CoCoInitialiser
 
 };
 
+struct AnalysisCoCoInitialiser : public CoCoInitialiser
+{
+	AnalysisCoCoInitialiser(AnalysisProgramOptions& _spo, PatternModelOptions& _pmo, bool _extendEncoding = true, bool _trainPatternModel = true, bool onlyClassEncoder = false)
+        : CoCoInitialiser(_pmo)
+    {
+        std::cout << "Entering ACCI" << std::endl;
+        po = &_spo;
+
+        initialise(_trainPatternModel, onlyClassEncoder);
+
+    }
+
+
+};
+
 struct SNCBWCoCoInitialiser : public CoCoInitialiser
 {
     SNCBWCoCoInitialiser(SNCBWProgramOptions& _spo, PatternModelOptions& _pmo, bool _extendEncoding = true, bool _trainPatternModel = true, bool onlyClassEncoder = false)
