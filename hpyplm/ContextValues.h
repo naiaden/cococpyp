@@ -15,7 +15,7 @@
 class ContextValues
 {
 public:
-	virtual double get(const Pattern& pattern) const = 0;
+	virtual double get(const Pattern& pattern, const Pattern& w,CoCoInitialiser * const cci = nullptr) const = 0;
 	virtual std::string name() const = 0;
 };
 
@@ -31,7 +31,10 @@ public:
 
 	void fromFile(SNCBWCoCoInitialiser& cci)
 	{
-		for(int i = 1; i <= kORDER; ++i)
+		patternCounts[Pattern()] = 0;
+
+//		for(int i = 1; i <= kORDER; ++i)
+		for(int i = 1; i <= 5; ++i)
 		{
 			SNCBWProgramOptions* spo = (SNCBWProgramOptions*) cci.po;
 			std::ifstream file(spo->countFilesBase + "." + std::to_string(i));
@@ -55,9 +58,31 @@ public:
 				Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
 
 				patternCounts[pattern] = patternCount;
-	//			std::cout << "P:" << pattern.tostring(cci.classDecoder) << " C:" << patternCount << "(" << patternCounts[pattern] << ")" << std::endl;
+				// skipgram
+
+				Pattern smallerPattern = (i==1) ? Pattern() : Pattern(pattern, 0, i-1);
+				Pattern skipPattern = smallerPattern + cci.classEncoder.buildpattern("{*}", allowUnknown, autoAddUnknown);
+				auto it = patternCounts.find(skipPattern);
+				if(it != patternCounts.end())
+				{
+//					std::cout << "\n" << skipPattern.tostring(cci.classDecoder) << std::endl;
+//				    std::cout << "ASDASD " << it->second << std::endl;
+					it->second += patternCount;
+//					std::cout << "DSADSA " << patternCounts[skipPattern] << std::endl;
+				}
+				else
+				{
+					patternCounts[skipPattern] = patternCount;
+				}
+
 			}
 		}
+
+//		for(auto pc : patternCounts)
+//		{
+//			if(pc.second > 1)
+//			std::cout << "\"" << pc.first.tostring(cci.classDecoder) << "\"" << pc.second << std::endl;
+//		}
 	}
 
 	long int get(const Pattern& pattern) const
@@ -83,7 +108,7 @@ public:
 	{
 	}
 
-	double get(const Pattern& pattern) const
+	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr) const
 	{
 		return 1.0;
 	}
@@ -91,7 +116,7 @@ public:
 
 class MLECounts : public ContextValues
 {
-	public:
+public:
 	std::string name() const
 	{
 		return "mle";
@@ -99,32 +124,158 @@ class MLECounts : public ContextValues
 
 	std::unordered_map<Pattern, double> mleCounts;
 
-	long int V = 0;
-
-	MLECounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
+	MLECounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts)
 	{
 		initialise(cci, patternCounts);
 	}
 
-	double get(const Pattern& pattern) const
+	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts)
 	{
-		std::unordered_map<Pattern, double>::const_iterator iter = mleCounts.find(pattern);
+		Pattern skip = cci.classEncoder.buildpattern("{*}", false, false);
 
-		  if ( iter != mleCounts.end() )
-		    return 1+iter->second;
+		for(int n = 1; n <= kORDER; ++n)
+//		for(int n = 1; n <= 5; ++n)
+		{
+			PatternSet<uint64_t> allPatterns = cci.trainPatternModel.extractset(n,n);
+			std::cout << "Done extracting set for " << n << std::endl;
+
+			long int countAllUnigrams = 0;
+			if(n==1)
+			{
+				for(auto pattern: allPatterns)
+				{
+					countAllUnigrams += 1;//patternCounts->get(pattern);
+				}
+				mleCounts[Pattern()] = 1.0/countAllUnigrams;
+			}
+
+			for(auto pattern : allPatterns)
+			{
+				Pattern smallerPattern = (n==1) ? Pattern() : Pattern(pattern, 0, n-1);
+
+				long int smallerCount = 0;
+				if(n==1)
+				{
+					smallerCount = countAllUnigrams;
+				} else
+				{
+					smallerCount = patternCounts->get(smallerPattern);
+				}
+
+//				std::cout << "\"" << pattern.tostring(cci.classDecoder) << "\"\t"
+//						<< " c(" << pattern.tostring(cci.classDecoder) << ") = " << patternCounts->get(pattern)
+//						<< " / c(" << smallerPattern.tostring(cci.classDecoder) << ") = " << smallerCount
+//						<< std::endl;
+				if(smallerCount > 0)
+				{
+					mleCounts[pattern] = 1.0 * patternCounts->get(pattern) / smallerCount;
+//					std::cout << "\t s= " << 1.0 * patternCounts->get(pattern) / smallerCount
+//							<< std::endl;
+				}
+				else
+				{
+					mleCounts[pattern] = CoCoInitialiser::epsilon;
+//					std::cout << "\t n= " << 0.00000000001
+//							<< std::endl;
+				}
+
+
+				Pattern skipPattern = smallerPattern + skip;
+//				std::cout << "\"" << skipPattern.tostring(cci.classDecoder) << "\"\t"
+//						<< " c(" << skipPattern.tostring(cci.classDecoder) << ") = " << patternCounts->get(skipPattern)
+//						<< " / c(" << smallerPattern.tostring(cci.classDecoder) << ") = " << smallerCount;
+
+				if(n == 1 && skipPattern == skip)
+				{
+//					std::cout << "SKIP!" << std::endl;
+					mleCounts[skipPattern] = 1.0/countAllUnigrams;
+//					std::cout << "\t sk= " << 1.0  / countAllUnigrams
+//							<< std::endl;
+				} else
+				{
+					if(smallerCount > 0)
+					{
+						mleCounts[skipPattern] = 1.0 * patternCounts->get(skipPattern) / smallerCount;
+//						std::cout << "\t sc= " << 1.0 * patternCounts->get(skipPattern) / smallerCount
+//								<< std::endl;
+					}
+					else
+					{
+						mleCounts[skipPattern] = CoCoInitialiser::epsilon;
+//						std::cout << "\t nu= " << 0.00000000001
+//								<< std::endl;
+					}
+				}
+
+			}
+		}
+	}
+
+	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr) const
+	{
+
+
+		std::unordered_map<Pattern, double>::const_iterator iter = mleCounts.find(pattern + w);
+		if ( iter != mleCounts.end() )
+		{
+			if(cci)
+			{
+				Pattern l = pattern + w;
+//				std::cout << "\t\t|| Getting MLE Count for \"" << l.tostring(cci->classDecoder) << "\"\t" << iter->second << std::endl;
+			}
+
+			return iter->second;
+		} else
+		{
+			if(cci)
+			{
+				Pattern l =  pattern + w; // omgekeerd?
+//				std::cout << "\t\t|| Getting MLE Count for \"" << l.tostring(cci->classDecoder) << "\"\t unexisting: " << 0.00000000001 << std::endl;
+			}
+
+			return CoCoInitialiser::epsilon;//iter->second;
+		}
+
+	}
+};
+
+class EntropyCounts : public ContextValues
+{
+	public:
+	std::string name() const
+	{
+		return "entropy";
+	}
+
+	std::unordered_map<Pattern, double> entropyCounts;
+
+	long int V = 0;
+
+	EntropyCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
+	{
+		initialise(cci, patternCounts);
+		for (auto mc: entropyCounts)
+		{
+//			std::cout << "\"" << mc.first.tostring(cci.classDecoder) << "\"" << mc.second << std::endl;
+		}
+	}
+
+
+	// FIX
+	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr) const
+	{
+		std::unordered_map<Pattern, double>::const_iterator iter = entropyCounts.find(pattern);
+
+		  if ( iter != entropyCounts.end() )
+		    return 1.0/iter->second;
 		  else
-		    return 1;//iter->second;
+		    return 1.0;//iter->second;
 	}
 
 
 
-	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
+	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts)
 	{
-		if(patternCounts)
-		{
-			std::cout << "I'M USING PATTERNCOUNTS" << std::endl;
-		}
-
 		Pattern previousPrefix = Pattern();
 		double llh = 0;
 		long int sum = 0;
@@ -143,53 +294,42 @@ class MLECounts : public ContextValues
 			std::cout << "Done ordering the set" << std::endl;
 			std::cout << "Unordered: " << allPatterns.size() << " Ordered: " << ordered_patterns.size() << std::endl;
 
+			//
+
 			std::vector<long int> added_patterns;
 			for(auto pattern: ordered_patterns)
 			{
-//				std::cout << "Processing " << pattern.tostring(cci.classDecoder) << std::endl;
-
 				Pattern prefix = pattern.size() == 1 ? Pattern() : Pattern(pattern, 0, n-1);
 				if(prefix != previousPrefix)
 				{
-//					std::cout << "\tNew prefix! " << prefix.tostring(cci.classDecoder) << std::endl;
-//					std::cout << "\t\tFound " << added_patterns.size() << " elements for the old prefix: " << previousPrefix.tostring(cci.classDecoder) << std::endl;
+					double entropySum = 0;
 					for(auto count : added_patterns)
 					{
-						double mle = count*1.0/sum;
-//						std::cout << "\t\tWith count: " << count << "(mle " << mle << ")" << std::endl;
-						llh -= log(mle);
-						if(isnan(llh))
-						{
-//							std::cout << "ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN ISNAN" << std::endl;
-						}
+						double mle = 1.0*count/sum;
+						entropySum += mle * log(mle);
 					}
-//					std::cout << "\t\tIts llh is then: " << llh << "(sum=" << sum << ")" << std::endl;
 
-					// llh = 0 if there is only one option, > 0 otherwise
-					mleCounts[previousPrefix] = llh;
+//					std::cout << "\t\tFound " << added_patterns.size() << " elements"
+//							<< " for the prefix: " << previousPrefix.tostring(cci.classDecoder)
+//							<< " with sum: " << sum
+//							<< " resulting in entropy: " << -entropySum
+//							<<   std::endl;
 
-					llh = 0;
+					entropyCounts[previousPrefix] = -entropySum;
+
 					sum = 0;
 					added_patterns = std::vector<long int>();
 					previousPrefix = prefix;
 				}
 
-				long int count;
-				if(patternCounts)
-				{
-					count = patternCounts->get(pattern);
-				} else
-				{
-					count = cci.trainPatternModel.occurrencecount(pattern);
-				}
-//				std::cout << "P:" << pattern.tostring(cci.classDecoder) << " C:" << count << std::endl;
+				long int count = patternCounts->get(pattern);
 
 				sum += count;
 				added_patterns.push_back(count);
 			}
 		}
 
-		V = get(Pattern());
+		V = get(Pattern(), Pattern());
 	}
 
 };
@@ -207,6 +347,8 @@ public:
 	std::unordered_map<Pattern, long int> contextCounts;
 	long int V = 0;
 
+	// The empty pattern can be followed by any word, so get(Pattern()) = V
+	//
 	void fromFile(SNCBWCoCoInitialiser& cci)
 	{
 		for(int i = 1; i <= kORDER; ++i)
@@ -237,8 +379,17 @@ public:
 
 			count(orderedPatterns);
 
-			V = get(Pattern());
+			if(i == 1)
+			{
+				V = orderedPatterns.size();//get(Pattern());
+			}
+
+
 		}
+//		for(auto cc : contextCounts)
+//		{
+//			std::cout << "\"" << cc.first.tostring(cci.classDecoder) << "\"" << cc.second << std::endl;
+//		}
 	}
 
 	long int get(const Pattern& pattern) const
@@ -246,9 +397,15 @@ public:
 		std::unordered_map<Pattern,long int>::const_iterator iter = contextCounts.find(pattern);
 
 		  if ( iter == contextCounts.end() )
+		  {
 		    return 0;
-		  else
+		  } else if(pattern == Pattern())
+		  {
+			 return V;
+		  } else
+		  {
 		    return iter->second;
+		  }
 	}
 
 	void fromData(SNCBWCoCoInitialiser& cci)

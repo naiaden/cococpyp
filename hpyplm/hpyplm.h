@@ -90,58 +90,67 @@ template<unsigned N> struct PYPLM {
 	}
 
 
-	double probFull(const Pattern& w, const Pattern& context, ContextValues* contextValues, CoCoInitialiser * const cci = nullptr) const
-	{
-		Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
-		std::vector<Pattern> sPatterns;
-		if(N!=kORDER)
-			sPatterns = generateSkips(context);
-		if(N==1 && context.size()==1)
+	double probFull(const Pattern& w, const Pattern& context,
+				ContextCounts* contextCounts, ContextValues* contextValues,
+				CoCoInitialiser * const cci = nullptr) const
 		{
-			sPatterns.push_back(context);
-		} else
-		{
-			sPatterns.push_back(pContext);
-		}
-
-		std::vector<double> sPatternProbs;
-		for(const Pattern& pattern : sPatterns)
-		{
-			double bla = backoff.probFull(w, pattern, contextValues, cci);
-
-			Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
-			auto it = p.find(lookup);
-			if(it != p.end())
+			Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
+			std::vector<Pattern> sPatterns;
+			if(N!=kORDER)
+				sPatterns = generateSkips(context);
+			if(N==1 && context.size()==1)
 			{
-				sPatternProbs.push_back(it->second.prob(w, bla));
+				sPatterns.push_back(context);
 			} else
 			{
-				sPatternProbs.push_back(bla);
+				sPatterns.push_back(pContext);
 			}
-		}
 
-		std::vector<double> sPatternWeights;
-		double sPatternWeightSum = 0.0;
-		for(const Pattern& pattern : sPatterns)
-		{
-			double weight = contextValues->get(pattern);
-			sPatternWeights.push_back(weight);
-			sPatternWeightSum += weight;
-//			sPatternWeights.push_back(1.0);
-//			sPatternWeightSum += 1.0;
-		}
+			std::vector<double> sPatternProbs;
+			for(const Pattern& pattern : sPatterns)
+			{
+				double bla = backoff.probFull(w, pattern, contextCounts, contextValues, cci);
+				if(isnan(bla))
+					bla = 0.00000000001;
 
-		double probSum = 0.0;
-		for(int i = 0; i < sPatterns.size(); ++i)
-		{
-			probSum += (sPatternWeights[i] * sPatternProbs[i]);
-		}
+				Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
+				auto it = p.find(lookup);
+				if(it != p.end())
+				{
+					// invDelta = delta_{u_m}
+					const long int invDelta = contextCounts->V - contextCounts->get(lookup.reverse());
 
-		return probSum/sPatternWeightSum;
-	}
+					double boob = it->second.probLimited(w, bla, invDelta);
+					if(isnan(boob))
+						boob = 0.00000000001;
+					sPatternProbs.push_back(boob);
+				} else
+				{
+					sPatternProbs.push_back(bla);
+				}
+			}
+
+			std::vector<double> sPatternWeights;
+			double sPatternWeightSum = 0.0;
+
+			for(const Pattern& pattern : sPatterns)
+			{
+				double weight = contextValues->get(pattern, w, cci);
+				sPatternWeights.push_back(weight);
+				sPatternWeightSum += weight;
+			}
+
+			double probSum = 0.0;
+			for(int i = 0; i < sPatterns.size(); ++i)
+			{
+				probSum += (sPatternWeights[i] * sPatternProbs[i]);
+			}
+
+			return probSum/sPatternWeightSum;
+		}
 
 	double probLimited(const Pattern& w, const Pattern& context,
-			ContextCounts* contextCounts, ContextValues* contextValues,
+			PatternCounts* patternCounts, ContextCounts* contextCounts, ContextValues* contextValues,
 			CoCoInitialiser * const cci = nullptr) const
 	{
 		Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
@@ -159,17 +168,29 @@ template<unsigned N> struct PYPLM {
 		std::vector<double> sPatternProbs;
 		for(const Pattern& pattern : sPatterns)
 		{
-			double bla = backoff.probLimited(w, pattern, contextCounts, contextValues, cci);
+			bool recursive = patternCounts->get(pattern + w) > 0 ? false : true;
+
+			double bla = 0.0;
+			if(recursive)
+			{
+				// don't do this if you don't want to do the recursive thingy
+				bla = backoff.probLimited(w, pattern, patternCounts, contextCounts, contextValues, cci);
+				if(isnan(bla))
+					bla = CoCoInitialiser::epsilon;
+			}
 
 			Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
 			auto it = p.find(lookup);
 			if(it != p.end())
 			{
+				// invDelta = delta_{u_m}
 				const long int invDelta = contextCounts->V - contextCounts->get(lookup.reverse());
 
-//				bool backoff = cci->trainPatternModel.frequency(pattern + w) > 0 ? false : true;
-
-				sPatternProbs.push_back(it->second.probLimited(w, bla, invDelta));
+				// but only do this
+				double boob = it->second.probLimited(w, bla, invDelta);
+				if(isnan(boob))
+					boob = CoCoInitialiser::epsilon;
+				sPatternProbs.push_back(boob);
 			} else
 			{
 				sPatternProbs.push_back(bla);
@@ -179,11 +200,9 @@ template<unsigned N> struct PYPLM {
 		std::vector<double> sPatternWeights;
 		double sPatternWeightSum = 0.0;
 
-//		std::cout << "\n\n" << std::endl;
 		for(const Pattern& pattern : sPatterns)
 		{
-			double weight = contextValues->get(pattern);
-//			std::cout << pattern.tostring(cci->classDecoder) << ": " << weight << std::endl;
+			double weight = contextValues->get(pattern, w, cci);
 			sPatternWeights.push_back(weight);
 			sPatternWeightSum += weight;
 		}
@@ -191,6 +210,7 @@ template<unsigned N> struct PYPLM {
 		double probSum = 0.0;
 		for(int i = 0; i < sPatterns.size(); ++i)
 		{
+//			std::cout << "\t" << sPatterns[i].tostring(cci->classDecoder) << "\tw:" << sPatternWeights[i] << "\tp:" << sPatternProbs[i] << std::endl;
 			probSum += (sPatternWeights[i] * sPatternProbs[i]);
 		}
 
