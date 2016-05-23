@@ -82,7 +82,6 @@ int main(int argc, char** argv) {
 
 	for(auto kv : lm.p) { // p = p_
 
-
 		std::string p_to_string = kv.first.tostring(cci.classDecoder);
 
 		if(p_to_string.size() == 0)
@@ -91,37 +90,7 @@ int main(int argc, char** argv) {
 			c_size = std::count( p_to_string.begin(), p_to_string.end(), ' ' ) + 1;
 
 		 std::vector<std::string> focus_words = kv.second.give_focus_words(&(cci.classDecoder));
-
 	}
-//
-//
-//		if(c_size == _only_context_size)
-//		{
-//
-//			int num_tables = kv.second.num_tables();
-//			//total_num_tables += num_tables;
-//			int num_customers = kv.second.num_customers();
-//			//total_num_customers += num_customers;
-//
-//
-//			p2bo(((c_size ? (p_to_string + " ") : "")) + "\t" + std::to_string(num_customers) + "\n", _ngram_output);
-//		}
-//
-///*        if(c_size == _only_context_size)
-//		{
-//			int num_tables = kv.second.num_tables();
-//			//total_num_tables += num_tables;
-//			int num_customers = kv.second.num_customers();
-//			//total_num_customers += num_customers;
-//			 for(auto s : focus_words)
-//			 {
-//				p2bo(((c_size ? (p_to_string + " ") : "") + s) + "\n", _ngram_output);
-//				//p2bo(((c_size ? (p_to_string + " ") : "") + s) + "\t" + std::to_string(num_customers) + "\n", _ngram_output);
-//			 }
-//		}
-//*/
-//	}
-
 }
 
 
