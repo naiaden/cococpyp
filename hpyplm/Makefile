@@ -4,6 +4,12 @@ COCO_INCLUDE=/home/lonrust/Software/colibri-core/include
 BOOST_INCLUDE=/usr/include/boost
 BOOST_SERIALIZATION=$(BOOST_ROOT)/lib/libboost_serialization.a
 
+
+
+hpyplm_analysis4: hpyplm_analysis.cc
+	$(CXX) -std=c++11 -DkORDER='4' -g -O3 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
+
+
 hpyplm_train3: hpyplm_train.cc
 	$(CXX) -std=c++11 -DkORDER='3' -g -O3 -I.. $< -o $@ -lcolibricore -lboost_filesystem -lboost_system -I$(COCO_INCLUDE) -lboost_serialization -lbz2
 

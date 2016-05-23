@@ -266,10 +266,19 @@ class EntropyCounts : public ContextValues
 	{
 		std::unordered_map<Pattern, double>::const_iterator iter = entropyCounts.find(pattern);
 
+
+
 		  if ( iter != entropyCounts.end() )
-		    return 1.0/iter->second;
+		  {
+			  std::cout << "\t\t|| Getting Entropy value for \"" << pattern.tostring(cci->classDecoder) << "\"\t" << iter->second << std::endl;
+			  return 1.0/iter->second;
+		  }
 		  else
-		    return 1.0;//iter->second;
+		  {
+			  std::cout << "\t\t|| Getting Entropy value for unexisting \"" << pattern.tostring(cci->classDecoder) << "\"\t" << 1.0 << std::endl;
+			  return 1.0;//iter->second;
+		  }
+
 	}
 
 

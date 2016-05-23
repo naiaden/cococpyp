@@ -187,6 +187,8 @@ int main(int argc, char** argv) {
 //    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
 //    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
 //    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &uniformCounts));
+//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
+    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
     
     for(std::string inputFileName : po.testInputFiles)                          // files
     {
