@@ -289,6 +289,7 @@ class EntropyCounts : public ContextValues
 		double llh = 0;
 		long int sum = 0;
 
+		std::vector<long int> added_patterns;
 		for(int n = 1; n <= kORDER; ++n)
 		{
 			PatternSet<uint64_t> allPatterns = cci.trainPatternModel.extractset(n,n);
@@ -305,7 +306,7 @@ class EntropyCounts : public ContextValues
 
 			//
 
-			std::vector<long int> added_patterns;
+
 			for(auto pattern: ordered_patterns)
 			{
 				Pattern prefix = pattern.size() == 1 ? Pattern() : Pattern(pattern, 0, n-1);

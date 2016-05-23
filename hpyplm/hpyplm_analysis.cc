@@ -48,15 +48,10 @@ int main(int argc, char** argv) {
     PatternModelOptions pmo = DefaultPatternModelOptions(false, kORDER).patternModelOptions;
     std::cout << "Loaded PMO" << std::endl;
 
-//    AnalysisCoCoInitialiser cci(po, pmo, true);
-//    std::cout << "Loaded CCI" << std::endl;
-
-
     std::string moutputFile(po.generalBaseOutputName + ".output");
     my_ostream mout(moutputFile);
 
     mout << "Initialisation done at " << std::chrono::system_clock::now() << std::endl;
-
 
     std::ifstream ifs(po.trainSerialisedFileName, std::ios::binary);
     if(!ifs.good()) {
@@ -70,63 +65,18 @@ int main(int argc, char** argv) {
 
 /////////////////////////////////////////////////
 
-//    PatternSet<uint64_t> allWords = cci.trainPatternModel.extractset(1,1);
-//    mout << "Extracted all words" << std::endl;
-//
-//    mout << "Preparation done at " << std::chrono::system_clock::now() << std::endl;
-
     long int total_num_tables = 0;
     long int total_num_customers = 0;
 
     int c_size = 0;
 
     for(auto kv : lm.p) { // p = p_
-/*
-            std::string p_to_string = kv.first.tostring(cci.classDecoder);
-
-            if(p_to_string.size() == 0)
-                    c_size = 0;
-            else
-                    c_size = std::count( p_to_string.begin(), p_to_string.end(), ' ' ) + 1;
-
-             std::vector<std::string> focus_words = kv.second.give_focus_words(&(cci.classDecoder));
-*/
-        
         total_num_tables += kv.second.num_tables();
         total_num_customers += kv.second.num_customers();
     }
 
     std::cout << "tables: " << total_num_tables << std::endl;
     std::cout << "customers: " << total_num_customers << std::endl;
-//
-//
-//		if(c_size == _only_context_size)
-//		{
-//
-//			int num_tables = kv.second.num_tables();
-//			//total_num_tables += num_tables;
-//			int num_customers = kv.second.num_customers();
-//			//total_num_customers += num_customers;
-//
-//
-//			p2bo(((c_size ? (p_to_string + " ") : "")) + "\t" + std::to_string(num_customers) + "\n", _ngram_output);
-//		}
-//
-///*        if(c_size == _only_context_size)
-//		{
-//			int num_tables = kv.second.num_tables();
-//			//total_num_tables += num_tables;
-//			int num_customers = kv.second.num_customers();
-//			//total_num_customers += num_customers;
-//			 for(auto s : focus_words)
-//			 {
-//				p2bo(((c_size ? (p_to_string + " ") : "") + s) + "\n", _ngram_output);
-//				//p2bo(((c_size ? (p_to_string + " ") : "") + s) + "\t" + std::to_string(num_customers) + "\n", _ngram_output);
-//			 }
-//		}
-//*/
-//	}
-
 }
 
 
