@@ -34,16 +34,27 @@ template<> struct PYPLM<0> : public UniformVocabulary {
 	}
 };
 
-std::vector<Pattern> generateSkips(const Pattern& p) {
+std::vector<Pattern> generateSkips(const Pattern& p, ClassDecoder* classDecoder = nullptr) {
     std::vector<Pattern> skip_patterns = std::vector<Pattern>();
+
+    if(classDecoder)
+    {
+    	std::cout << "Generating skips for " << p.tostring(*classDecoder) << std::endl;
+    }
 
     if(p.size() > 1) 
     {
         for(int i = 1; i < p.size(); ++i) 
         {
             Pattern q = p.addskip(std::pair<int, int>(i,1));
+
             if(q!=p) 
             {
+            	if(classDecoder)
+				{
+					std::cout << "\t->" << q.tostring(*classDecoder) << std::endl;
+				}
+
                 skip_patterns.push_back(q);
             }
         }
@@ -92,12 +103,22 @@ template<unsigned N> struct PYPLM {
 
 	double probFull(const Pattern& w, const Pattern& context,
 				ContextCounts* contextCounts, ContextValues* contextValues,
-				CoCoInitialiser * const cci = nullptr) const
+				CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 		{
+
+
 			Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
+
+			std::cout << indent << "[" << N << "] w: " << w.tostring(cci->classDecoder) << std::endl;
+			std::cout << indent << "[" << N << "] context: " << context.tostring(cci->classDecoder) << std::endl;
+			std::cout << indent << "[" << N << "] pContext: " << pContext.tostring(cci->classDecoder) << std::endl;
+
+
+
 			std::vector<Pattern> sPatterns;
 			if(N!=kORDER)
-				sPatterns = generateSkips(context);
+//				sPatterns = generateSkips(context, &(cci->classDecoder));
+			sPatterns = generateSkips(context);
 			if(N==1 && context.size()==1)
 			{
 				sPatterns.push_back(context);
@@ -107,46 +128,46 @@ template<unsigned N> struct PYPLM {
 			}
 
 			std::vector<double> sPatternProbs;
-			for(const Pattern& pattern : sPatterns)
+			std::vector<double> sPatternWeights;
+			double sPatternWeightSum = 0.0;
+			double probSum = 0.0;
+
+			for(const Pattern& sPattern : sPatterns)
 			{
-				double bla = backoff.probFull(w, pattern, contextCounts, contextValues, cci);
-				if(isnan(bla))
-					bla = 0.00000000001;
+
+				double weight = contextValues->get(sPattern, w, cci, indent);
+				sPatternWeights.push_back(weight);
+				sPatternWeightSum += weight;
+
+
+
+//				std::cout << "[" << N << "] smaller: " << sPattern.tostring(cci->classDecoder) << std::endl;
+				double bla = backoff.probFull(w, sPattern, contextCounts, contextValues, cci, indent + "\t");
 
 				Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
+
+				std::cout << indent << "[" << N << "]\t Looking for " << lookup.tostring(cci->classDecoder) << std::endl;
+
+				double probability = 0.0;
 				auto it = p.find(lookup);
 				if(it != p.end())
 				{
-					// invDelta = delta_{u_m}
-					const long int invDelta = contextCounts->V - contextCounts->get(lookup.reverse());
-
-					double boob = it->second.probLimited(w, bla, invDelta);
-					if(isnan(boob))
-						boob = 0.00000000001;
+					double boob = it->second.prob(w, bla);
 					sPatternProbs.push_back(boob);
+					probability = boob;
+					std::cout << indent << "[" << N << "\t BOOB " << boob << " with weight: " << weight << std::endl;
 				} else
 				{
 					sPatternProbs.push_back(bla);
+					probability = bla;
+					std::cout << indent << "[" << N << "\t BLA " << bla << " with weight: " << weight << std::endl;
 				}
-			}
 
-			std::vector<double> sPatternWeights;
-			double sPatternWeightSum = 0.0;
-
-			for(const Pattern& pattern : sPatterns)
-			{
-				double weight = contextValues->get(pattern, w, cci);
-				sPatternWeights.push_back(weight);
-				sPatternWeightSum += weight;
-			}
-
-			double probSum = 0.0;
-			for(int i = 0; i < sPatterns.size(); ++i)
-			{
-				probSum += (sPatternWeights[i] * sPatternProbs[i]);
+				probSum += (weight * probability);
 			}
 
 			return probSum/sPatternWeightSum;
+
 		}
 
 	double probLimited(const Pattern& w, const Pattern& context,

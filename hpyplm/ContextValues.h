@@ -15,7 +15,7 @@
 class ContextValues
 {
 public:
-	virtual double get(const Pattern& pattern, const Pattern& w,CoCoInitialiser * const cci = nullptr) const = 0;
+	virtual double get(const Pattern& pattern, const Pattern& w,CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const = 0;
 	virtual std::string name() const = 0;
 };
 
@@ -108,7 +108,7 @@ public:
 	{
 	}
 
-	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr) const
+	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 	{
 		return 1.0;
 	}
@@ -211,7 +211,7 @@ public:
 		}
 	}
 
-	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr) const
+	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 	{
 
 
@@ -249,6 +249,7 @@ class EntropyCounts : public ContextValues
 
 	std::unordered_map<Pattern, double> entropyCounts;
 
+	double emptyEntropy = 0.0;
 	long int V = 0;
 
 	EntropyCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts = nullptr)
@@ -258,25 +259,40 @@ class EntropyCounts : public ContextValues
 		{
 //			std::cout << "\"" << mc.first.tostring(cci.classDecoder) << "\"" << mc.second << std::endl;
 		}
+		emptyEntropy = get(Pattern(), Pattern());
 	}
 
 
 	// FIX
-	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr) const
+	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 	{
+		if(pattern == cci->classEncoder.buildpattern("{*}", false, false))
+					{
+						std::cout << indent << "{*} FOUND BUT MATCHING IT TO EMPTY PATTERN: " << emptyEntropy << std::endl;
+						return emptyEntropy;
+					}
+
 		std::unordered_map<Pattern, double>::const_iterator iter = entropyCounts.find(pattern);
 
 
 
 		  if ( iter != entropyCounts.end() )
 		  {
-			  std::cout << "\t\t|| Getting Entropy value for \"" << pattern.tostring(cci->classDecoder) << "\"\t" << iter->second << std::endl;
-			  return 1.0/iter->second;
+			  double rv = 1.0/(1.0-iter->second);
+
+			  if ( pattern == Pattern() )
+			  {
+				  std::cout << indent << "?? EMPTY PATTERN\t" << iter->second << "->" << rv << std::endl;
+			  } else
+			  {
+				  std::cout << indent << "!! Getting Entropy value for \"" << pattern.tostring(cci->classDecoder) << "\"\t" << iter->second << "->" << rv << std::endl;
+			  }
+			  return rv;//std::max(1.0/iter->second, CoCoInitialiser::epsilon);
 		  }
 		  else
 		  {
-			  std::cout << "\t\t|| Getting Entropy value for unexisting \"" << pattern.tostring(cci->classDecoder) << "\"\t" << 1.0 << std::endl;
-			  return 1.0;//iter->second;
+			  std::cout << indent << "|| Getting Entropy value for unexisting \"" << pattern.tostring(cci->classDecoder) << "\"\t" << emptyEntropy << std::endl;
+			  return emptyEntropy;//1.0;//iter->second;
 		  }
 
 	}
@@ -319,11 +335,15 @@ class EntropyCounts : public ContextValues
 						entropySum += mle * log(mle);
 					}
 
-//					std::cout << "\t\tFound " << added_patterns.size() << " elements"
-//							<< " for the prefix: " << previousPrefix.tostring(cci.classDecoder)
-//							<< " with sum: " << sum
-//							<< " resulting in entropy: " << -entropySum
-//							<<   std::endl;
+					std::string::size_type n = previousPrefix.tostring(cci.classDecoder).find("justify");
+					if(n != std::string::npos)
+					{
+						std::cout << "\t\tFound " << added_patterns.size() << " elements"
+								<< " for the prefix: " << previousPrefix.tostring(cci.classDecoder)
+								<< " with sum: " << sum
+								<< " resulting in entropy: " << -entropySum
+								<<   std::endl;
+					}
 
 					entropyCounts[previousPrefix] = -entropySum;
 

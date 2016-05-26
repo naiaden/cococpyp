@@ -262,6 +262,8 @@ public:
 		}
 	}
 
+
+
 	double log_likelihood() const {
 		return llh_;
 //    return log_likelihood(discount_, strength_);
