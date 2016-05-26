@@ -268,7 +268,7 @@ class EntropyCounts : public ContextValues
 	{
 		if(pattern == cci->classEncoder.buildpattern("{*}", false, false))
 					{
-						std::cout << indent << "{*} FOUND BUT MATCHING IT TO EMPTY PATTERN: " << emptyEntropy << std::endl;
+//						std::cout << indent << "{*} FOUND BUT MATCHING IT TO EMPTY PATTERN: " << emptyEntropy << std::endl;
 						return emptyEntropy;
 					}
 
@@ -282,16 +282,16 @@ class EntropyCounts : public ContextValues
 
 			  if ( pattern == Pattern() )
 			  {
-				  std::cout << indent << "?? EMPTY PATTERN\t" << iter->second << "->" << rv << std::endl;
+//				  std::cout << indent << "?? EMPTY PATTERN\t" << iter->second << "->" << rv << std::endl;
 			  } else
 			  {
-				  std::cout << indent << "!! Getting Entropy value for \"" << pattern.tostring(cci->classDecoder) << "\"\t" << iter->second << "->" << rv << std::endl;
+//				  std::cout << indent << "!! Getting Entropy value for \"" << pattern.tostring(cci->classDecoder) << "\"\t" << iter->second << "->" << rv << std::endl;
 			  }
 			  return rv;//std::max(1.0/iter->second, CoCoInitialiser::epsilon);
 		  }
 		  else
 		  {
-			  std::cout << indent << "|| Getting Entropy value for unexisting \"" << pattern.tostring(cci->classDecoder) << "\"\t" << emptyEntropy << std::endl;
+//			  std::cout << indent << "|| Getting Entropy value for unexisting \"" << pattern.tostring(cci->classDecoder) << "\"\t" << emptyEntropy << std::endl;
 			  return emptyEntropy;//1.0;//iter->second;
 		  }
 

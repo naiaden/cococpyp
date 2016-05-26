@@ -109,9 +109,9 @@ template<unsigned N> struct PYPLM {
 
 			Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
 
-			std::cout << indent << "[" << N << "] w: " << w.tostring(cci->classDecoder) << std::endl;
-			std::cout << indent << "[" << N << "] context: " << context.tostring(cci->classDecoder) << std::endl;
-			std::cout << indent << "[" << N << "] pContext: " << pContext.tostring(cci->classDecoder) << std::endl;
+//			std::cout << indent << "[" << N << "] w: " << w.tostring(cci->classDecoder) << std::endl;
+//			std::cout << indent << "[" << N << "] context: " << context.tostring(cci->classDecoder) << std::endl;
+//			std::cout << indent << "[" << N << "] pContext: " << pContext.tostring(cci->classDecoder) << std::endl;
 
 
 
@@ -141,12 +141,11 @@ template<unsigned N> struct PYPLM {
 
 
 
-//				std::cout << "[" << N << "] smaller: " << sPattern.tostring(cci->classDecoder) << std::endl;
 				double bla = backoff.probFull(w, sPattern, contextCounts, contextValues, cci, indent + "\t");
 
 				Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
 
-				std::cout << indent << "[" << N << "]\t Looking for " << lookup.tostring(cci->classDecoder) << std::endl;
+//				std::cout << indent << "[" << N << "]\t Looking for " << lookup.tostring(cci->classDecoder) << std::endl;
 
 				double probability = 0.0;
 				auto it = p.find(lookup);
@@ -155,12 +154,12 @@ template<unsigned N> struct PYPLM {
 					double boob = it->second.prob(w, bla);
 					sPatternProbs.push_back(boob);
 					probability = boob;
-					std::cout << indent << "[" << N << "\t BOOB " << boob << " with weight: " << weight << std::endl;
+//					std::cout << indent << "[" << N << "\t BOOB " << boob << " with weight: " << weight << std::endl;
 				} else
 				{
 					sPatternProbs.push_back(bla);
 					probability = bla;
-					std::cout << indent << "[" << N << "\t BLA " << bla << " with weight: " << weight << std::endl;
+//					std::cout << indent << "[" << N << "\t BLA " << bla << " with weight: " << weight << std::endl;
 				}
 
 				probSum += (weight * probability);
