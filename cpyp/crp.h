@@ -50,6 +50,7 @@ public:
 	}
 
 	void check_hyperparameters() {
+//		strength_ = 0.34;
 		if (discount_ < 0.0 || discount_ >= 1.0) {
 			std::cerr << "Bad discount: " << discount_ << std::endl;
 			abort();
@@ -238,6 +239,7 @@ public:
 	template<typename F>
 	F probLimited(const Dish& dish, const F& p0, const long int invDelta) const {
 		if (num_tables_ == 0)
+			std::cout << "SITUATION 1\tp0:" << p0 << std::endl;
 			return p0;
 		auto it = dish_locs_.find(dish);
 
@@ -245,6 +247,7 @@ public:
 		const F divisor = F(num_customers_ +  strength_);
 
 		if (it == dish_locs_.end()) {
+			std::cout << "SITUATION 1\tt:" << strength_ << " d:" << discount_ << " numTa:" << num_tables_ << " numCu:" << num_customers_  << " p0:" << p0 << std::endl;
 			const F r = F( num_tables_ * discount_ + strength_);
 			return F(r * p0 / divisor);
 		} else {
@@ -252,10 +255,13 @@ public:
 			const F pr = F(it->second.num_customers() - discount_ * it->second.num_tables());
 			if(invDelta > 0)
 			{
+				std::cout << "SITUATION 2\tt:" << strength_ << " d:" << discount_ << " numTa:" << num_tables_ << " numCu:" << num_customers_  << " p0:" << p0 << "s>numCu:" << it->second.num_customers() << "s>numTa:" << it->second.num_tables() << std::endl;
+
 				const F r = F( num_tables_ / invDelta * discount_ + strength_/invDelta);
 				return (pr + r * p0) / divisor;
 			} else
 			{
+				std::cout << "SITUATION 3\tt:" << strength_ << " d:" << discount_ << " numCu:" << num_customers_  << "s>numCu:" << it->second.num_customers() << "s>numTa:" << it->second.num_tables() << std::endl;
 				return (pr) / divisor;
 			}
 

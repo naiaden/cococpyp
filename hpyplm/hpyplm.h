@@ -113,8 +113,6 @@ template<unsigned N> struct PYPLM {
 //			std::cout << indent << "[" << N << "] context: " << context.tostring(cci->classDecoder) << std::endl;
 //			std::cout << indent << "[" << N << "] pContext: " << pContext.tostring(cci->classDecoder) << std::endl;
 
-
-
 			std::vector<Pattern> sPatterns;
 			if(N!=kORDER)
 //				sPatterns = generateSkips(context, &(cci->classDecoder));
@@ -144,6 +142,7 @@ template<unsigned N> struct PYPLM {
 				double bla = backoff.probFull(w, sPattern, contextCounts, contextValues, cci, indent + "\t");
 
 				Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
+				lookup = lookup.reverse();
 
 				std::cout << indent << "[" << N << "]\t Looking for " << lookup.tostring(cci->classDecoder) << std::endl;
 
@@ -151,16 +150,20 @@ template<unsigned N> struct PYPLM {
 				auto it = p.find(lookup);
 				if(it != p.end())
 				{
-					double boob = it->second.prob(w, bla);
-					sPatternProbs.push_back(boob);
+//					const long int invDelta = contextCounts->V - contextCounts->get(lookup.reverse());
+					const long int invDelta = contextCounts->V - contextCounts->get(lookup);
+					double boob = it->second.probLimited(w, bla, invDelta);
 					probability = boob;
-					std::cout << indent << "[" << N << "\t BOOB " << boob << " with weight: " << weight << std::endl;
+					std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
+					std::cout << indent << "[" << N << "]\t BOOB " << boob << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
 				} else
 				{
-					sPatternProbs.push_back(bla);
 					probability = bla;
-					std::cout << indent << "[" << N << "\t BLA " << bla << " with weight: " << weight << std::endl;
+					std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
+					std::cout << indent << "[" << N << "]\t BLA " << bla << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
 				}
+
+				sPatternProbs.push_back(probability);
 
 				probSum += (weight * probability);
 			}

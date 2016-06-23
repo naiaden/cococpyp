@@ -29,6 +29,8 @@ class PatternCounts
 public:
 	std::unordered_map<Pattern, long int> patternCounts;
 
+
+
 	void fromFile(SNCBWCoCoInitialiser& cci)
 	{
 		patternCounts[Pattern()] = 0;
@@ -267,10 +269,10 @@ class EntropyCounts : public ContextValues
 	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 	{
 		if(pattern == cci->classEncoder.buildpattern("{*}", false, false))
-					{
+		{
 //						std::cout << indent << "{*} FOUND BUT MATCHING IT TO EMPTY PATTERN: " << emptyEntropy << std::endl;
-						return emptyEntropy;
-					}
+			return emptyEntropy;
+		}
 
 		std::unordered_map<Pattern, double>::const_iterator iter = entropyCounts.find(pattern);
 
@@ -376,6 +378,7 @@ class ContextCounts
 public:
 	std::unordered_map<Pattern, long int> contextCounts;
 	long int V = 0;
+	Pattern oneSkipPattern = Pattern();
 
 	// The empty pattern can be followed by any word, so get(Pattern()) = V
 	//
@@ -412,6 +415,7 @@ public:
 			if(i == 1)
 			{
 				V = orderedPatterns.size();//get(Pattern());
+				oneSkipPattern = cci.classEncoder.buildpattern("{*}", allowUnknown, autoAddUnknown);
 			}
 
 
@@ -424,18 +428,26 @@ public:
 
 	long int get(const Pattern& pattern) const
 	{
+		if(pattern == Pattern())
+		  {
+			 return V;
+		  }
+
+		if(pattern == oneSkipPattern)
+		  {
+			 return V;
+		  }
+
 		std::unordered_map<Pattern,long int>::const_iterator iter = contextCounts.find(pattern);
 
 		  if ( iter == contextCounts.end() )
 		  {
 		    return 0;
-		  } else if(pattern == Pattern())
-		  {
-			 return V;
 		  } else
 		  {
 		    return iter->second;
 		  }
+
 	}
 
 	void fromData(SNCBWCoCoInitialiser& cci)

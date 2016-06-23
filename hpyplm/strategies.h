@@ -215,7 +215,7 @@ public:
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
 //        	std::cout << "+++ Processing [" << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
-            lp = log(lm.prob(focus, context, &cci));
+            lp = log2(lm.prob(focus, context, &cci));
             fS = focus.tostring(cci.classDecoder);
 //            std::cout << "--- logprob = " << lp << std::endl;
         } else // oov
@@ -231,6 +231,8 @@ public:
 
         fLLH -= lp;
         ++fCount;
+
+
 
         return lp;
     }
@@ -280,7 +282,7 @@ public:
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-            lp = log(lm.probFull(focus, context, contextCounts, contextValues, &cci));
+            lp = log2(lm.probFull(focus, context, contextCounts, contextValues, &cci));
             fS = focus.tostring(cci.classDecoder);
         } else // oov
         {
@@ -296,6 +298,13 @@ public:
 
         fLLH -= lp;
         ++fCount;
+
+        double lwhatever = (-fLLH * log(2)) / log(10);
+        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
+        if(!std::isnormal(lwhatever))
+        {
+        	exit( 8);
+        }
 
         return lp;
     }
