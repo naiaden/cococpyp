@@ -239,7 +239,7 @@ public:
 	template<typename F>
 	F probLimited(const Dish& dish, const F& p0, const long int invDelta) const {
 		if (num_tables_ == 0)
-			std::cout << "SITUATION 1\tp0:" << p0 << std::endl;
+			std::cout << "SITUATION 1:\tp0:" << p0 << std::endl;
 			return p0;
 		auto it = dish_locs_.find(dish);
 
