@@ -115,8 +115,8 @@ template<unsigned N> struct PYPLM {
 
 			std::vector<Pattern> sPatterns;
 			if(N!=kORDER)
-//				sPatterns = generateSkips(context, &(cci->classDecoder));
-			sPatterns = generateSkips(context);
+				sPatterns = generateSkips(context, &(cci->classDecoder));
+//			sPatterns = generateSkips(context);
 			if(N==1 && context.size()==1)
 			{
 				sPatterns.push_back(context);

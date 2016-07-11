@@ -224,6 +224,7 @@ public:
 
 	template<typename F>
 	F prob(const Dish& dish, const F& p0) const {
+		std::cout << "HUH" << std::endl;
 		if (num_tables_ == 0)
 			return p0;
 		auto it = dish_locs_.find(dish);
@@ -238,9 +239,12 @@ public:
 
 	template<typename F>
 	F probLimited(const Dish& dish, const F& p0, const long int invDelta) const {
+//		std::cout << "WAT WAT WAT" << std::endl;
 		if (num_tables_ == 0)
+		{
 			std::cout << "SITUATION 1:\tp0:" << p0 << std::endl;
 			return p0;
+		}
 		auto it = dish_locs_.find(dish);
 
 //		std::cout
