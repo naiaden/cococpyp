@@ -280,7 +280,8 @@ class EntropyCounts : public ContextValues
 
 		  if ( iter != entropyCounts.end() )
 		  {
-			  double rv = 1.0/(1.0-iter->second);
+//			  double rv = 1.0/(1.0-iter->second);
+			  double rv = std::abs(1.0/(1.0-iter->second)-2);
 
 			  if ( pattern == Pattern() )
 			  {
