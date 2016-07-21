@@ -48,14 +48,16 @@ std::vector<Pattern> generateSkips(const Pattern& p, ClassDecoder* classDecoder 
         {
             Pattern q = p.addskip(std::pair<int, int>(i,1));
 
-            if(q!=p) 
+            if(q!=p)
             {
             	if(classDecoder)
 				{
 					std::cout << "\t->" << q.tostring(*classDecoder) << std::endl;
+					if(q.isgap(0))
+						std::cout << "ASDASDASDASD GAAAAP" << std::endl;
 				}
 
-                skip_patterns.push_back(q);
+          		skip_patterns.push_back(q);
             }
         }
     }
@@ -105,25 +107,54 @@ template<unsigned N> struct PYPLM {
 				ContextCounts* contextCounts, ContextValues* contextValues,
 				CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 		{
+			bool debug = false;
 
-
+//			Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
 			Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
 
 //			std::cout << indent << "[" << N << "] w: " << w.tostring(cci->classDecoder) << std::endl;
 //			std::cout << indent << "[" << N << "] context: " << context.tostring(cci->classDecoder) << std::endl;
 //			std::cout << indent << "[" << N << "] pContext: " << pContext.tostring(cci->classDecoder) << std::endl;
 
+
+
+
 			std::vector<Pattern> sPatterns;
-			if(N!=kORDER)
-//				sPatterns = generateSkips(context, &(cci->classDecoder));
-			sPatterns = generateSkips(context);
-			if(N==1 && context.size()==1)
+
+
+
+			if(N == kORDER)
 			{
 				sPatterns.push_back(context);
 			} else
 			{
+				sPatterns = generateSkips(context);
 				sPatterns.push_back(pContext);
 			}
+
+//			if(N!=kORDER)
+//			{
+//				sPatterns = generateSkips(context, &(cci->classDecoder));
+//				sPatterns = generateSkips(context);
+//			}
+//			if(N==1 && context.size()==1)
+//			{
+//				sPatterns.push_back(context);
+//				std::cout << indent << "[" << N << "] context: " << context.tostring(cci->classDecoder) << std::endl;
+//			} else
+//			{
+//				sPatterns.push_back(pContext);
+//				std::cout << indent << "[" << N << "] pContext: " << pContext.tostring(cci->classDecoder) << std::endl;
+//			}
+
+//			sPatterns.push_back(pContext);
+//			std::cout << indent << "[" << N << "] pContext: " << pContext.tostring(cci->classDecoder) << std::endl;
+//			sPatterns.push_back(context);
+//			std::cout << indent << "[" << N << "] context: " << context.tostring(cci->classDecoder) << std::endl;
+
+
+
+
 
 			std::vector<double> sPatternProbs;
 			std::vector<double> sPatternWeights;
@@ -132,6 +163,8 @@ template<unsigned N> struct PYPLM {
 
 			for(const Pattern& sPattern : sPatterns)
 			{
+//				std::cout << indent << "[" << N << "] -ontext: " << sPattern.tostring(cci->classDecoder) << std::endl;
+
 
 				double weight = contextValues->get(sPattern, w, cci, indent);
 				sPatternWeights.push_back(weight);
@@ -154,13 +187,19 @@ template<unsigned N> struct PYPLM {
 					const long int invDelta = contextCounts->V - contextCounts->get(lookup);
 					double boob = it->second.probLimited(w, bla, invDelta);
 					probability = boob;
-					std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
-					std::cout << indent << "[" << N << "]\t BOOB " << boob << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
+					if(debug)
+					{
+						std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
+						std::cout << indent << "[" << N << "]\t BOOB " << boob << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
+					}
 				} else
 				{
 					probability = bla;
-					std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
-					std::cout << indent << "[" << N << "]\t BLA " << bla << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
+					if(debug)
+					{
+						std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
+						std::cout << indent << "[" << N << "]\t BLA " << bla << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
+					}
 				}
 
 				sPatternProbs.push_back(probability);

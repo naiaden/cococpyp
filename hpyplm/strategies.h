@@ -290,8 +290,8 @@ public:
             probsFile << "***";
         }
 
-        std::cout << "\np(" << fS << " |"
-//        probsFile << "p(" << fS << " |"
+//        std::cout << "\np(" << fS << " |"
+        probsFile << "p(" << fS << " |"
                   << context.tostring(cci.classDecoder) << ") = "
                   << std::fixed << std::setprecision(20) << lp 
                   << std::endl;
@@ -300,7 +300,7 @@ public:
         ++fCount;
 
         double lwhatever = (-fLLH * log(2)) / log(10);
-        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
+//        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
         if(!std::isnormal(lwhatever))
         {
         	exit( 8);

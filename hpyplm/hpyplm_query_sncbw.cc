@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
     mout << "Preparation done at " << std::chrono::system_clock::now() << std::endl;
 
 
-    QueryTimeStatsPrinter tsp(&mout); 
+    QueryTimeStatsPrinter tsp(&mout);
     tsp.start();
 
     ContextCounts contextCounts;
@@ -103,6 +103,8 @@ int main(int argc, char** argv) {
 //    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &entropyCounts));
     backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
     
+    std::cout << std::endl;
+
     for(std::string inputFileName : po.testInputFiles)                          // files
     {
         std::cout << "> " << inputFileName << std::endl;
@@ -139,16 +141,12 @@ int main(int argc, char** argv) {
                     {
                         focusString = words[i];
                     }
-//                    std::cout << (!focusString.empty() ? "OOOOOOOOOOOOOOOOOOOOOOOOOV": "") << std::endl;
-                    tsp.printTimeStats(!focusString.empty());
-//                    std::cout << "[" << words[i] << "-" << focus.tostring(cci.classDecoder)
-//                              << " " << contextStream.str() << "-" << context.tostring(cci.classDecoder)
-//                              << "] --> " << focusString << std::endl;
+//                    tsp.printTimeStats(!focusString.empty());
                     backoffStrategies.prob(focus, context, focusString);
                }
             }
         }
-        tsp.done();
+//        tsp.done();
         backoffStrategies.printFileResults();
     }
     backoffStrategies.done();
