@@ -243,7 +243,6 @@ public:
 			return p0;
 		auto it = dish_locs_.find(dish);
 
-//		std::cout
 		const F divisor = F(num_customers_ +  strength_);
 
 		if (it == dish_locs_.end()) {

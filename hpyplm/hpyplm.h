@@ -144,7 +144,7 @@ template<unsigned N> struct PYPLM {
 				Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
 				lookup = lookup.reverse();
 
-				std::cout << indent << "[" << N << "]\t Looking for " << lookup.tostring(cci->classDecoder) << std::endl;
+//				std::cout << indent << "[" << N << "]\t Looking for " << lookup.tostring(cci->classDecoder) << std::endl;
 
 				double probability = 0.0;
 				auto it = p.find(lookup);
