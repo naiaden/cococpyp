@@ -338,15 +338,15 @@ class EntropyCounts : public ContextValues
 						entropySum += mle * log(mle);
 					}
 
-					std::string::size_type n = previousPrefix.tostring(cci.classDecoder).find("justify");
-					if(n != std::string::npos)
-					{
-						std::cout << "\t\tFound " << added_patterns.size() << " elements"
-								<< " for the prefix: " << previousPrefix.tostring(cci.classDecoder)
-								<< " with sum: " << sum
-								<< " resulting in entropy: " << -entropySum
-								<<   std::endl;
-					}
+//					std::string::size_type n = previousPrefix.tostring(cci.classDecoder).find("justify");
+//					if(n != std::string::npos)
+//					{
+//						std::cout << "\t\tFound " << added_patterns.size() << " elements"
+//								<< " for the prefix: " << previousPrefix.tostring(cci.classDecoder)
+//								<< " with sum: " << sum
+//								<< " resulting in entropy: " << -entropySum
+//								<<   std::endl;
+//					}
 
 					entropyCounts[previousPrefix] = -entropySum;
 
