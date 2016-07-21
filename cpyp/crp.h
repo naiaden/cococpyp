@@ -224,7 +224,7 @@ public:
 
 	template<typename F>
 	F prob(const Dish& dish, const F& p0) const {
-		std::cout << "HUH" << std::endl;
+//		std::cout << "HUH" << std::endl;
 		if (num_tables_ == 0)
 			return p0;
 		auto it = dish_locs_.find(dish);

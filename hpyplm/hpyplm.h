@@ -107,7 +107,7 @@ template<unsigned N> struct PYPLM {
 				ContextCounts* contextCounts, ContextValues* contextValues,
 				CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 		{
-			bool debug = true;
+			bool debug = false;
 
 //			Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
 			Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
@@ -163,7 +163,7 @@ template<unsigned N> struct PYPLM {
 
 			for(const Pattern& sPattern : sPatterns)
 			{
-				std::cout << indent << "[" << N << "] -ontext: " << sPattern.tostring(cci->classDecoder) << std::endl;
+//				std::cout << indent << "[" << N << "] -ontext: " << sPattern.tostring(cci->classDecoder) << std::endl;
 
 
 				double weight = contextValues->get(sPattern, w, cci, indent);
