@@ -11,6 +11,7 @@
 
 #include "CoCoInitialiser.h"
 #include "utils.h"
+#include "common.h"
 
 class ContextValues
 {
@@ -57,25 +58,34 @@ public:
 				std::getline(linestream, patternCountString, '\t');
 				patternCount = std::stol(patternCountString);
 
-				Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+				try {
+					Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
 
-				patternCounts[pattern] = patternCount;
-				// skipgram
+					patternCounts[pattern] = patternCount;
+					// skipgram
 
-				Pattern smallerPattern = (i==1) ? Pattern() : Pattern(pattern, 0, i-1);
-				Pattern skipPattern = smallerPattern + cci.classEncoder.buildpattern("{*}", allowUnknown, autoAddUnknown);
-				auto it = patternCounts.find(skipPattern);
-				if(it != patternCounts.end())
-				{
-//					std::cout << "\n" << skipPattern.tostring(cci.classDecoder) << std::endl;
-//				    std::cout << "ASDASD " << it->second << std::endl;
-					it->second += patternCount;
-//					std::cout << "DSADSA " << patternCounts[skipPattern] << std::endl;
+					Pattern smallerPattern = (i==1) ? Pattern() : Pattern(pattern, 0, i-1);
+					Pattern skipPattern = smallerPattern + cci.classEncoder.buildpattern("{*}", allowUnknown, autoAddUnknown);
+					auto it = patternCounts.find(skipPattern);
+					if(it != patternCounts.end())
+					{
+	//					std::cout << "\n" << skipPattern.tostring(cci.classDecoder) << std::endl;
+	//				    std::cout << "ASDASD " << it->second << std::endl;
+						it->second += patternCount;
+	//					std::cout << "DSADSA " << patternCounts[skipPattern] << std::endl;
+					}
+					else
+					{
+						patternCounts[skipPattern] = patternCount;
+					}
+
+				} catch (const UnknownTokenError &e) {
+					//
 				}
-				else
-				{
-					patternCounts[skipPattern] = patternCount;
-				}
+
+//				Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+
+
 
 			}
 		}
@@ -391,10 +401,11 @@ public:
 			std::ifstream file(spo->countFilesBase + "." + std::to_string(i));
 			std::string   line;
 
-			std::set<Pattern, PatternComp> orderedPatterns;
+			std::set<Pattern> orderedPatterns;
 
 			const bool allowUnknown = false;
 			const bool autoAddUnknown = false;
+
 
 			while(std::getline(file, line))
 			{
@@ -404,10 +415,23 @@ public:
 
 				std::getline(linestream, patternString, '\t');
 
-				Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
-	//		    std::cout << fileName << "\tP:" << pattern.tostring(cci.classDecoder) << std::endl;
+//				Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+			    //std::cout << "P:" << pattern.tostring(cci.classDecoder) << "(" << pattern.unknown() << ")" << std::endl;
 
-				orderedPatterns.insert(pattern);
+
+				try {
+					Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+					orderedPatterns.insert(pattern);
+//					std::cout << "+P:" << pattern.tostring(cci.classDecoder) << std::endl;
+				} catch (const UnknownTokenError &e) {
+//					std::cout << "-P:" << patternString << std::endl;
+				}
+
+
+
+
+//			    if(!pattern.unknown())
+//			    	orderedPatterns.insert(pattern);
 			}
 			std::cout << "Done ordering the set" << std::endl;
 
@@ -458,7 +482,7 @@ public:
 			PatternSet<uint64_t> allPatterns = cci.trainPatternModel.extractset(n,n);
 			std::cout << "Done extracting set for " << n << std::endl;
 
-			std::set<Pattern, PatternComp> orderedPatterns;
+			std::set<Pattern> orderedPatterns;
 
 			for(auto pattern : allPatterns)
 			{
@@ -472,7 +496,7 @@ public:
 		V = get(Pattern());
 	}
 
-	void count(const std::set<Pattern, PatternComp>& orderedPatterns)
+	void count(const std::set<Pattern>& orderedPatterns)
 	{
 		Pattern previousPrefix = Pattern();
 		int wordsPerContext = 0 ;
