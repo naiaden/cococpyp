@@ -207,7 +207,7 @@ struct TrainCoCoInitialiser : public CoCoInitialiser
                 std::cout << "CCI: Load existing model to extend from " << _tpo.extendModel << std::endl;
                 trainPatternModel.load(_tpo.extendModel, _pmo);
                 std::cout << "CCI: Train the extended model from " << _tpo.clo.loadTrainCorpus << std::endl;
-                trainPatternModel.train(_tpo.clo.loadTrainCorpus, _pmo, nullptr, true, 1, true);
+                trainPatternModel.train(_tpo.clo.loadTrainCorpus, _pmo, nullptr, nullptr, true, 1, true);
                 std::cout << "CCI: Write extended pattern model to " << _tpo.generalBasePatternModelFileName << std::endl;
                 trainPatternModel.write(_tpo.generalBasePatternModelFileName);
             } else

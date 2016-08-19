@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
     EntropyCounts entropyCounts(cci, &patternCounts);
     UniformCounts uniformCounts(cci);
 
-
+/*
 
     BackoffStrategies backoffStrategies;
     backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
@@ -137,7 +137,8 @@ int main(int argc, char** argv) {
 
                     double lp = 0.0;
                     std::string focusString = "";
-                    if(/*focus.size() > 0 &&*/ !allWords.has(focus)) // empty if oov
+                    //if(focus.size() > 0 && )
+					if(!allWords.has(focus)) // empty if oov
                     {
                         focusString = words[i];
                     }
@@ -153,7 +154,7 @@ int main(int argc, char** argv) {
     std::cout << "\n\n" << std::endl;
     backoffStrategies.printResults();
     
-
+*/
 }
 
 
