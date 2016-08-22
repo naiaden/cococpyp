@@ -350,33 +350,38 @@ public:
     }
 
     double prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
-    {
-        double lp = 0.0;
-        std::string fS = focusString;
-
-        if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-//        	std::cout << "\n+++ Processing [" << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
-            lp = log(lm.probLimited(focus, context, patternCounts, contextCounts, contextValues, &cci));
-            fS = focus.tostring(cci.classDecoder);
-//            std::cout << "--- logprob = " << lp << std::endl;
+            double lp = 0.0;
+            std::string fS = focusString;
 
-        } else // oov
-        {
-            ++fOOVs;
-            probsFile << "***";
+            if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
+            {
+                lp = log2(lm.probLimited(focus, context, patternCounts, contextCounts, contextValues, &cci));
+                fS = focus.tostring(cci.classDecoder);
+            } else // oov
+            {
+                ++fOOVs;
+                probsFile << "***";
+            }
+
+    //        std::cout << "\np(" << fS << " |"
+            probsFile << "p(" << fS << " |"
+                      << context.tostring(cci.classDecoder) << ") = "
+                      << std::fixed << std::setprecision(20) << lp
+                      << std::endl;
+
+            fLLH -= lp;
+            ++fCount;
+
+            double lwhatever = (-fLLH * log(2)) / log(10);
+    //        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
+            if(!std::isnormal(lwhatever))
+            {
+            	exit( 8);
+            }
+
+            return lp;
         }
-
-        probsFile << "p(" << fS << " |"
-                  << context.tostring(cci.classDecoder) << ") = "
-                  << std::fixed << std::setprecision(20) << lp 
-                  << std::endl;
-
-        fLLH -= lp;
-        ++fCount;
-
-        return lp;
-    }
 };
 
 #endif

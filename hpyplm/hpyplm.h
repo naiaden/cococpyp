@@ -184,7 +184,7 @@ template<unsigned N> struct PYPLM {
 				if(it != p.end())
 				{
 //					const long int invDelta = contextCounts->V - contextCounts->get(lookup.reverse());
-					const long int invDelta = contextCounts->V - contextCounts->get(lookup);
+					const long int invDelta = contextCounts->V - contextCounts->get(lookup); // MOET DIT GEEN CONSTANTE ZIJN?
 					double boob = it->second.probLimited(w, bla, invDelta);
 					probability = boob;
 					if(debug)
@@ -211,73 +211,80 @@ template<unsigned N> struct PYPLM {
 
 		}
 
-	double probLimited(const Pattern& w, const Pattern& context,
-			PatternCounts* patternCounts, ContextCounts* contextCounts, ContextValues* contextValues,
-			CoCoInitialiser * const cci = nullptr) const
-	{
-		Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
-		std::vector<Pattern> sPatterns;
-		if(N!=kORDER)
-			sPatterns = generateSkips(context);
-		if(N==1 && context.size()==1)
-		{
-			sPatterns.push_back(context);
-		} else
-		{
-			sPatterns.push_back(pContext);
-		}
-
-		std::vector<double> sPatternProbs;
-		for(const Pattern& pattern : sPatterns)
-		{
-			bool recursive = patternCounts->get(pattern + w) > 0 ? false : true;
-
-			double bla = 0.0;
-			if(recursive)
+	double probLimited(const Pattern& w, const Pattern& context, PatternCounts* patternCounts,
+					ContextCounts* contextCounts, ContextValues* contextValues,
+					CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 			{
-				// don't do this if you don't want to do the recursive thingy
-				bla = backoff.probLimited(w, pattern, patternCounts, contextCounts, contextValues, cci);
-				if(isnan(bla))
-					bla = CoCoInitialiser::epsilon;
+				bool debug = false;
+
+				Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
+
+				std::vector<Pattern> sPatterns;
+
+				if(N == kORDER)
+				{
+					sPatterns.push_back(context);
+				} else
+				{
+					sPatterns = generateSkips(context);
+					sPatterns.push_back(pContext);
+				}
+
+				std::vector<double> sPatternProbs;
+				std::vector<double> sPatternWeights;
+				double sPatternWeightSum = 0.0;
+				double probSum = 0.0;
+
+				for(const Pattern& sPattern : sPatterns)
+				{
+					bool recursive = patternCounts->get(sPattern + w) > 0 ? false : true;
+
+					double bla = 0.5; // ??
+					if(recursive)
+					{
+						bla = backoff.probLimited(w, sPattern, contextCounts, contextValues, cci, indent + "\t");
+					}
+
+
+					double weight = contextValues->get(sPattern, w, cci, indent);
+					sPatternWeights.push_back(weight);
+					sPatternWeightSum += weight;
+
+
+
+					Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
+					lookup = lookup.reverse();
+
+					double probability = 0.0;
+					auto it = p.find(lookup);
+					if(it != p.end())
+					{
+						const long int invDelta = contextCounts->V - contextCounts->get(lookup);
+						double boob = it->second.probLimited(w, bla, invDelta);
+						probability = boob;
+						if(debug)
+						{
+							std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
+							std::cout << indent << "[" << N << "]\t BOOB " << boob << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
+						}
+					} else
+					{
+						probability = bla;
+						if(debug)
+						{
+							std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
+							std::cout << indent << "[" << N << "]\t BLA " << bla << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
+						}
+					}
+
+					sPatternProbs.push_back(probability);
+
+					probSum += (weight * probability);
+				}
+
+				return probSum/sPatternWeightSum;
+
 			}
-
-			Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
-			auto it = p.find(lookup);
-			if(it != p.end())
-			{
-				// invDelta = delta_{u_m}
-				const long int invDelta = contextCounts->V - contextCounts->get(lookup.reverse());
-
-				// but only do this
-				double boob = it->second.probLimited(w, bla, invDelta);
-				if(isnan(boob))
-					boob = CoCoInitialiser::epsilon;
-				sPatternProbs.push_back(boob);
-			} else
-			{
-				sPatternProbs.push_back(bla);
-			}
-		}
-
-		std::vector<double> sPatternWeights;
-		double sPatternWeightSum = 0.0;
-
-		for(const Pattern& pattern : sPatterns)
-		{
-			double weight = contextValues->get(pattern, w, cci);
-			sPatternWeights.push_back(weight);
-			sPatternWeightSum += weight;
-		}
-
-		double probSum = 0.0;
-		for(int i = 0; i < sPatterns.size(); ++i)
-		{
-//			std::cout << "\t" << sPatterns[i].tostring(cci->classDecoder) << "\tw:" << sPatternWeights[i] << "\tp:" << sPatternProbs[i] << std::endl;
-			probSum += (sPatternWeights[i] * sPatternProbs[i]);
-		}
-
-		return probSum/sPatternWeightSum;
-	}
 
 	double prob(const Pattern& w, const Pattern& context, CoCoInitialiser * const cci = nullptr) const {
 

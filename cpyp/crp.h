@@ -241,7 +241,6 @@ public:
 	F probLimited(const Dish& dish, const F& p0, const long int invDelta) const {
 		bool debug = false;
 
-//		std::cout << "WAT WAT WAT" << std::endl;
 		if (num_tables_ == 0)
 		{
 			if(debug) std::cout << "SITUATION 1:\tp0:" << p0 << std::endl;
