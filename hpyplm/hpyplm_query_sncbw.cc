@@ -89,12 +89,12 @@ int main(int argc, char** argv) {
     EntropyCounts entropyCounts(cci, &patternCounts);
     UniformCounts uniformCounts(cci);
 
-/*
+
 
     BackoffStrategies backoffStrategies;
     backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
 
-//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
+    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
 //    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
 //
 //    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
@@ -112,6 +112,8 @@ int main(int argc, char** argv) {
         backoffStrategies.nextFile();
         tsp.nextFile();
         
+        std::cout << "  Next file" << std::endl;
+
         std::ifstream file(inputFileName);
         std::string retrievedString;
         while(std::getline(file, retrievedString))                              // lines
@@ -119,6 +121,7 @@ int main(int argc, char** argv) {
             backoffStrategies.nextLine();
             tsp.nextSentence();
             std::vector<std::string> words = split(retrievedString);
+            std::cout << "  Next line with " << words.size() << " words" << std::endl;
 
             if(words.size() >= po.n) // kORDER
             {
@@ -154,7 +157,7 @@ int main(int argc, char** argv) {
     std::cout << "\n\n" << std::endl;
     backoffStrategies.printResults();
     
-*/
+
 }
 
 
