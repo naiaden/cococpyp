@@ -19,7 +19,7 @@ struct UniformVocabulary {
   template<typename Engine>
   void decrement(const Pattern&, const Pattern&, Engine&, CoCoInitialiser * const) { --draws; assert(draws >= 0); }
   double prob(const Pattern& , const Pattern&, CoCoInitialiser * const cci) const { return p0; }
-  double probLimited(const Pattern&, const Pattern&, PatternCounts*, ContextCounts*, ContextValues*, CoCoInitialiser * const) const { return p0; }
+  double probLimited(const Pattern&, const Pattern&, PatternCounts*, ContextCounts*, ContextValues*, CoCoInitialiser * const, const std::string&) const { return p0; }
   double probFull(const Pattern&, const Pattern&, ContextCounts*, ContextValues*, CoCoInitialiser * const, const std::string&) const { return p0; }
   double glm_prob(const Pattern& , const Pattern&, const ClassDecoder *const) const { /*std::cout << "\t\t\tp(0) " << p0 << std::endl; */return p0; }
   template<typename Engine>

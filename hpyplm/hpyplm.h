@@ -242,7 +242,7 @@ template<unsigned N> struct PYPLM {
 					double bla = 0.5; // ??
 					if(recursive)
 					{
-						bla = backoff.probLimited(w, sPattern, contextCounts, contextValues, cci, indent + "\t");
+						bla = backoff.probLimited(w, sPattern, patternCounts, contextCounts, contextValues, cci, indent + "\t");
 					}
 
 
