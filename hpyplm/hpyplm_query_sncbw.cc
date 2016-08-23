@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
     EntropyCounts entropyCounts(cci, &patternCounts);
     UniformCounts uniformCounts(cci);
 
-/*
+
 
     BackoffStrategies backoffStrategies;
     backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
     std::cout << "\n\n" << std::endl;
     backoffStrategies.printResults();
     
-*/
+
 }
 
 
