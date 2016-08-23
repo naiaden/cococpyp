@@ -121,10 +121,11 @@ int main(int argc, char** argv) {
             backoffStrategies.nextLine();
             tsp.nextSentence();
             std::vector<std::string> words = split(retrievedString);
-            std::cout << "  Next line with " << words.size() << " words" << std::endl;
+            std::cout << "  Next line with " << words.size() << " words\n";
 
             if(words.size() >= po.n) // kORDER
             {
+            	std::cout << "  Working\n";
                for(int i = (kORDER - 1); i < words.size(); ++i)                 // ngrams
                {
                     std::stringstream contextStream;
@@ -138,6 +139,9 @@ int main(int argc, char** argv) {
                     Pattern context = cci.classEncoder.buildpattern(contextStream.str());
                     Pattern focus = cci.classEncoder.buildpattern(words[i]);
 
+                    std::cout << "  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
+
+
                     double lp = 0.0;
                     std::string focusString = "";
                     //if(focus.size() > 0 && )
@@ -145,8 +149,11 @@ int main(int argc, char** argv) {
                     {
                         focusString = words[i];
                     }
+
+
 //                    tsp.printTimeStats(!focusString.empty());
                     backoffStrategies.prob(focus, context, focusString);
+                    std::cout << "  calculated prob\n\n";
                }
             }
         }
