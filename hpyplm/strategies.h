@@ -6,6 +6,8 @@
 class BackoffStrategy
 {
 public:
+	bool debug = false;
+
     int files = 0;
     unsigned long lines = 0;
     double llh = 0.0;
@@ -194,6 +196,8 @@ public:
 
         mout = new my_ostream(outputFile);
         probsFile.open(outputProbabilitiesFileName);
+
+        debug = true;
     }
 
     ~NgramBackoffStrategy()
@@ -209,20 +213,24 @@ public:
         //                            << "] " << focusString
         //                            << std::endl;
 
+    	if(debug) std::cout << " Entering ngram backoff\n";
+
         double lp = 0.0;
         std::string fS = focusString;
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
-//        	std::cout << "+++ Processing [" << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
+        	if(debug) std::cout << "+++ Processing [" << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
             lp = log2(lm.prob(focus, context, &cci));
             fS = focus.tostring(cci.classDecoder);
-//            std::cout << "--- logprob = " << lp << std::endl;
+            if(debug) std::cout << "--- logprob = " << lp << std::endl;
         } else // oov
         {
             ++fOOVs;
             probsFile << "***";
         }
+
+        if(debug) std::cout << " writing to probs file\n";
 
         probsFile << "p(" << fS << " |"
                   << context.tostring(cci.classDecoder) << ") = "
