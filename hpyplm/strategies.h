@@ -230,17 +230,19 @@ public:
             probsFile << "***";
         }
 
-        if(debug) std::cout << " writing to probs file\n";
+        if(debug) std::cout << " writing to probs file...";
 
         probsFile << "p(" << fS << " |"
                   << context.tostring(cci.classDecoder) << ") = "
                   << std::fixed << std::setprecision(20) << lp 
                   << std::endl;
 
+
+
         fLLH -= lp;
         ++fCount;
 
-
+        if(debug) std::cout << " done\n";
 
         return lp;
     }
