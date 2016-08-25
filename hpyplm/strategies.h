@@ -277,6 +277,8 @@ public:
 
         mout = new my_ostream(outputFile);
         probsFile.open(outputProbabilitiesFileName);
+
+        debug = true;
     }
 
     ~FullBackoffStrategy()
@@ -287,18 +289,24 @@ public:
 
     double prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
     {
+    	if(debug) std::cout << " Entering full backoff\n";
+
         double lp = 0.0;
         std::string fS = focusString;
 
         if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
         {
+        	if(debug) std::cout << "+++ Processing [" << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
             lp = log2(lm.probFull(focus, context, contextCounts, contextValues, &cci));
             fS = focus.tostring(cci.classDecoder);
+            if(debug) std::cout << "--- logprob = " << lp << std::endl;
         } else // oov
         {
             ++fOOVs;
             probsFile << "***";
         }
+
+        if(debug) std::cout << " writing to probs file...";
 
 //        std::cout << "\np(" << fS << " |"
         probsFile << "p(" << fS << " |"
@@ -313,8 +321,11 @@ public:
 //        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
         if(!std::isnormal(lwhatever))
         {
+        	std::cout << "lp is not normal" << std::endl;
         	exit( 8);
         }
+
+        if(debug) std::cout << " done\n";
 
         return lp;
     }
