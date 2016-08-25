@@ -239,7 +239,7 @@ public:
 
 	template<typename F>
 	F probLimited(const Dish& dish, const F& p0, const long int invDelta) const {
-		bool debug = false;
+		bool debug = true;
 
 		if (num_tables_ == 0)
 		{
