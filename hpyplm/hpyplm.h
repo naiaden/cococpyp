@@ -107,7 +107,7 @@ template<unsigned N> struct PYPLM {
 				ContextCounts* contextCounts, ContextValues* contextValues,
 				CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 		{
-			bool debug = false;
+			bool debug = true;
 
 //			Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
 			Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
@@ -163,7 +163,7 @@ template<unsigned N> struct PYPLM {
 
 			for(const Pattern& sPattern : sPatterns)
 			{
-//				std::cout << indent << "[" << N << "] -ontext: " << sPattern.tostring(cci->classDecoder) << std::endl;
+				std::cout << indent << "[" << N << "] -ontext: " << sPattern.tostring(cci->classDecoder) << std::endl;
 
 
 				double weight = contextValues->get(sPattern, w, cci, indent);
@@ -177,14 +177,14 @@ template<unsigned N> struct PYPLM {
 				Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
 				lookup = lookup.reverse();
 
-//				std::cout << indent << "[" << N << "]\t Looking for " << lookup.tostring(cci->classDecoder) << std::endl;
+				std::cout << indent << "[" << N << "]\t Looking for " << lookup.tostring(cci->classDecoder) << std::endl;
 
 				double probability = 0.0;
 				auto it = p.find(lookup);
 				if(it != p.end())
 				{
 //					const long int invDelta = contextCounts->V - contextCounts->get(lookup.reverse());
-					const long int invDelta = contextCounts->V - contextCounts->get(lookup); // MOET DIT GEEN CONSTANTE ZIJN?
+					const long int invDelta = 1;//contextCounts->V - contextCounts->get(lookup); // MOET DIT GEEN CONSTANTE ZIJN?
 					double boob = it->second.probLimited(w, bla, invDelta);
 					probability = boob;
 					if(debug)
