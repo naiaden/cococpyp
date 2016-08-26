@@ -190,7 +190,7 @@ template<unsigned N> struct PYPLM {
 					if(debug)
 					{
 						std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
-						std::cout << indent << "[" << N << "]\t BOOB " << boob << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
+						std::cout << indent << "[" << N << "]\t BOOB " << boob << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << " and p0/bla: " << bla << std::endl;
 					}
 				} else
 				{
@@ -198,7 +198,7 @@ template<unsigned N> struct PYPLM {
 					if(debug)
 					{
 						std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
-						std::cout << indent << "[" << N << "]\t BLA " << bla << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
+						std::cout << indent << "[" << N << "]\t BLA " << bla << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << " and p0/bla: " << bla << std::endl;
 					}
 				}
 
