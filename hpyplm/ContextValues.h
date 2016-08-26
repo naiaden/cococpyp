@@ -17,6 +17,7 @@ class ContextValues
 {
 public:
 	virtual double get(const Pattern& pattern, const Pattern& w,CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const = 0;
+	virtual double get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr) const = 0;
 	virtual std::string name() const = 0;
 };
 
@@ -62,17 +63,13 @@ public:
 					Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
 
 					patternCounts[pattern] = patternCount;
-					// skipgram
 
 					Pattern smallerPattern = (i==1) ? Pattern() : Pattern(pattern, 0, i-1);
 					Pattern skipPattern = smallerPattern + cci.classEncoder.buildpattern("{*}", allowUnknown, autoAddUnknown);
 					auto it = patternCounts.find(skipPattern);
 					if(it != patternCounts.end())
 					{
-	//					std::cout << "\n" << skipPattern.tostring(cci.classDecoder) << std::endl;
-	//				    std::cout << "ASDASD " << it->second << std::endl;
 						it->second += patternCount;
-	//					std::cout << "DSADSA " << patternCounts[skipPattern] << std::endl;
 					}
 					else
 					{
@@ -82,22 +79,12 @@ public:
 				} catch (const UnknownTokenError &e) {
 					//
 				}
-
-//				Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
-
-
-
 			}
 		}
 
-//		for(auto pc : patternCounts)
-//		{
-//			if(pc.second > 1)
-//			std::cout << "\"" << pc.first.tostring(cci.classDecoder) << "\"" << pc.second << std::endl;
-//		}
 	}
 
-	long int get(const Pattern& pattern) const
+	long int get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr) const
 	{
 		std::unordered_map<Pattern,long int>::const_iterator iter = patternCounts.find(pattern);
 
@@ -118,6 +105,11 @@ public:
 
 	UniformCounts(SNCBWCoCoInitialiser& cci)
 	{
+	}
+
+	double get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr) const
+	{
+		return 1.0;
 	}
 
 	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
@@ -145,11 +137,14 @@ public:
 	{
 		Pattern skip = cci.classEncoder.buildpattern("{*}", false, false);
 
+
+
 		for(int n = 1; n <= kORDER; ++n)
 //		for(int n = 1; n <= 5; ++n)
 		{
+			std::cout << "Extracting MLE set for " << n << "...";
 			PatternSet<uint64_t> allPatterns = cci.trainPatternModel.extractset(n,n);
-			std::cout << "Done extracting set for " << n << std::endl;
+			std::cout << " done" << std::endl;
 
 			long int countAllUnigrams = 0;
 			if(n==1)
@@ -163,88 +158,90 @@ public:
 
 			for(auto pattern : allPatterns)
 			{
-				Pattern smallerPattern = (n==1) ? Pattern() : Pattern(pattern, 0, n-1);
+				Pattern context = (n==1) ? Pattern() : Pattern(pattern, 0, n-1);
 
-				long int smallerCount = 0;
+				long int contextCount = 0;
 				if(n==1)
 				{
-					smallerCount = countAllUnigrams;
+					contextCount = countAllUnigrams;
 				} else
 				{
-					smallerCount = patternCounts->get(smallerPattern);
+					contextCount = patternCounts->get(context);
 				}
 
-//				std::cout << "\"" << pattern.tostring(cci.classDecoder) << "\"\t"
-//						<< " c(" << pattern.tostring(cci.classDecoder) << ") = " << patternCounts->get(pattern)
-//						<< " / c(" << smallerPattern.tostring(cci.classDecoder) << ") = " << smallerCount
-//						<< std::endl;
-				if(smallerCount > 0)
+				if(contextCount > 0)
 				{
-					mleCounts[pattern] = 1.0 * patternCounts->get(pattern) / smallerCount;
-//					std::cout << "\t s= " << 1.0 * patternCounts->get(pattern) / smallerCount
-//							<< std::endl;
-				}
-				else
+					mleCounts[pattern] = 1.0 * patternCounts->get(pattern) / contextCount;
+				} else
 				{
 					mleCounts[pattern] = CoCoInitialiser::epsilon;
-//					std::cout << "\t n= " << 0.00000000001
-//							<< std::endl;
 				}
 
 
-				Pattern skipPattern = smallerPattern + skip;
-//				std::cout << "\"" << skipPattern.tostring(cci.classDecoder) << "\"\t"
-//						<< " c(" << skipPattern.tostring(cci.classDecoder) << ") = " << patternCounts->get(skipPattern)
-//						<< " / c(" << smallerPattern.tostring(cci.classDecoder) << ") = " << smallerCount;
-
-				if(n == 1 && skipPattern == skip)
-				{
-//					std::cout << "SKIP!" << std::endl;
-					mleCounts[skipPattern] = 1.0/countAllUnigrams;
-//					std::cout << "\t sk= " << 1.0  / countAllUnigrams
-//							<< std::endl;
-				} else
-				{
-					if(smallerCount > 0)
-					{
-						mleCounts[skipPattern] = 1.0 * patternCounts->get(skipPattern) / smallerCount;
-//						std::cout << "\t sc= " << 1.0 * patternCounts->get(skipPattern) / smallerCount
-//								<< std::endl;
-					}
-					else
-					{
-						mleCounts[skipPattern] = CoCoInitialiser::epsilon;
-//						std::cout << "\t nu= " << 0.00000000001
-//								<< std::endl;
-					}
-				}
+//				Pattern skipPattern = context + skip;
+//				if(n == 1 && skipPattern == skip)
+//				{
+//					mleCounts[skipPattern] = 1.0/countAllUnigrams;
+//				} else
+//				{
+//					if(smallerCount > 0)
+//					{
+//						mleCounts[skipPattern] = 1.0 * patternCounts->get(skipPattern) / contextCount;
+//					} else
+//					{
+//						mleCounts[skipPattern] = CoCoInitialiser::epsilon;
+//					}
+//				}
 
 			}
 		}
+
+//		  C[by the competent] F[authorities]
+//		xxxx p: 3.11032e-05
+//		xxxd p: 0.000134743
+//		axxd p: 0.000134743 with weight: 0.000376081
+//		xbxd p: 0.000270222 with weight: 0.000232217
+//		xxcd p: 0.000134743 with weight: 1e-16
+//		abxd p: 0.000186462 with weight: 1e-16
+//		axcd p: 0.000186462 with weight: 0.00142857
+//		xbcd p: 0.000186462 with weight: 1e-16
+//		abcd p: 0.000186462 with weight: 1
+
+		std::cout << "\t" << get(cci.classEncoder.buildpattern("", false, false)) << std::endl;
+		std::cout << "authorities\t" << get(cci.classEncoder.buildpattern("authorities", false, false)) << std::endl;
+		std::cout << "by {*} {*} authorities\t" << get(cci.classEncoder.buildpattern("by {*} {*} authorities", false, false)) << std::endl;
+		std::cout << "the {*} authorities\t" << get(cci.classEncoder.buildpattern("the {*} authorities", false, false)) << std::endl;
+		std::cout << "competent authorities\t" << get(cci.classEncoder.buildpattern("competent authorities", false, false)) << std::endl;
+		std::cout << "by the {*} authorities\t" << get(cci.classEncoder.buildpattern("by the {*} authorities", false, false)) << std::endl;
+		std::cout << "by {*} competent authorities\t" << get(cci.classEncoder.buildpattern("by {*} competent authorities", false, false)) << std::endl;
+		std::cout << "the competent authorities\t" << get(cci.classEncoder.buildpattern("the competent authorities", false, false)) << std::endl;
+		std::cout << "by the competent authorities\t" << get(cci.classEncoder.buildpattern("by the competent authorities", false, false)) << std::endl;
+
+
+
 	}
 
-	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
+	double get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr) const
 	{
-
-
-		std::unordered_map<Pattern, double>::const_iterator iter = mleCounts.find(pattern + w);
+		std::unordered_map<Pattern, double>::const_iterator iter = mleCounts.find(pattern);
 		if ( iter != mleCounts.end() )
 		{
-			if(cci)
-			{
-				Pattern l = pattern + w;
-//				std::cout << "\t\t|| Getting MLE Count for \"" << l.tostring(cci->classDecoder) << "\"\t" << iter->second << std::endl;
-			}
-
 			return iter->second;
 		} else
 		{
-			if(cci)
-			{
-				Pattern l =  pattern + w; // omgekeerd?
-//				std::cout << "\t\t|| Getting MLE Count for \"" << l.tostring(cci->classDecoder) << "\"\t unexisting: " << 0.00000000001 << std::endl;
-			}
+			return CoCoInitialiser::epsilon;//iter->second;
+		}
 
+	}
+
+	double get(const Pattern& context, const Pattern& w, CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
+	{
+		std::unordered_map<Pattern, double>::const_iterator iter = mleCounts.find(context + w);
+		if ( iter != mleCounts.end() )
+		{
+			return iter->second;
+		} else
+		{
 			return CoCoInitialiser::epsilon;//iter->second;
 		}
 
@@ -274,6 +271,40 @@ class EntropyCounts : public ContextValues
 		emptyEntropy = get(Pattern(), Pattern());
 	}
 
+
+	double get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr) const
+		{
+			if(pattern == cci->classEncoder.buildpattern("{*}", false, false))
+			{
+	//						std::cout << indent << "{*} FOUND BUT MATCHING IT TO EMPTY PATTERN: " << emptyEntropy << std::endl;
+				return emptyEntropy;
+			}
+
+			std::unordered_map<Pattern, double>::const_iterator iter = entropyCounts.find(pattern);
+
+
+
+			  if ( iter != entropyCounts.end() )
+			  {
+	//			  double rv = 1.0/(1.0-iter->second);
+				  double rv = std::abs(1.0/(1.0-iter->second)-2);
+
+				  if ( pattern == Pattern() )
+				  {
+	//				  std::cout << indent << "?? EMPTY PATTERN\t" << iter->second << "->" << rv << std::endl;
+				  } else
+				  {
+	//				  std::cout << indent << "!! Getting Entropy value for \"" << pattern.tostring(cci->classDecoder) << "\"\t" << iter->second << "->" << rv << std::endl;
+				  }
+				  return rv;//std::max(1.0/iter->second, CoCoInitialiser::epsilon);
+			  }
+			  else
+			  {
+	//			  std::cout << indent << "|| Getting Entropy value for unexisting \"" << pattern.tostring(cci->classDecoder) << "\"\t" << emptyEntropy << std::endl;
+				  return emptyEntropy;//1.0;//iter->second;
+			  }
+
+		}
 
 	// FIX
 	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
