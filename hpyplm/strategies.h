@@ -331,6 +331,89 @@ public:
     }
 };
 
+class FullNaiveBackoffStrategy : public BackoffStrategy
+{
+	ContextCounts* contextCounts;
+	ContextValues* contextValues;
+
+public:
+    std::string strategyName()
+    {
+        return "fullnaive";
+    }
+    SNCBWProgramOptions& po;
+
+    FullNaiveBackoffStrategy(SNCBWProgramOptions& _po,
+    					SNCBWCoCoInitialiser& _cci,
+						cpyp::PYPLM<kORDER>& _lm,
+						ContextCounts* _contextCounts,
+						ContextValues* _contextValues)
+    : BackoffStrategy(_cci, _lm), contextCounts(_contextCounts), contextValues(_contextValues), po(_po)
+    {
+        std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
+
+        baseOutputName = _po.generalBaseOutputName + "_" + strategyName() + "_" + std::to_string(_po.n) + "_" + _contextValues->name();
+        outputProbabilitiesFileName = baseOutputName + ".probs";
+        outputFile = baseOutputName + ".output";
+
+        std::cout << "Writing backoff output to " << outputFile << std::endl;
+
+        mout = new my_ostream(outputFile);
+        probsFile.open(outputProbabilitiesFileName);
+
+        debug = true;
+    }
+
+    ~FullNaiveBackoffStrategy()
+    {
+        probsFile.close();
+        delete mout;
+    }
+
+    double prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
+    {
+    	if(debug) std::cout << " Entering " << strategyName() << " backoff\n";
+
+        double lp = 0.0;
+        std::string fS = focusString;
+
+        if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
+        {
+        	if(debug) std::cout << "+++ Processing [" << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
+            lp = log2(lm.probFullNaive(focus, context, contextCounts, contextValues, &cci));
+            fS = focus.tostring(cci.classDecoder);
+            if(debug) std::cout << "--- logprob = " << lp << std::endl;
+        } else // oov
+        {
+            ++fOOVs;
+            probsFile << "***";
+        }
+
+        if(debug) std::cout << " writing to probs file...";
+
+//        std::cout << "\np(" << fS << " |"
+        probsFile << "p(" << fS << " |"
+                  << context.tostring(cci.classDecoder) << ") = "
+                  << std::fixed << std::setprecision(20) << lp
+                  << std::endl;
+
+        fLLH -= lp;
+        ++fCount;
+
+        double lwhatever = (-fLLH * log(2)) / log(10);
+//        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
+        if(!std::isnormal(lwhatever))
+        {
+        	std::cout << "lp is not normal" << std::endl;
+        	exit( 8);
+        }
+
+        if(debug) std::cout << " done\n";
+
+        return lp;
+    }
+};
+
 class LimitedBackoffStrategy : public BackoffStrategy
 {
 	ContextCounts* contextCounts;

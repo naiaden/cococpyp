@@ -92,9 +92,11 @@ int main(int argc, char** argv) {
 
 
     BackoffStrategies backoffStrategies;
-    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
+//    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
 
-    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
+    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+
+//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
 //    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
 //
 //    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));

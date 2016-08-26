@@ -213,6 +213,164 @@ template<unsigned N> struct PYPLM {
 
 		}
 
+	double probFullNaiveHelper(const Pattern& w, const Pattern& context, const Pattern& pattern, double p0, CoCoInitialiser * const cci = nullptr) const
+	{
+		if(pattern.size() != N)
+		{
+			std::cout << "My level is " << N << " but the pattern has length " << pattern.size() << std::endl;
+			return backoff.probFullNaiveHelper(w, context, pattern, p0, cci);
+		}
+
+		if(N == 1)
+		{
+			std::cout << "Doing something with unigram" << pattern.tostring(cci->classDecoder) << std::endl;
+			auto it = p.find(Pattern());
+			if (it == p.end()) { // if the pattern is not in the train data
+				std::cout << "It's not in the training data, but whatever" << std::endl;;
+				return p0;
+			}
+
+			return it->second.prob(w, p0);
+		}
+
+		if(N == 2)
+		{
+			std::cout << "Doing something with cobigram" << pattern.tostring(cci->classDecoder) << std::endl;
+			auto it = p.find(context);
+			if (it == p.end()) { // if the pattern is not in the train data
+				return p0;
+			}
+
+			return it->second.prob(w, p0);
+		}
+
+		if(N == 3)
+		{
+			std::cout << "Doing something with cotrigram" << pattern.tostring(cci->classDecoder) << std::endl;
+			auto it = p.find(context);
+			if (it == p.end()) { // if the pattern is not in the train data
+				return p0;
+			}
+
+			return it->second.prob(w, p0);
+		}
+
+		if(N == 4)
+		{
+			std::cout << "Doing something with coquadrigram" << pattern.tostring(cci->classDecoder) << std::endl;
+			auto it = p.find(context);
+			if (it == p.end()) { // if the pattern is not in the train data
+				return p0;
+			}
+
+			return it->second.prob(w, p0);
+		}
+
+		return 5.0;
+	}
+
+	double probFullNaive(const Pattern& w, const Pattern& context,
+					ContextCounts* contextCounts, ContextValues* contextValues,
+					CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
+			{
+				bool debug = true;
+
+				Pattern pattern = context + w;
+				if(pattern.size() != 4)
+				{
+					std::cerr << "Do something: Pattern length is not 4" << std::endl;
+				}
+
+				// a b c d
+
+				// 4 content words
+				// a b c d
+
+				Pattern abcd = pattern;
+
+				// 3 content words
+				// a b   d
+				Pattern abxd = abcd.addskip(std::pair<int, int>(1,1));
+				// a   c d
+				Pattern axcd = abcd.addskip(std::pair<int, int>(2,1));
+				//   b c d
+				Pattern xbcd = Pattern(abcd,1,3);
+
+				// 2 content words
+				// a     d
+				Pattern axxd = abcd.addskip(std::pair<int, int>(1,2));
+				//   b   d
+				Pattern xbxd = xbcd.addskip(std::pair<int, int>(1,1));
+				//     c d
+				Pattern xxcd = Pattern(xbcd,1,2);
+
+				// 1 content word
+				//       d
+				Pattern xxxd = Pattern(xxcd,1,1);
+
+				// 0 content words
+				//
+				Pattern xxxx = Pattern();
+
+
+				// -----------------------------
+				// 0
+				double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, cci);
+				double xxxx_weight = contextValues->get(Pattern(), Pattern(), cci, indent);
+				std::cout << "xxxx p: " << xxxx_prob << " with weight: " << xxxx_weight << std::endl;
+
+				// 1
+				double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, cci);
+				double xxxd_weight = contextValues->get(xxxd, Pattern(), cci, indent);
+				std::cout << "xxxd p: " << xxxd_prob << " with weight: " << xxxd_weight << std::endl;
+//				double xxxd_weight = 0.0;
+
+				// 2
+				double axxd_prob = probFullNaiveHelper(xxxd, Pattern(axxd, 0, 3), axxd, xxxd_prob, cci);
+				double axxd_weight = contextValues->get(xxxd, Pattern(axxd, 0, 3), cci, indent);
+				std::cout << "axxd p: " << axxd_prob << " with weight: " << axxd_weight << std::endl;
+				double xbxd_prob = probFullNaiveHelper(xxxd, Pattern(xbxd, 0, 2), xbxd, xxxd_prob, cci);
+				double xbxd_weight = contextValues->get(xxxd, Pattern(xbxd, 0, 2), cci, indent);
+				std::cout << "xbxd p: " << xbxd_prob << " with weight: " << xbxd_weight << std::endl;
+				double xxcd_prob = probFullNaiveHelper(xxxd, Pattern(xxcd, 0, 1), xxcd, xxxd_prob, cci);
+				double xxcd_weight = contextValues->get(xxxd, Pattern(xxcd, 0, 1), cci, indent);
+				std::cout << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
+
+				// 3
+				double abxd_prob = probFullNaiveHelper(xxxd, Pattern(abxd, 0, 3), abxd, xbxd_prob, cci);
+				double abxd_weight = contextValues->get(xxxd, Pattern(abxd, 0, 3), cci, indent);
+				std::cout << "abxd p: " << abxd_prob << " with weight: " << abxd_weight << std::endl;
+				double axcd_prob = probFullNaiveHelper(xxxd, Pattern(axcd, 0, 3), axcd, xxcd_prob, cci);
+				double axcd_weight = contextValues->get(xxxd, Pattern(axcd, 0, 3), cci, indent);
+				std::cout << "axcd p: " << axcd_prob << " with weight: " << axcd_weight << std::endl;
+				double xbcd_prob = probFullNaiveHelper(xxxd, Pattern(xbcd, 0, 2), xbcd, xxcd_prob, cci);
+				double xbcd_weight = contextValues->get(xxxd, Pattern(xbcd, 0, 2), cci, indent);
+				std::cout << "xbcd p: " << xbcd_prob << " with weight: " << xbcd_weight << std::endl;
+
+				// hier niet zomaar xbcd_prob nemen, maar een gewogen gemiddelde.
+
+				// 4
+				double abcd_prob = probFullNaiveHelper(xxxd, Pattern(abcd, 0, 3), abcd, xbcd_prob, cci);
+				double abcd_weight = 1.0;
+				std::cout << "abcd p: " << abcd_prob << " with weight: " << abcd_weight << std::endl;
+
+//				std::cout << ">>" << std::endl;
+//				std::cout << "  " << abcd.tostring(cci->classDecoder) << std::endl;
+//				std::cout << "  " << abxd.tostring(cci->classDecoder) << std::endl;
+//				std::cout << "  " << axcd.tostring(cci->classDecoder) << std::endl;
+//				std::cout << "  " << xbcd.tostring(cci->classDecoder) << std::endl;
+//				std::cout << "  " << axxd.tostring(cci->classDecoder) << std::endl;
+//				std::cout << "  " << xbxd.tostring(cci->classDecoder) << std::endl;
+//				std::cout << "  " << xxcd.tostring(cci->classDecoder) << std::endl;
+//				std::cout << "  " << xxxd.tostring(cci->classDecoder) << std::endl;
+//				std::cout << "<<" << std::endl;
+
+
+
+				return 2.0;
+
+			}
+
 	double probLimited(const Pattern& w, const Pattern& context, PatternCounts* patternCounts,
 					ContextCounts* contextCounts, ContextValues* contextValues,
 					CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
