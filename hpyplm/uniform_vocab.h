@@ -22,7 +22,7 @@ struct UniformVocabulary {
   double probLimited(const Pattern&, const Pattern&, PatternCounts*, ContextCounts*, ContextValues*, CoCoInitialiser * const, const std::string&) const { return p0; }
   double probFull(const Pattern&, const Pattern&, ContextCounts*, ContextValues*, CoCoInitialiser * const, const std::string&) const { return p0; }
   double probFullNaiveHelper(const Pattern& w, const Pattern& context, const Pattern& pattern, double p1, CoCoInitialiser * const cci = nullptr) const {
-	  std::cout << "Doing something with empty Pattern " << std::endl;
+	  //std::cout << "Doing something with empty Pattern " << std::endl;
 	  return p0;
   }
   double glm_prob(const Pattern& , const Pattern&, const ClassDecoder *const) const { /*std::cout << "\t\t\tp(0) " << p0 << std::endl; */return p0; }

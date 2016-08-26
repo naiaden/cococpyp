@@ -361,7 +361,7 @@ public:
         mout = new my_ostream(outputFile);
         probsFile.open(outputProbabilitiesFileName);
 
-        debug = true;
+        debug = false;
     }
 
     ~FullNaiveBackoffStrategy()

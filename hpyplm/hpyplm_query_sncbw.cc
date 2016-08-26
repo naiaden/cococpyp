@@ -95,6 +95,8 @@ int main(int argc, char** argv) {
 //    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
 
     backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
 
 //    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
 //    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
@@ -109,12 +111,12 @@ int main(int argc, char** argv) {
 
     for(std::string inputFileName : po.testInputFiles)                          // files
     {
-        std::cout << "> " << inputFileName << std::endl;
+//        std::cout << "> " << inputFileName << std::endl;
    
         backoffStrategies.nextFile();
         tsp.nextFile();
         
-        std::cout << "  Next file" << std::endl;
+//        std::cout << "  Next file" << std::endl;
 
         std::ifstream file(inputFileName);
         std::string retrievedString;
@@ -123,11 +125,11 @@ int main(int argc, char** argv) {
             backoffStrategies.nextLine();
             tsp.nextSentence();
             std::vector<std::string> words = split(retrievedString);
-            std::cout << "  Next line with " << words.size() << " words\n";
+//            std::cout << "  Next line with " << words.size() << " words\n";
 
             if(words.size() >= po.n) // kORDER
             {
-            	std::cout << "  Working\n";
+//            	std::cout << "  Working\n";
                for(int i = (kORDER - 1); i < words.size(); ++i)                 // ngrams
                {
                     std::stringstream contextStream;
@@ -141,7 +143,7 @@ int main(int argc, char** argv) {
                     Pattern context = cci.classEncoder.buildpattern(contextStream.str());
                     Pattern focus = cci.classEncoder.buildpattern(words[i]);
 
-                    std::cout << "  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
+//                    std::cout << "  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
 
 
                     double lp = 0.0;
@@ -155,7 +157,7 @@ int main(int argc, char** argv) {
 
 //                    tsp.printTimeStats(!focusString.empty());
                     backoffStrategies.prob(focus, context, focusString);
-                    std::cout << "  calculated prob\n\n";
+//                    std::cout << "  calculated prob\n\n";
                }
             }
         }
