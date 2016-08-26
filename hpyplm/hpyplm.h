@@ -217,63 +217,39 @@ template<unsigned N> struct PYPLM {
 	{
 		if(pattern.size() != N)
 		{
-			std::cout << "My level is " << N << " but the pattern has length " << pattern.size() << std::endl;
+			if(cci) std::cout << "My level is " << N << " but the pattern has length " << pattern.size() << std::endl;
 			return backoff.probFullNaiveHelper(w, context, pattern, p0, cci);
 		}
 
 		if(N == 1)
 		{
-			std::cout << "Doing something with unigram" << pattern.tostring(cci->classDecoder) << std::endl;
+			if(cci) std::cout << "Doing something with unigram" << pattern.tostring(cci->classDecoder) << std::endl;
 			auto it = p.find(Pattern());
 			if (it == p.end()) { // if the pattern is not in the train data
-				std::cout << "It's not in the training data, but whatever" << std::endl;;
+				if(cci) std::cout << "It's not in the training data, but whatever" << std::endl;;
 				return p0;
 			}
 
 			return it->second.prob(w, p0);
 		}
 
-		if(N == 2)
-		{
-			std::cout << "Doing something with cobigram" << pattern.tostring(cci->classDecoder) << std::endl;
-			auto it = p.find(context);
-			if (it == p.end()) { // if the pattern is not in the train data
-				return p0;
-			}
 
-			return it->second.prob(w, p0);
+		if(cci) std::cout << "Doing something with co" << N << "gram " << pattern.tostring(cci->classDecoder) << std::endl;
+		auto it = p.find(context);
+		if (it == p.end()) { // if the pattern is not in the train data
+			return p0;
 		}
 
-		if(N == 3)
-		{
-			std::cout << "Doing something with cotrigram" << pattern.tostring(cci->classDecoder) << std::endl;
-			auto it = p.find(context);
-			if (it == p.end()) { // if the pattern is not in the train data
-				return p0;
-			}
+		return it->second.prob(w, p0);
 
-			return it->second.prob(w, p0);
-		}
 
-		if(N == 4)
-		{
-			std::cout << "Doing something with coquadrigram" << pattern.tostring(cci->classDecoder) << std::endl;
-			auto it = p.find(context);
-			if (it == p.end()) { // if the pattern is not in the train data
-				return p0;
-			}
-
-			return it->second.prob(w, p0);
-		}
-
-		return 5.0;
 	}
 
 	double probFullNaive(const Pattern& w, const Pattern& context,
 					ContextCounts* contextCounts, ContextValues* contextValues,
 					CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 			{
-				bool debug = true;
+				bool debug = false;
 
 				Pattern pattern = context + w;
 				if(pattern.size() != 4)
@@ -281,11 +257,8 @@ template<unsigned N> struct PYPLM {
 					std::cerr << "Do something: Pattern length is not 4" << std::endl;
 				}
 
-				// a b c d
-
 				// 4 content words
 				// a b c d
-
 				Pattern abcd = pattern;
 
 				// 3 content words
@@ -312,62 +285,52 @@ template<unsigned N> struct PYPLM {
 				//
 				Pattern xxxx = Pattern();
 
+				CoCoInitialiser* temp_cciPtr = nullptr;
 
 				// -----------------------------
 				// 0
-				double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, cci);
-				double xxxx_weight = contextValues->get(Pattern(), Pattern(), cci, indent);
-				std::cout << "xxxx p: " << xxxx_prob << " with weight: " << xxxx_weight << std::endl;
+				double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, temp_cciPtr);
+				double xxxx_weight = contextValues->get(Pattern(), Pattern(), temp_cciPtr, indent);
+				if(debug) std::cout << "xxxx p: " << xxxx_prob << " with weight: " << xxxx_weight << std::endl;
 
 				// 1
-				double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, cci);
-				double xxxd_weight = contextValues->get(xxxd, Pattern(), cci, indent);
-				std::cout << "xxxd p: " << xxxd_prob << " with weight: " << xxxd_weight << std::endl;
+				double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, temp_cciPtr);
+				double xxxd_weight = contextValues->get(xxxd, Pattern(), temp_cciPtr, indent);
+				if(debug) std::cout << "xxxd p: " << xxxd_prob << " with weight: " << xxxd_weight << std::endl;
 //				double xxxd_weight = 0.0;
 
 				// 2
-				double axxd_prob = probFullNaiveHelper(xxxd, Pattern(axxd, 0, 3), axxd, xxxd_prob, cci);
-				double axxd_weight = contextValues->get(xxxd, Pattern(axxd, 0, 3), cci, indent);
-				std::cout << "axxd p: " << axxd_prob << " with weight: " << axxd_weight << std::endl;
-				double xbxd_prob = probFullNaiveHelper(xxxd, Pattern(xbxd, 0, 2), xbxd, xxxd_prob, cci);
-				double xbxd_weight = contextValues->get(xxxd, Pattern(xbxd, 0, 2), cci, indent);
-				std::cout << "xbxd p: " << xbxd_prob << " with weight: " << xbxd_weight << std::endl;
-				double xxcd_prob = probFullNaiveHelper(xxxd, Pattern(xxcd, 0, 1), xxcd, xxxd_prob, cci);
-				double xxcd_weight = contextValues->get(xxxd, Pattern(xxcd, 0, 1), cci, indent);
-				std::cout << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
+				double axxd_prob = probFullNaiveHelper(xxxd, Pattern(axxd, 0, 3), axxd, xxxd_prob, temp_cciPtr);
+				double axxd_weight = contextValues->get(xxxd, Pattern(axxd, 0, 3), temp_cciPtr, indent);
+				if(debug) std::cout << "axxd p: " << axxd_prob << " with weight: " << axxd_weight << std::endl;
+				double xbxd_prob = probFullNaiveHelper(xxxd, Pattern(xbxd, 0, 2), xbxd, xxxd_prob, temp_cciPtr);
+				double xbxd_weight = contextValues->get(xxxd, Pattern(xbxd, 0, 2), temp_cciPtr, indent);
+				if(debug) std::cout << "xbxd p: " << xbxd_prob << " with weight: " << xbxd_weight << std::endl;
+				double xxcd_prob = probFullNaiveHelper(xxxd, Pattern(xxcd, 0, 1), xxcd, xxxd_prob, temp_cciPtr);
+				double xxcd_weight = contextValues->get(xxxd, Pattern(xxcd, 0, 1), temp_cciPtr, indent);
+				if(debug) std::cout << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
+
+				double c2_prob = (axxd_prob * axxd_weight + xbxd_prob * xbxd_weight + xxcd_prob * xxcd_weight) / (axxd_weight + xbxd_weight + xxcd_weight);
 
 				// 3
-				double abxd_prob = probFullNaiveHelper(xxxd, Pattern(abxd, 0, 3), abxd, xbxd_prob, cci);
-				double abxd_weight = contextValues->get(xxxd, Pattern(abxd, 0, 3), cci, indent);
-				std::cout << "abxd p: " << abxd_prob << " with weight: " << abxd_weight << std::endl;
-				double axcd_prob = probFullNaiveHelper(xxxd, Pattern(axcd, 0, 3), axcd, xxcd_prob, cci);
-				double axcd_weight = contextValues->get(xxxd, Pattern(axcd, 0, 3), cci, indent);
-				std::cout << "axcd p: " << axcd_prob << " with weight: " << axcd_weight << std::endl;
-				double xbcd_prob = probFullNaiveHelper(xxxd, Pattern(xbcd, 0, 2), xbcd, xxcd_prob, cci);
-				double xbcd_weight = contextValues->get(xxxd, Pattern(xbcd, 0, 2), cci, indent);
-				std::cout << "xbcd p: " << xbcd_prob << " with weight: " << xbcd_weight << std::endl;
+				double abxd_prob = probFullNaiveHelper(xxxd, Pattern(abxd, 0, 3), abxd, c2_prob, temp_cciPtr);
+				double abxd_weight = contextValues->get(xxxd, Pattern(abxd, 0, 3), temp_cciPtr, indent);
+				if(debug) std::cout << "abxd p: " << abxd_prob << " with weight: " << abxd_weight << std::endl;
+				double axcd_prob = probFullNaiveHelper(xxxd, Pattern(axcd, 0, 3), axcd, c2_prob, temp_cciPtr);
+				double axcd_weight = contextValues->get(xxxd, Pattern(axcd, 0, 3), temp_cciPtr, indent);
+				if(debug) std::cout << "axcd p: " << axcd_prob << " with weight: " << axcd_weight << std::endl;
+				double xbcd_prob = probFullNaiveHelper(xxxd, Pattern(xbcd, 0, 2), xbcd, c2_prob, temp_cciPtr);
+				double xbcd_weight = contextValues->get(xxxd, Pattern(xbcd, 0, 2), temp_cciPtr, indent);
+				if(debug) std::cout << "xbcd p: " << xbcd_prob << " with weight: " << xbcd_weight << std::endl;
 
-				// hier niet zomaar xbcd_prob nemen, maar een gewogen gemiddelde.
+				double c3_prob = (abxd_prob * abxd_weight + axcd_prob * axcd_weight + xbcd_prob * xbcd_weight) / (abxd_weight + axcd_weight + xbcd_weight);
 
 				// 4
-				double abcd_prob = probFullNaiveHelper(xxxd, Pattern(abcd, 0, 3), abcd, xbcd_prob, cci);
+				double abcd_prob = probFullNaiveHelper(xxxd, Pattern(abcd, 0, 3), abcd, c3_prob, temp_cciPtr);
 				double abcd_weight = 1.0;
-				std::cout << "abcd p: " << abcd_prob << " with weight: " << abcd_weight << std::endl;
+				if(debug) std::cout << "abcd p: " << abcd_prob << " with weight: " << abcd_weight << std::endl;
 
-//				std::cout << ">>" << std::endl;
-//				std::cout << "  " << abcd.tostring(cci->classDecoder) << std::endl;
-//				std::cout << "  " << abxd.tostring(cci->classDecoder) << std::endl;
-//				std::cout << "  " << axcd.tostring(cci->classDecoder) << std::endl;
-//				std::cout << "  " << xbcd.tostring(cci->classDecoder) << std::endl;
-//				std::cout << "  " << axxd.tostring(cci->classDecoder) << std::endl;
-//				std::cout << "  " << xbxd.tostring(cci->classDecoder) << std::endl;
-//				std::cout << "  " << xxcd.tostring(cci->classDecoder) << std::endl;
-//				std::cout << "  " << xxxd.tostring(cci->classDecoder) << std::endl;
-//				std::cout << "<<" << std::endl;
-
-
-
-				return 2.0;
+				return abcd_prob;
 
 			}
 
