@@ -163,7 +163,7 @@ template<unsigned N> struct PYPLM {
 
 			for(const Pattern& sPattern : sPatterns)
 			{
-				std::cout << indent << "[" << N << "] context: " << sPattern.tostring(cci->classDecoder) << std::endl;
+
 
 
 				double weight = contextValues->get(sPattern, w, cci, indent);
@@ -173,6 +173,8 @@ template<unsigned N> struct PYPLM {
 
 
 				double bla = backoff.probFull(w, sPattern, contextCounts, contextValues, cci, indent + "\t");
+
+				std::cout << indent << "[" << N << "] context: " << sPattern.tostring(cci->classDecoder) << std::endl;
 
 				Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
 				lookup = lookup.reverse();
