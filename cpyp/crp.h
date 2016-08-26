@@ -243,14 +243,14 @@ public:
 
 		if (num_tables_ == 0)
 		{
-			if(debug) std::cout << "SITUATION 1:\tp0:" << p0 << std::endl;
+			if(debug) std::cout << "SITUATION 1:\tp0:" << p0 << std::endl; // does not occur
 			return p0;
 		}
 		auto it = dish_locs_.find(dish);
 
 		const F divisor = F(num_customers_ +  strength_);
 
-		if (it == dish_locs_.end()) {
+		if (it == dish_locs_.end()) { //
 			if(debug) std::cout << "SITUATION 1\tt:" << strength_ << " d:" << discount_ << " numTa:" << num_tables_ << " numCu:" << num_customers_  << " p0:" << p0 << std::endl;
 			const F r = F( num_tables_ * discount_ + strength_);
 			return F(r * p0 / divisor);
