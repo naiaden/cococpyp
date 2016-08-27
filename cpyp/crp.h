@@ -238,6 +238,24 @@ public:
 	}
 
 	template<typename F>
+	F probNaive(const Dish& dish, const F& p0 = 0.0, const long int delta = 1, const double S = 1.0) const {
+		if (num_tables_ == 0)
+			return p0;
+
+		double div = 1.0 / (delta * strength_ + num_customers_);
+
+
+		auto it = dish_locs_.find(dish);
+		if (it == dish_locs_.end()) {
+			 return S * (strength_ + discount_ * num_tables_) * div * p0;
+		} else {
+			return (it->second.num_customers() - delta * discount_ * it->second.num_tables()) * div + S * (strength_ + discount_ * num_tables_) * div * p0;
+		}
+
+	}
+
+
+	template<typename F>
 	F probLimited(const Dish& dish, const F& p0, const long int invDelta) const {
 		bool debug = true;
 
