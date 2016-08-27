@@ -249,7 +249,7 @@ template<unsigned N> struct PYPLM {
 					ContextCounts* contextCounts, ContextValues* contextValues,
 					CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 	{
-		bool debug = true;
+		bool debug = false;
 
 		Pattern pattern = context + w;
 		if(pattern.size() != 4)

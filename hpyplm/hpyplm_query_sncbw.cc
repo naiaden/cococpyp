@@ -86,17 +86,17 @@ int main(int argc, char** argv) {
 	patternCounts.fromFile(cci);
 
     MLECounts mleCounts(cci, &patternCounts);
-//    EntropyCounts entropyCounts(cci, &patternCounts);
-//    UniformCounts uniformCounts(cci);
+    EntropyCounts entropyCounts(cci, &patternCounts);
+    UniformCounts uniformCounts(cci);
 
 
 
     BackoffStrategies backoffStrategies;
-//    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
+    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
 
     backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-//    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
-//    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
 
 //    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
 //    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
                     Pattern context = cci.classEncoder.buildpattern(contextStream.str());
                     Pattern focus = cci.classEncoder.buildpattern(words[i]);
 
-                    std::cout << "  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
+//                    std::cout << "  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
 
 
                     double lp = 0.0;
