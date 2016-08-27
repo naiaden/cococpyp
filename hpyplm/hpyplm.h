@@ -215,49 +215,36 @@ template<unsigned N> struct PYPLM {
 
 	double limitedNaiveOccurs(const Pattern& pattern, PatternCounts* _patternCounts) const
 	{
-		return _patternCounts->get(pattern) > 0 ? false : true;
+		return _patternCounts->get(pattern) > 0 ? true : false;
 	}
 
 	double probLimitedNaiveHelper(const Pattern& w, const Pattern& context, const Pattern& pattern, double p0, double S, ContextCounts* contextCounts, CoCoInitialiser * const cci = nullptr) const
+	{
+		if(pattern.size() != N)
 		{
-			if(pattern.size() != N)
-			{
-				if(cci) std::cout << "My level is " << N << " but the pattern has length " << pattern.size() << std::endl;
-				return backoff.probFullNaiveHelper(w, context, pattern, p0, cci);
-			}
+			if(cci) std::cout << "My level is " << N << " but the pattern has length " << pattern.size() << std::endl;
+			return backoff.probFullNaiveHelper(w, context, pattern, p0, cci);
+		}
 
-//			if(N == 1)
-//			{
-//				if(cci) std::cout << "Doing something with unigram" << pattern.tostring(cci->classDecoder) << std::endl;
-//				auto it = p.find(Pattern());
-//				if (it == p.end()) { // if the pattern is not in the train data
-//					if(cci) std::cout << "It's not in the training data, but whatever" << std::endl;;
-//					return p0;
-//				}
-//
-//				return it->second.prob(w, p0);
-//			}
-
-
-			if(cci) std::cout << "Doing something with co" << N << "gram " << pattern.tostring(cci->classDecoder) << std::endl;
-			auto it = p.find(context.reverse());
-			if(it == p.end())
-			{
-				return p0;
-			} else
-			{
-				long int delta = contextCounts->V - contextCounts->get(context);
-				return it->second.probNaive(w, p0, delta, S);
-
-			}
+		if(cci) std::cout << "Doing something with co" << N << "gram " << pattern.tostring(cci->classDecoder) << std::endl;
+		auto it = p.find(context.reverse());
+		if(it == p.end())
+		{
+			return p0;
+		} else
+		{
+			long int delta = contextCounts->V - contextCounts->get(context);
+			return it->second.probNaive(w, p0, delta, S);
 
 		}
+
+	}
 
 		double probLimitedNaive(const Pattern& w, const Pattern& context,PatternCounts* _patternCounts,
 						ContextCounts* contextCounts, ContextValues* contextValues,
 						CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 		{
-			bool debug = false;
+			bool debug = true;
 
 			Pattern pattern = context + w;
 			if(pattern.size() != 4)
@@ -297,17 +284,18 @@ template<unsigned N> struct PYPLM {
 
 			if(limitedNaiveOccurs(abcd, _patternCounts))
 			{
-				std::cout << abcd.tostring(cci->classDecoder) << " found" << std::endl;
+				if(debug) std::cout << abcd.tostring(cci->classDecoder) << " found" << std::endl;
 
 				auto it = p.find(Pattern(abcd, 0, 3).reverse());
 				if(it != p.end())
 				{
 					long int delta = contextCounts->V - contextCounts->get(Pattern(abcd, 0, 3));
-					double prob = it->second.probNaive(xxxd, 0.0, delta, 0.0);
+					return it->second.probNaive(xxxd, 0.0, delta, 0.0);
 
 				}
 			} else
-			{ // The naive helper should help find these probs
+			{
+
 				double xbcd_weight = contextValues->get(xbcd);
 				double xbcd_backoff = 1.0;
 				double xbcd_prob = 0.0;
@@ -325,35 +313,44 @@ template<unsigned N> struct PYPLM {
 					double xxcd_p0 = 0.0;
 					if(limitedNaiveOccurs(xxcd, _patternCounts))
 					{
-						std::cout << xxcd.tostring(cci->classDecoder) << " found" << std::endl;
+						if(debug) std::cout << xxcd.tostring(cci->classDecoder) << " found" << std::endl;
 						xxcd_backoff = 0.0;
 						xxcd_prob = probLimitedNaiveHelper(xxxd, Pattern(xxcd, 1, 1), xxcd, xxcd_p0, xxcd_backoff, contextCounts, temp_cciPtr);
 					} else
 					{
-						double xxxd_weight = contextValues->get(xxxd);
-						double xxxd_backoff = 1.0;
-						double xxxd_prob = 0.0;
-						double xxxd_p0 = 0.0;
-						if(limitedNaiveOccurs(xxxd, _patternCounts))
-						{
-							std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
-							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
-						} else
-						{
-							double xxxx_weight = contextValues->get(xxxx);
-							double xxxx_prob = probLimitedNaiveHelper(Pattern(), Pattern(), Pattern(), 1.0, 1.0, contextCounts, temp_cciPtr);
-
-							xxxd_p0 = xxxx_weight * xxxx_prob;
-							xxxd_backoff = 1.0;
-							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
-						}
-
-
-						xxcd_backoff = 1.0;
-						xxcd_p0 = xxxd_weight * xxxd_prob;
-						xxcd_prob = probLimitedNaiveHelper(xxxd, Pattern(xxcd, 1, 1), xxcd, xxcd_p0, xxcd_backoff, contextCounts, temp_cciPtr);
-
-					}
+//						double xxxd_weight = contextValues->get(xxxd);
+//						double xxxd_backoff = 1.0;
+//						double xxxd_prob = 0.0;
+//						double xxxd_p0 = 0.0;
+//						if(limitedNaiveOccurs(xxxd, _patternCounts))
+//						{
+//							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
+//							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
+//						} else
+//						{
+//							double xxxx_weight = contextValues->get(xxxx);
+//							double xxxx_prob = probLimitedNaiveHelper(Pattern(), Pattern(), Pattern(), 1.0, 1.0, contextCounts, temp_cciPtr);
+//
+//							xxxd_p0 = xxxx_weight * xxxx_prob;
+//							xxxd_backoff = 1.0;
+//
+//							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " not found" << std::endl;
+//							if(debug) std::cout << "--" << xxxx_weight << "*" << xxxx_prob << std::endl;
+//
+//
+//							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
+//						}
+//
+//
+//						xxcd_backoff = 1.0;
+//						xxcd_p0 = xxxd_weight * xxxd_prob;
+//
+//						if(debug) std::cout << xxcd.tostring(cci->classDecoder) << " not found" << std::endl;
+//						if(debug) std::cout << "--" << xxxd_weight << "*" << xxxd_prob << std::endl;
+//
+//						xxcd_prob = probLimitedNaiveHelper(xxxd, Pattern(xxcd, 1, 1), xxcd, xxcd_p0, xxcd_backoff, contextCounts, temp_cciPtr);
+//
+					} // xxcd
 
 					double xbxd_weight = contextValues->get(xbxd);
 					double xbxd_backoff = 1.0;
@@ -361,39 +358,53 @@ template<unsigned N> struct PYPLM {
 					double xbxd_p0 = 0.0;
 					if(limitedNaiveOccurs(xbxd, _patternCounts))
 					{
-						std::cout << xbxd.tostring(cci->classDecoder) << " found" << std::endl;
+						if(debug) std::cout << xbxd.tostring(cci->classDecoder) << " found" << std::endl;
 						xbxd_backoff = 0.0;
 						xbxd_prob = probLimitedNaiveHelper(xxxd, Pattern(xbxd, 0,2), xbxd, xbxd_p0, xbxd_backoff, contextCounts, temp_cciPtr);
 					} else
 					{
-						double xxxd_weight = contextValues->get(xxxd);
-						double xxxd_backoff = 1.0;
-						double xxxd_prob = 0.0;
-						double xxxd_p0 = 0.0;
-						if(limitedNaiveOccurs(xxxd, _patternCounts))
-						{
-							std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
-							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
-						} else
-						{
-							double xxxx_weight = contextValues->get(xxxx);
-							double xxxx_prob = probLimitedNaiveHelper(Pattern(), Pattern(), Pattern(), 1.0, 1.0, contextCounts, temp_cciPtr);
-
-							xxxd_p0 = xxxx_weight * xxxx_prob;
-							xxxd_backoff = 1.0;
-							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
-						}
-
-
-						xxcd_backoff = 1.0;
-						xxcd_p0 = xxxd_weight * xxxd_prob;
-						xxcd_prob = probLimitedNaiveHelper(xxxd, Pattern(xxcd, 1, 1), xxcd, xxcd_p0, xxcd_backoff, contextCounts, temp_cciPtr);
-					}
+//						if(debug) std::cout << xbxd.tostring(cci->classDecoder) << " not found" << std::endl;
+//						double xxxd_weight = contextValues->get(xxxd);
+//						double xxxd_backoff = 1.0;
+//						double xxxd_prob = 0.0;
+//						double xxxd_p0 = 0.0;
+//						if(limitedNaiveOccurs(xxxd, _patternCounts))
+//						{
+//							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
+//							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
+//						} else
+//						{
+//							double xxxx_weight = contextValues->get(xxxx);
+//							double xxxx_prob = probLimitedNaiveHelper(Pattern(), Pattern(), Pattern(), 1.0, 1.0, contextCounts, temp_cciPtr);
+//
+//							xxxd_p0 = xxxx_weight * xxxx_prob;
+//							xxxd_backoff = 1.0;
+//
+//							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " not found" << std::endl;
+//							if(debug) std::cout << "--" << xxxx_weight << "*" << xxxx_prob << std::endl;
+//
+//
+//							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
+//						}
+//
+//
+//						xxcd_backoff = 1.0;
+//						xxcd_p0 = xxxd_weight * xxxd_prob;
+//
+//						if(debug) std::cout << xxcd.tostring(cci->classDecoder) << " not found" << std::endl;
+//						if(debug) std::cout << "--" << xxxd_weight << "*" << xxxd_prob << std::endl;
+//
+//						xxcd_prob = probLimitedNaiveHelper(xxxd, Pattern(xxcd, 1, 1), xxcd, xxcd_p0, xxcd_backoff, contextCounts, temp_cciPtr);
+					} // xbxd
 
 					xbcd_backoff = 1.0;
 					xbcd_p0 = xxcd_weight * xxcd_prob + xbxd_weight * xbxd_prob;
+
+					if(debug) std::cout << xbcd.tostring(cci->classDecoder) << " not found" << std::endl;
+					if(debug) std::cout << "--" << xxcd_weight << "*" << xxcd_prob << "+" << xbxd_weight << "*" << xbxd_prob << std::endl;
+
 					xbcd_prob = probLimitedNaiveHelper(xxxd, Pattern(xbcd, 0, 2), xbcd, xbcd_p0, xbcd_backoff, contextCounts, temp_cciPtr);
-				}
+				} // xbcd
 
 
 
@@ -403,18 +414,19 @@ template<unsigned N> struct PYPLM {
 				double abxd_p0 = 0.0;
 				if(limitedNaiveOccurs(xbcd, _patternCounts))
 				{
-					std::cout << xbcd.tostring(cci->classDecoder) << " found" << std::endl;
+					if(debug) std::cout << xbxd.tostring(cci->classDecoder) << " found" << std::endl;
 					abxd_backoff = 0.0;
 					abxd_prob = probLimitedNaiveHelper(xxxd, Pattern(abxd, 0, 3), abxd, abxd_p0, abxd_backoff, contextCounts, temp_cciPtr);
 				} else
 				{
+					if(debug) std::cout << xbcd.tostring(cci->classDecoder) << " not found" << std::endl;
 					double xbxd_weight = contextValues->get(xbxd);
 					double xbxd_backoff = 1.0;
 					double xbxd_prob = 0.0;
 					double xbxd_p0 = 0.0;
 					if(limitedNaiveOccurs(xbxd, _patternCounts))
 					{
-						std::cout << xbxd.tostring(cci->classDecoder) << " found" << std::endl;
+						if(debug) std::cout << xbxd.tostring(cci->classDecoder) << " found" << std::endl;
 						xbxd_backoff = 0.0;
 						xbxd_prob = probLimitedNaiveHelper(xxxd, Pattern(xbxd, 0,2), xbxd, xbxd_p0, xbxd_backoff, contextCounts, temp_cciPtr);
 					} else
@@ -425,7 +437,7 @@ template<unsigned N> struct PYPLM {
 						double xxxd_p0 = 0.0;
 						if(limitedNaiveOccurs(xxxd, _patternCounts))
 						{
-							std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
+							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
 							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
 						} else
 						{
@@ -434,14 +446,23 @@ template<unsigned N> struct PYPLM {
 
 							xxxd_p0 = xxxx_weight * xxxx_prob;
 							xxxd_backoff = 1.0;
+
+							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " not found" << std::endl;
+							if(debug) std::cout << "--" << xxxx_weight << "*" << xxxx_prob << std::endl;
+
 							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
 						}
 
 
 						xbxd_backoff = 1.0;
 						xbxd_p0 = xxxd_weight * xxxd_prob;
+
+						if(debug) std::cout << xbxd.tostring(cci->classDecoder) << " not found" << std::endl;
+						if(debug) std::cout << "--" << xxxd_weight << "*" << xxxd_prob << std::endl;
+
+
 						xbxd_prob = probLimitedNaiveHelper(xxxd, Pattern(xbxd, 0, 2), xbxd, xbxd_p0, xbxd_backoff, contextCounts, temp_cciPtr);
-					}
+					} // xbxd
 
 					double axxd_weight = contextValues->get(axxd);
 					double axxd_backoff = 1.0;
@@ -449,7 +470,7 @@ template<unsigned N> struct PYPLM {
 					double axxd_p0 = 0.0;
 					if(limitedNaiveOccurs(axxd, _patternCounts))
 					{
-						std::cout << axxd.tostring(cci->classDecoder) << " found" << std::endl;
+						if(debug) std::cout << axxd.tostring(cci->classDecoder) << " found" << std::endl;
 						axxd_backoff = 0.0;
 						axxd_prob = probLimitedNaiveHelper(xxxd, Pattern(axxd, 0, 3), axxd, axxd_p0, axxd_backoff, contextCounts, temp_cciPtr);
 					} else
@@ -460,7 +481,7 @@ template<unsigned N> struct PYPLM {
 						double xxxd_p0 = 0.0;
 						if(limitedNaiveOccurs(xxxd, _patternCounts))
 						{
-							std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
+							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
 							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
 						} else
 						{
@@ -469,19 +490,31 @@ template<unsigned N> struct PYPLM {
 
 							xxxd_p0 = xxxx_weight * xxxx_prob;
 							xxxd_backoff = 1.0;
+
+							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " not found" << std::endl;
+							if(debug) std::cout << "--" << xxxx_weight << "*" << xxxx_prob << std::endl;
+
 							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
 						}
 
 
 						axxd_backoff = 1.0;
 						axxd_p0 = xxxd_weight * xxxd_prob;
+
+						if(debug) std::cout << axxd.tostring(cci->classDecoder) << " not found" << std::endl;
+						if(debug) std::cout << "--" << xxxd_weight << "*" << xxxd_prob << std::endl;
+
 						axxd_prob = probLimitedNaiveHelper(xxxd, Pattern(axxd, 0, 3), axxd, axxd_p0, axxd_backoff, contextCounts, temp_cciPtr);
-					}
+					} // axxd
 
 					abxd_backoff = 1.0;
 					abxd_p0 = xbxd_weight * xbxd_prob + axxd_weight * axxd_prob;
+
+					if(debug) std::cout << abxd.tostring(cci->classDecoder) << " not found" << std::endl;
+					if(debug) std::cout << "--" << xbxd_weight << "*" << xbxd_prob << "+" << axxd_weight << "*" << axxd_prob << std::endl;
+
 					abxd_prob = probLimitedNaiveHelper(xxxd, Pattern(abxd, 0, 3), abxd, abxd_p0, abxd_backoff, contextCounts, temp_cciPtr);
-				}
+				} // abxd
 
 
 
@@ -491,7 +524,7 @@ template<unsigned N> struct PYPLM {
 				double axcd_p0 = 0.0;
 				if(limitedNaiveOccurs(axcd, _patternCounts))
 				{
-					std::cout << axcd.tostring(cci->classDecoder) << " found" << std::endl;
+					if(debug) std::cout << axcd.tostring(cci->classDecoder) << " found" << std::endl;
 					axcd_backoff = 0.0;
 					axcd_prob = probLimitedNaiveHelper(xxxd, Pattern(axcd, 0, 3), axcd, axcd_p0, axcd_backoff, contextCounts, temp_cciPtr);
 				} else
@@ -502,7 +535,7 @@ template<unsigned N> struct PYPLM {
 					double axxd_p0 = 0.0;
 					if(limitedNaiveOccurs(axxd, _patternCounts))
 					{
-						std::cout << axxd.tostring(cci->classDecoder) << " found" << std::endl;
+						if(debug) std::cout << axxd.tostring(cci->classDecoder) << " found" << std::endl;
 						axxd_backoff = 0.0;
 						axxd_prob = probLimitedNaiveHelper(xxxd, Pattern(axxd, 0, 3), axxd, axxd_p0, axxd_backoff, contextCounts, temp_cciPtr);
 					} else
@@ -513,7 +546,7 @@ template<unsigned N> struct PYPLM {
 						double xxxd_p0 = 0.0;
 						if(limitedNaiveOccurs(xxxd, _patternCounts))
 						{
-							std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
+							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
 							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
 						} else
 						{
@@ -522,14 +555,22 @@ template<unsigned N> struct PYPLM {
 
 							xxxd_p0 = xxxx_weight * xxxx_prob;
 							xxxd_backoff = 1.0;
+
+							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " not found" << std::endl;
+							if(debug) std::cout << "--" << xxxx_weight << "*" << xxxx_prob << std::endl;
+
 							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
 						}
 
 
 						axxd_backoff = 1.0;
 						axxd_p0 = xxxd_weight * xxxd_prob;
+
+						if(debug) std::cout << axxd.tostring(cci->classDecoder) << " not found" << std::endl;
+						if(debug) std::cout << "--" << xxxd_weight << "*" << xxxd_prob << std::endl;
+
 						axxd_prob = probLimitedNaiveHelper(xxxd, Pattern(axxd, 0, 3), axxd, axxd_p0, axxd_backoff, contextCounts, temp_cciPtr);
-					}
+					} // axxd
 
 					double xxcd_weight = contextValues->get(xxcd);
 					double xxcd_backoff = 1.0;
@@ -537,7 +578,7 @@ template<unsigned N> struct PYPLM {
 					double xxcd_p0 = 0.0;
 					if(limitedNaiveOccurs(xxcd, _patternCounts))
 					{
-						std::cout << xxcd.tostring(cci->classDecoder) << " found" << std::endl;
+						if(debug) std::cout << xxcd.tostring(cci->classDecoder) << " found" << std::endl;
 						xxcd_backoff = 0.0;
 						xxcd_prob = probLimitedNaiveHelper(xxxd, Pattern(xxcd, 1, 1), xxcd, xxcd_p0, xxcd_backoff, contextCounts, temp_cciPtr);
 					} else
@@ -548,7 +589,7 @@ template<unsigned N> struct PYPLM {
 						double xxxd_p0 = 0.0;
 						if(limitedNaiveOccurs(xxxd, _patternCounts))
 						{
-							std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
+							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " found" << std::endl;
 							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
 						} else
 						{
@@ -557,26 +598,44 @@ template<unsigned N> struct PYPLM {
 
 							xxxd_p0 = xxxx_weight * xxxx_prob;
 							xxxd_backoff = 1.0;
+
+							if(debug) std::cout << xxxd.tostring(cci->classDecoder) << " not found" << std::endl;
+							if(debug) std::cout << "--" << xxxx_weight << "*" << xxxx_prob << std::endl;
+
 							xxxd_prob = probLimitedNaiveHelper(xxxd, Pattern(), xxxd, xxxd_p0, xxxd_backoff, contextCounts, temp_cciPtr);
 						}
 
 
 						xxcd_backoff = 1.0;
 						xxcd_p0 = xxxd_weight * xxxd_prob;
+
+						if(debug) std::cout << xxcd.tostring(cci->classDecoder) << " not found" << std::endl;
+						if(debug) std::cout << "--" << xxxd_weight << "*" << xxxd_prob << std::endl;
+
 						xxcd_prob = probLimitedNaiveHelper(xxxd, Pattern(xxcd, 1, 1), xxcd, xxcd_p0, xxcd_backoff, contextCounts, temp_cciPtr);
 
-					}
+					} // xxcd
 
 					axcd_backoff = 1.0;
 					axcd_p0 = axxd_weight * axxd_prob + xxcd_weight * xxcd_prob;
+
+					if(debug) std::cout << axcd.tostring(cci->classDecoder) << " not found" << std::endl;
+					if(debug) std::cout << "--" << axxd_weight << "*" << axxd_prob << "+" << xxcd_weight << "*" << xxcd_prob << std::endl;
+
 					axcd_prob = probLimitedNaiveHelper(xxxd, Pattern(axcd, 0, 3), axcd, axcd_p0, axcd_backoff, contextCounts, temp_cciPtr);
-				}
+				} // axcd
 
 
 
 				double abcd_backoff = 1.0;
 				double abcd_p0 = xbcd_weight * xbcd_prob + axcd_weight * axcd_prob + abxd_weight * abxd_prob;
-				double abcd_prob = probLimitedNaiveHelper(xxxd, Pattern(abcd, 0, 3), abcd, abcd_p0, abcd_backoff, contextCounts, temp_cciPtr);
+
+				if(debug) std::cout << abcd.tostring(cci->classDecoder) << " not found" << std::endl;
+				if(debug) std::cout << "--" << xbcd_weight << "*" << xbcd_prob << "+" << axcd_weight << "*" << axcd_prob << "+" << abxd_weight << "*" << abxd_prob << std::endl;
+
+				return probLimitedNaiveHelper(xxxd, Pattern(abcd, 0, 3), abcd, abcd_p0, abcd_backoff, contextCounts, temp_cciPtr);
+
+
 			}
 
 

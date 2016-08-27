@@ -37,12 +37,14 @@ public:
 	{
 		patternCounts[Pattern()] = 0;
 
+		Pattern removeme = Pattern();
+
 //		for(int i = 1; i <= kORDER; ++i)
 		for(int i = 1; i <= 5; ++i)
 		{
 			SNCBWProgramOptions* spo = (SNCBWProgramOptions*) cci.po;
 			std::ifstream file(spo->countFilesBase + "." + std::to_string(i));
-			std::cout << "Reading countFile " << spo->countFilesBase + "." + std::to_string(i) << std::endl;
+			std::cout << "Reading pattern counts from " << spo->countFilesBase + "." + std::to_string(i) << std::endl;
 			std::string   line;
 
 			const bool allowUnknown = false;
@@ -63,6 +65,12 @@ public:
 					Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
 
 					patternCounts[pattern] = patternCount;
+					if(patternString.compare("<s> <s> <s> The") == 0)
+						{
+						std::cout << pattern.tostring(cci.classDecoder) << " -- " << patternCount << std::endl;
+						std::cout << "retrieved count: " << get(pattern) << std::endl;
+						removeme = pattern;
+						}
 
 					Pattern smallerPattern = (i==1) ? Pattern() : Pattern(pattern, 0, i-1);
 					Pattern skipPattern = smallerPattern + cci.classEncoder.buildpattern("{*}", allowUnknown, autoAddUnknown);
@@ -82,16 +90,17 @@ public:
 			}
 		}
 
+		std::cout << "retrieved count': " << get(removeme) << std::endl;
 	}
 
 	long int get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr) const
 	{
 		std::unordered_map<Pattern,long int>::const_iterator iter = patternCounts.find(pattern);
 
-		  if ( iter != patternCounts.end() )
-			return iter->second;//0;
+		  if ( iter == patternCounts.end() )
+			return 0;//0;
 		  else
-			return 0;//iter->second;
+			return iter->second;//iter->second;
 	}
 };
 

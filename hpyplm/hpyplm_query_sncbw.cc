@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
                     Pattern context = cci.classEncoder.buildpattern(contextStream.str());
                     Pattern focus = cci.classEncoder.buildpattern(words[i]);
 
-                    std::cout << "\n  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
+//                    std::cout << "\n  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
 
 
                     double lp = 0.0;

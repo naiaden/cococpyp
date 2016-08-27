@@ -542,8 +542,8 @@ public:
                 probsFile << "***";
             }
 
-    //        std::cout << "\np(" << fS << " |"
-            probsFile << "p(" << fS << " |"
+            std::cout << "\np(" << fS << " |"
+//            probsFile << "p(" << fS << " |"
                       << context.tostring(cci.classDecoder) << ") = "
                       << std::fixed << std::setprecision(20) << lp
                       << std::endl;
