@@ -2,7 +2,7 @@
 #include <unordered_map>
 #include <cstdlib>
 
-#include "hpyplm.h"
+
 
 #include "cpyp/boost_serializers.h"
 #include <boost/serialization/vector.hpp>
@@ -85,11 +85,14 @@ int main(int argc, char** argv) {
 	PatternCounts patternCounts;
 	patternCounts.fromFile(cci);
 
-    MLECounts mleCounts(cci, &patternCounts);
-    EntropyCounts entropyCounts(cci, &patternCounts);
+//    MLECounts mleCounts(cci, &patternCounts);
+//    EntropyCounts entropyCounts(cci, &patternCounts);
     UniformCounts uniformCounts(cci);
 
 
+    LimitedCounts limitedCounts(cci, &patternCounts, new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+
+return 1;
 
     BackoffStrategies backoffStrategies;
 //    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
@@ -98,7 +101,7 @@ int main(int argc, char** argv) {
 //    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
 //    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
 
-    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
+//    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
 
 //    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
 //    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));

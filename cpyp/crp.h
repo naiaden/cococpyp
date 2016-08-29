@@ -240,15 +240,22 @@ public:
 	template<typename F>
 	F probNaive(const Dish& dish, const F& p0 = 0.0, const long int delta = 1, const double S = 1.0) const {
 		if (num_tables_ == 0)
+		{
+			std::cout << "NUM TABLES = 0";
 			return p0;
+		}
 
 		double div = 1.0 / (delta * strength_ + num_customers_);
 
+		std::cout << "delta: " << delta << " strength: " << strength_ << " num_cust: " << num_customers_ << "\t\t-->" << div << std::endl;
 
 		auto it = dish_locs_.find(dish);
 		if (it == dish_locs_.end()) {
+			std::cout << "1. discount: " << discount_ << " num_tables: " << num_tables_ << " S: " << S << " p0" << p0 << "\t\t-->" << S * (strength_ + discount_ * num_tables_) * div * p0 << std::endl;
+
 			 return S * (strength_ + discount_ * num_tables_) * div * p0;
 		} else {
+			std::cout << "2. discount: " << discount_ << " custw: " << it->second.num_customers() << " tablesw: " << it->second.num_tables() << " S: " << S << " p0: " << p0 << "\t\t-->" << (it->second.num_customers() - delta * discount_ * it->second.num_tables()) * div + S * (strength_ + discount_ * num_tables_) * div * p0 << std::endl;
 			return (it->second.num_customers() - delta * discount_ * it->second.num_tables()) * div + S * (strength_ + discount_ * num_tables_) * div * p0;
 		}
 

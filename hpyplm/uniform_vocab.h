@@ -7,7 +7,10 @@
 #include <pattern.h>
 #include <classdecoder.h>
 
-#include "ContextValues.h"
+class ContextValues;
+class ContextCounts;
+class PatternCounts;
+class CoCoInitialiser;
 
 namespace cpyp {
 

@@ -2,6 +2,7 @@
 #define STRATEGIES_H_
 
 #include "utils.h"
+#include "hpyplm.h"
 
 class BackoffStrategy
 {

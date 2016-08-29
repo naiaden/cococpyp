@@ -11,12 +11,12 @@
 
 #include "CoCoInitialiser.h"
 #include "utils.h"
+
 #include "common.h"
 
 class ContextValues
 {
 public:
-	virtual double get(const Pattern& pattern, const Pattern& w,CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const = 0;
 	virtual double get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr) const = 0;
 	virtual std::string name() const = 0;
 };
@@ -104,6 +104,97 @@ public:
 	}
 };
 
+struct LimitedInformation
+{
+	long int backoff = 0;
+	long int nobackoff = 0;
+	double q0 = 0.0; // (1-sum over all p0)
+};
+
+class BackoffStrategy;
+
+#include "strategies.h"
+
+class LimitedCounts
+{
+public:
+	std::string name() const
+	{
+		return "limitedcounts";
+	}
+
+	std::unordered_map<Pattern, LimitedInformation> limitedCounts;
+	BackoffStrategy * backoffStrategy;
+
+	LimitedCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, BackoffStrategy* _backoffStrategy)
+	{
+		backoffStrategy = _backoffStrategy;
+		initialise(cci, patternCounts);
+	}
+
+	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts)
+	{
+		PatternSet<uint64_t> allFocusWords = cci.trainPatternModel.extractset(1,1);
+		long int numberOfFocusWords = allFocusWords.size();
+
+		for(int n = 1; n <= kORDER; ++n)
+		{
+			std::cout << "Extracting LimitedCounts set for " << n << "...";
+			PatternSet<uint64_t> allPatterns;
+			if(n == 1)
+			{
+				allPatterns = allFocusWords;
+			} else
+			{
+				allPatterns = cci.trainPatternModel.extractset(n,n);
+			}
+			std::cout << " done" << std::endl;
+
+			PatternSet<uint64_t> allContexts;
+			for(auto pattern : allPatterns)
+			{
+				Pattern context = (n==1) ? Pattern() : Pattern(pattern, 0, n-1);
+				allContexts.insert(context);
+			}
+
+			for(auto context : allContexts)
+			{
+				LimitedInformation li;
+				long int nobackoff = 0;
+				double q0 = 0.0;
+				for(auto focus : allFocusWords)
+				{
+
+					Pattern pattern = context + focus;
+					if(patternCounts->get(pattern))
+					{ // not oov
+						++nobackoff;
+						q0 += backoffStrategy->prob(focus, context, focus.tostring(cci.classDecoder));
+
+//						std::cout << "NOT OOV" << pattern.tostring(cci.classDecoder) << std::endl;
+					}
+				}
+				std::cout << "Q0 ===== " << q0 << std::endl;
+				li.nobackoff = nobackoff;
+				li.backoff = numberOfFocusWords - nobackoff;
+				li.q0 = q0;
+			}
+		}
+	}
+
+	LimitedInformation get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr) const
+	{
+		std::unordered_map<Pattern, LimitedInformation>::const_iterator iter = limitedCounts.find(pattern);
+		if ( iter != limitedCounts.end() )
+		{
+			return iter->second;
+		} else
+		{
+			return LimitedInformation();//iter->second;
+		}
+	}
+};
+
 class UniformCounts : public ContextValues
 {
 public:
@@ -117,11 +208,6 @@ public:
 	}
 
 	double get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr) const
-	{
-		return 1.0;
-	}
-
-	double get(const Pattern& pattern, const Pattern& w, CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 	{
 		return 1.0;
 	}
@@ -198,11 +284,6 @@ public:
 		}
 
 	}
-
-	double get(const Pattern& context, const Pattern& w, CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
-	{
-		return get(context + w, cci);
-	}
 };
 
 class EntropyCounts : public ContextValues
@@ -248,12 +329,6 @@ class EntropyCounts : public ContextValues
 		{
 			return emptyEntropy;
 		}
-	}
-
-	// FIX
-	double get(const Pattern& context, const Pattern& w, CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
-	{
-		return get(context, cci);
 	}
 
 
