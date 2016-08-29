@@ -19,6 +19,7 @@
 #include <pattern.h>
 
 #include "ContextValues.h"
+#include "ContextCounts.h"
 
 // A not very memory-efficient implementation of an N-gram LM based on PYPs
 // as described in Y.-W. Teh. (2006) A Hierarchical Bayesian Language Model

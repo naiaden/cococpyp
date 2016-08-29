@@ -20,17 +20,27 @@
 
 #include <sstream>
 #include <iomanip>
-
+#include "date.h"
 #include <queue>
 
 #include "cmdline.h"
 #include "DefaultPatternModelOptions.h"
 #include "ProgramOptions.h"
 #include "CoCoInitialiser.h"
+//
+//#include "utils.h"
 
-#include "utils.h"
-#include "date.h"
-#include "strategies.h"
+//
+#include "hpyplm.h"
+
+//#include "ContextCounts.h"
+#include "ContextCounts.cpp"
+#include "ContextValues.cpp"
+#include "PatternCounts.h"
+//
+//
+//#include "strategies.h"
+//#include "ContextValues.h"
 
 using date::operator<<;
 
@@ -80,7 +90,7 @@ int main(int argc, char** argv) {
     tsp.start();
 
     ContextCounts contextCounts;
-    contextCounts.fromFile(cci);
+    contextCounts.fromFile2(cci);
 
 	PatternCounts patternCounts;
 	patternCounts.fromFile(cci);
@@ -90,89 +100,89 @@ int main(int argc, char** argv) {
     UniformCounts uniformCounts(cci);
 
 
-    LimitedCounts limitedCounts(cci, &patternCounts, new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+    //LimitedCounts limitedCounts(cci, &patternCounts, new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
 
 return 1;
-
-    BackoffStrategies backoffStrategies;
-//    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
-
-//    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-//    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
-//    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
-
-//    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
-
-//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
-//    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
 //
-//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
-//    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
-
-//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &entropyCounts));
-//    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
-    
-    std::cout << std::endl;
-
-    for(std::string inputFileName : po.testInputFiles)                          // files
-    {
-//        std::cout << "> " << inputFileName << std::endl;
-   
-        backoffStrategies.nextFile();
-        tsp.nextFile();
-        
-//        std::cout << "  Next file" << std::endl;
-
-        std::ifstream file(inputFileName);
-        std::string retrievedString;
-        while(std::getline(file, retrievedString))                              // lines
-        {
-            backoffStrategies.nextLine();
-            tsp.nextSentence();
-            std::vector<std::string> words = split(retrievedString);
-//            std::cout << "  Next line with " << words.size() << " words\n";
-
-            if(words.size() >= po.n) // kORDER
-            {
-//            	std::cout << "  Working\n";
-               for(int i = (kORDER - 1); i < words.size(); ++i)                 // ngrams
-               {
-                    std::stringstream contextStream;
-                    contextStream << words[i-(kORDER-1)];
-
-                    for(int ii = 1; ii < kORDER - 1; ++ii)
-                    {
-                        contextStream << " " << words[i-(kORDER-1)+ii];
-                    }
-
-                    Pattern context = cci.classEncoder.buildpattern(contextStream.str());
-                    Pattern focus = cci.classEncoder.buildpattern(words[i]);
-
-//                    std::cout << "\n  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
-
-
-                    double lp = 0.0;
-                    std::string focusString = "";
-                    //if(focus.size() > 0 && )
-					if(!allWords.has(focus)) // empty if oov
-                    {
-                        focusString = words[i];
-                    }
-
-
-//                    tsp.printTimeStats(!focusString.empty());
-                    backoffStrategies.prob(focus, context, focusString);
-//                    std::cout << "  calculated prob\n\n";
-               }
-            }
-        }
-//        tsp.done();
-        backoffStrategies.printFileResults();
-    }
-    backoffStrategies.done();
-    std::cout << "\n\n" << std::endl;
-    backoffStrategies.printResults();
-    
+//    BackoffStrategies backoffStrategies;
+////    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
+//
+////    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+////    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+////    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+//
+////    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
+//
+////    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
+////    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+////
+////    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
+////    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+//
+////    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &entropyCounts));
+////    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+//
+//    std::cout << std::endl;
+//
+//    for(std::string inputFileName : po.testInputFiles)                          // files
+//    {
+////        std::cout << "> " << inputFileName << std::endl;
+//
+//        backoffStrategies.nextFile();
+//        tsp.nextFile();
+//
+////        std::cout << "  Next file" << std::endl;
+//
+//        std::ifstream file(inputFileName);
+//        std::string retrievedString;
+//        while(std::getline(file, retrievedString))                              // lines
+//        {
+//            backoffStrategies.nextLine();
+//            tsp.nextSentence();
+//            std::vector<std::string> words = split(retrievedString);
+////            std::cout << "  Next line with " << words.size() << " words\n";
+//
+//            if(words.size() >= po.n) // kORDER
+//            {
+////            	std::cout << "  Working\n";
+//               for(int i = (kORDER - 1); i < words.size(); ++i)                 // ngrams
+//               {
+//                    std::stringstream contextStream;
+//                    contextStream << words[i-(kORDER-1)];
+//
+//                    for(int ii = 1; ii < kORDER - 1; ++ii)
+//                    {
+//                        contextStream << " " << words[i-(kORDER-1)+ii];
+//                    }
+//
+//                    Pattern context = cci.classEncoder.buildpattern(contextStream.str());
+//                    Pattern focus = cci.classEncoder.buildpattern(words[i]);
+//
+////                    std::cout << "\n  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
+//
+//
+//                    double lp = 0.0;
+//                    std::string focusString = "";
+//                    //if(focus.size() > 0 && )
+//					if(!allWords.has(focus)) // empty if oov
+//                    {
+//                        focusString = words[i];
+//                    }
+//
+//
+////                    tsp.printTimeStats(!focusString.empty());
+//                    backoffStrategies.prob(focus, context, focusString);
+////                    std::cout << "  calculated prob\n\n";
+//               }
+//            }
+//        }
+////        tsp.done();
+//        backoffStrategies.printFileResults();
+//    }
+//    backoffStrategies.done();
+//    std::cout << "\n\n" << std::endl;
+//    backoffStrategies.printResults();
+//
 
 }
 
