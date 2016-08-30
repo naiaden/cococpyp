@@ -14,12 +14,14 @@
 
 //#include <map>
 
+class BackoffStrategy;
+class PatternCounts;
 
 struct LimitedInformation
 {
 	long int backoff = 0;
 	long int nobackoff = 0;
-	double q0 = 0.0; // (1-sum over all p0)
+	double P = 0.0; // sum over all p0
 };
 
 
@@ -33,6 +35,7 @@ public:
 	std::unordered_map<Pattern, LimitedInformation> limitedCounts;
 	BackoffStrategy * backoffStrategy;
 
+	LimitedCounts(SNCBWCoCoInitialiser& cci, const std::string& fileName);
 	LimitedCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, BackoffStrategy* _backoffStrategy);
 
 	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts);

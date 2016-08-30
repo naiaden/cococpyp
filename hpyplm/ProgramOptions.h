@@ -148,6 +148,8 @@ struct SNCBWCommandLineOptions : public CommandLineOptions
     std::string outputDirectory;
     std::string outputRunName;
 
+    std::string limitedCacheFile;
+
     std::string countFileBase;
 
     int n;
@@ -166,6 +168,8 @@ struct SNCBWCommandLineOptions : public CommandLineOptions
         
         clp.add<std::string>("countfile", 'C', "count file base", false, "");
 
+        clp.add<std::string>("limitedcachefile", 'L', "limited cache file with q values", false, "");
+
         clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram", cmdline::oneof<std::string>("glm", "bobaco", "ngram", "all"));
         clp.parse_check(argc, argv);
        
@@ -177,6 +181,8 @@ struct SNCBWCommandLineOptions : public CommandLineOptions
         testInputFile = clp.get<std::string>("testinputfile");
         outputDirectory = clp.get<std::string>("testoutput");
         countFileBase = clp.get<std::string>("countfile");
+
+        limitedCacheFile = clp.get<std::string>("limitedcachefile");
 
         backoffMethod = fromString(clp.get<std::string>("backoff"));
     }
@@ -338,6 +344,7 @@ struct SNCBWProgramOptions : public ProgramOptions
     std::string generalBaseOutputName;
     std::string generalOutputClassFileName;
     std::string generalOutputCorpusFileName;
+    std::string generalLimitedCacheFileName;
     std::vector<std::string> testInputFiles;
     
     std::string countFilesBase;
@@ -374,6 +381,17 @@ struct SNCBWProgramOptions : public ProgramOptions
                                                + "-common_" + std::to_string(_n);
         generalOutputClassFileName = generalBaseOutputName + ".cls";
         generalOutputCorpusFileName = generalBaseOutputName + ".dat";
+
+        if(clo.loadTrainSerialisedFile.empty())
+		{
+        	generalLimitedCacheFileName = generalBaseOutputName + ".lim";
+		} else
+		{
+			generalLimitedCacheFileName = _clo.limitedCacheFile;
+		}
+               std::cout << "PO: generalLimitedCacheFileName = " << generalLimitedCacheFileName << std::endl;
+
+
 
         countFilesBase = _clo.countFileBase;
     }

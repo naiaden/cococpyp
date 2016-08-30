@@ -87,26 +87,6 @@ public:
     double prob(const Pattern& focus, const Pattern& context, const std::string& focusString);
 };
 
-class FullBackoffStrategy : public BackoffStrategy
-{
-	ContextCounts* contextCounts;
-	ContextValues* contextValues;
-
-public:
-    std::string strategyName();
-    SNCBWProgramOptions& po;
-
-    FullBackoffStrategy(SNCBWProgramOptions& _po,
-    					SNCBWCoCoInitialiser& _cci,
-						cpyp::PYPLM<kORDER>& _lm,
-						ContextCounts* _contextCounts,
-						ContextValues* _contextValues);
-
-    ~FullBackoffStrategy();
-
-    double prob(const Pattern& focus, const Pattern& context, const std::string& focusString);
-};
-
 class FullNaiveBackoffStrategy : public BackoffStrategy
 {
 	ContextCounts* contextCounts;
@@ -127,7 +107,7 @@ public:
     double prob(const Pattern& focus, const Pattern& context, const std::string& focusString);
 };
 
-class LimitedBackoffStrategy : public BackoffStrategy
+class BasicFullNaiveBackoffStrategy : public BackoffStrategy
 {
 	ContextCounts* contextCounts;
 	ContextValues* contextValues;
@@ -135,16 +115,14 @@ class LimitedBackoffStrategy : public BackoffStrategy
 public:
     std::string strategyName();
     SNCBWProgramOptions& po;
-    PatternCounts* patternCounts;
 
-    LimitedBackoffStrategy(SNCBWProgramOptions& _po,
-    		SNCBWCoCoInitialiser& _cci,
-    		cpyp::PYPLM<kORDER>& _lm,
-			PatternCounts* _patternCounts,
-			ContextCounts* _contextCounts,
-			ContextValues* _contextValues);
+    BasicFullNaiveBackoffStrategy(SNCBWProgramOptions& _po,
+    					SNCBWCoCoInitialiser& _cci,
+						cpyp::PYPLM<kORDER>& _lm,
+						ContextCounts* _contextCounts,
+						ContextValues* _contextValues);
 
-    virtual ~LimitedBackoffStrategy();
+    ~BasicFullNaiveBackoffStrategy();
 
     double prob(const Pattern& focus, const Pattern& context, const std::string& focusString);
 };
@@ -153,6 +131,7 @@ class LimitedNaiveBackoffStrategy : public BackoffStrategy
 {
 	ContextCounts* contextCounts;
 	ContextValues* contextValues;
+	LimitedCounts* limitedCounts;
 
 public:
     std::string strategyName();
@@ -164,7 +143,8 @@ public:
     		cpyp::PYPLM<kORDER>& _lm,
 			PatternCounts* _patternCounts,
 			ContextCounts* _contextCounts,
-			ContextValues* _contextValues);
+			ContextValues* _contextValues,
+			LimitedCounts* _limitedCounts);
 
     virtual ~LimitedNaiveBackoffStrategy();
 

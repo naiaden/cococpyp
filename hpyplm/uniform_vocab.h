@@ -25,8 +25,6 @@ struct UniformVocabulary {
   template<typename Engine>
   void decrement(const Pattern&, const Pattern&, Engine&, CoCoInitialiser * const) { --draws; assert(draws >= 0); }
   double prob(const Pattern& , const Pattern&, CoCoInitialiser * const cci) const { return p0; }
-  double probLimited(const Pattern&, const Pattern&, PatternCounts*, ContextCounts*, ContextValues*, CoCoInitialiser * const, const std::string&) const { return p0; }
-  double probFull(const Pattern&, const Pattern&, ContextCounts*, ContextValues*, CoCoInitialiser * const, const std::string&) const { return p0; }
   double probFullNaiveHelper(const Pattern& w, const Pattern& context, const Pattern& pattern, double p1, CoCoInitialiser * const cci = nullptr) const {
 	  //std::cout << "Doing something with empty Pattern " << std::endl;
 	  return p0;

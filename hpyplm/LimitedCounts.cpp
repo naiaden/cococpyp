@@ -16,6 +16,53 @@ std::string LimitedCounts::name() const
 	return "limitedcounts";
 }
 
+LimitedCounts::LimitedCounts(SNCBWCoCoInitialiser& cci, const std::string& fileName)
+{
+	std::ifstream file(fileName);
+	std::string   line;
+
+	std::set<Pattern> orderedPatterns;
+
+	const bool allowUnknown = false;
+	const bool autoAddUnknown = false;
+
+	while(std::getline(file, line))
+	{
+		std::stringstream   linestream(line);
+		std::string         patternString;
+		std::string         PValueString;
+		double              PValue;
+		std::string			nobackoffString;
+		double 				nobackoff;
+		std::string			backoffString;
+		double				backoff;
+
+		std::getline(linestream, patternString, '\t');
+		std::getline(linestream, PValueString, '\t');
+		PValue = std::stod(PValueString);
+		std::getline(linestream, nobackoffString, '\t');
+		nobackoff = std::stod(nobackoffString);
+		std::getline(linestream, backoffString, '\t');
+		backoff = std::stod(backoffString);
+
+		std::cout << "[" << backoff << "] {" << nobackoff << "} (" << PValue  << ")" << std::endl;
+
+		try {
+			Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+
+			LimitedInformation li;
+			li.backoff = backoff;
+			li.nobackoff = nobackoff;
+			li.P = PValue;
+
+			limitedCounts[pattern] = li;
+		} catch (const UnknownTokenError &e) {
+			//
+		}
+	}
+
+}
+
 LimitedCounts::LimitedCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, BackoffStrategy* _backoffStrategy)
 {
 	backoffStrategy = _backoffStrategy;
@@ -24,6 +71,11 @@ LimitedCounts::LimitedCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCo
 
 void LimitedCounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts)
 {
+
+	SNCBWProgramOptions* po = (SNCBWProgramOptions*) cci.po;
+	std::ofstream probsFile;
+	probsFile.open(po->generalLimitedCacheFileName);
+
 	PatternSet<uint64_t> allFocusWords = cci.trainPatternModel.extractset(1,1);
 	long int numberOfFocusWords = allFocusWords.size();
 
@@ -47,11 +99,15 @@ void LimitedCounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* pattern
 			allContexts.insert(context);
 		}
 
+
+		long int kounter = 0;
+		std::cout << "Progress";
 		for(auto context : allContexts)
 		{
+			++kounter;
 			LimitedInformation li;
 			long int nobackoff = 0;
-			double q0 = 0.0;
+			double P = 0.0;
 			for(auto focus : allFocusWords)
 			{
 
@@ -59,18 +115,24 @@ void LimitedCounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* pattern
 				if(patternCounts->get(pattern))
 				{ // not oov
 					++nobackoff;
-					std::cout << "NOT OOV" << pattern.tostring(cci.classDecoder) << std::endl;
-					q0 += backoffStrategy->prob(focus, context, "" /*focus.tostring(cci.classDecoder)*/);
-
-
+//					std::cout << "NOT OOV: " << pattern.tostring(cci.classDecoder) << std::endl;
+					P += backoffStrategy->prob(focus, context, "" /*focus.tostring(cci.classDecoder)*/);
 				}
 			}
-			std::cout << "Q0 ===== " << q0 << std::endl;
+
 			li.nobackoff = nobackoff;
 			li.backoff = numberOfFocusWords - nobackoff;
-			li.q0 = q0;
+			li.P = P;
+
+			probsFile << context.tostring(cci.classDecoder) << "\t" << P << "\t" << nobackoff << "\t" << li.backoff << "\n";
+
+			if(kounter % 10 == 0) // std::setw(4) << (oov*1.0/counter*100) << "%
+				std::cout << std::fixed << "\r" << kounter << ":" << std::setw(6) << kounter*1.0/allContexts.size()*100 << "%" << std::flush;
 		}
 	}
+	std::cout << std::endl;
+	probsFile.close();
+	std::cout << "Done extracting LimitedCounts" << std::endl;
 }
 
 LimitedInformation LimitedCounts::get(const Pattern& pattern, CoCoInitialiser * const cci) const

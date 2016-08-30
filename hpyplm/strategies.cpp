@@ -231,81 +231,6 @@ double NgramBackoffStrategy::prob(const Pattern& focus, const Pattern& context, 
 
 
 
-std::string FullBackoffStrategy::strategyName()
-{
-	return "full";
-}
-
-FullBackoffStrategy::FullBackoffStrategy(SNCBWProgramOptions& _po,
-					SNCBWCoCoInitialiser& _cci,
-					cpyp::PYPLM<kORDER>& _lm,
-					ContextCounts* _contextCounts,
-					ContextValues* _contextValues)
-: BackoffStrategy(_cci, _lm), contextCounts(_contextCounts), contextValues(_contextValues), po(_po)
-{
-	std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
-
-	baseOutputName = _po.generalBaseOutputName + "_" + strategyName() + "_" + std::to_string(_po.n) + "_" + _contextValues->name();
-	outputProbabilitiesFileName = baseOutputName + ".probs";
-	outputFile = baseOutputName + ".output";
-
-	std::cout << "Writing backoff output to " << outputFile << std::endl;
-
-	mout = new my_ostream(outputFile);
-	probsFile.open(outputProbabilitiesFileName);
-
-	debug = true;
-}
-
-FullBackoffStrategy::~FullBackoffStrategy()
-{
-	probsFile.close();
-	delete mout;
-}
-
-double FullBackoffStrategy::prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
-{
-	if(debug) std::cout << " Entering full backoff\n";
-
-	double lp = 0.0;
-	std::string fS = focusString;
-
-	if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
-	{
-		if(debug) std::cout << "+++ Processing [" << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
-		lp = log2(lm.probFull(focus, context, contextCounts, contextValues, &cci));
-		fS = focus.tostring(cci.classDecoder);
-		if(debug) std::cout << "--- logprob = " << lp << std::endl;
-	} else // oov
-	{
-		++fOOVs;
-		probsFile << "***";
-	}
-
-	if(debug) std::cout << " writing to probs file...";
-
-//        std::cout << "\np(" << fS << " |"
-	probsFile << "p(" << fS << " |"
-			  << context.tostring(cci.classDecoder) << ") = "
-			  << std::fixed << std::setprecision(20) << lp
-			  << std::endl;
-
-	fLLH -= lp;
-	++fCount;
-
-	double lwhatever = (-fLLH * log(2)) / log(10);
-//        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
-	if(!std::isnormal(lwhatever))
-	{
-		std::cout << "lp is not normal" << std::endl;
-		exit( 8);
-	}
-
-	if(debug) std::cout << " done\n";
-
-	return lp;
-}
-
 
 
 
@@ -398,70 +323,62 @@ double FullNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& conte
 
 
 
-std::string LimitedBackoffStrategy::strategyName()
+
+std::string BasicFullNaiveBackoffStrategy::strategyName()
 {
-	return "limited";
+	return "basicfullnaive";
 }
 
-LimitedBackoffStrategy::LimitedBackoffStrategy(SNCBWProgramOptions& _po,
-		SNCBWCoCoInitialiser& _cci,
-		cpyp::PYPLM<kORDER>& _lm,
-		PatternCounts* _patternCounts,
-		ContextCounts* _contextCounts,
-		ContextValues* _contextValues)
-: BackoffStrategy(_cci, _lm), patternCounts(_patternCounts), contextCounts(_contextCounts), contextValues(_contextValues), po(_po)
+BasicFullNaiveBackoffStrategy::BasicFullNaiveBackoffStrategy(SNCBWProgramOptions& _po,
+					SNCBWCoCoInitialiser& _cci,
+					cpyp::PYPLM<kORDER>& _lm,
+					ContextCounts* _contextCounts,
+					ContextValues* _contextValues)
+: BackoffStrategy(_cci, _lm), contextCounts(_contextCounts), contextValues(_contextValues), po(_po)
 {
 	std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
 
-	baseOutputName = _po.generalBaseOutputName + "_" + strategyName() + "_" + std::to_string(_po.n) + "_" + _contextValues->name();
-	outputProbabilitiesFileName = baseOutputName + ".probs";
-	outputFile = baseOutputName + ".output";
-
-	std::cout << "Writing backoff output to " << outputFile << std::endl;
-
-	mout = new my_ostream(outputFile);
-	probsFile.open(outputProbabilitiesFileName);
+	debug = false;
 }
 
-LimitedBackoffStrategy::~LimitedBackoffStrategy()
+BasicFullNaiveBackoffStrategy::~BasicFullNaiveBackoffStrategy()
 {
-	probsFile.close();
-	delete mout;
 }
 
-double LimitedBackoffStrategy::prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
+// not the log prob
+double BasicFullNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
+{
+	if(debug) std::cout << " Entering " << strategyName() << " backoff\n";
+
+	double p = 0.0;
+	std::string fS = focusString;
+
+	if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
 	{
-		double lp = 0.0;
-		std::string fS = focusString;
+		if(debug) std::cout << "+++ Processing (" << (context+focus).size() << ") [" << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << "]" << std::endl;
 
-		if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
-		{
-			lp = log2(lm.probLimited(focus, context, patternCounts, contextCounts, contextValues, &cci));
-			fS = focus.tostring(cci.classDecoder);
-		} else // oov
-		{
-			++fOOVs;
-			probsFile << "***";
-		}
+		if(context.size() == 0) p = lm.probFullNaive1(focus, context, contextCounts, contextValues, &cci);
+		else if(context.size() == 1) p = lm.probFullNaive2(focus, context, contextCounts, contextValues, &cci);
+		else if(context.size() == 2) p = lm.probFullNaive3(focus, context, contextCounts, contextValues, &cci);
+		else p = lm.probFullNaive(focus, context, contextCounts, contextValues, &cci);
 
-//        std::cout << "\np(" << fS << " |"
-		probsFile << "p(" << fS << " |"
-				  << context.tostring(cci.classDecoder) << ") = "
-				  << std::fixed << std::setprecision(20) << lp
-				  << std::endl;
-
-		fLLH -= lp;
-		++fCount;
-
-		double lwhatever = (-fLLH * log(2)) / log(10);
-//        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
-		if(!std::isnormal(lwhatever))
-		{
-			exit( 8);
-		}
-
-		return lp;
+		fS = focus.tostring(cci.classDecoder);
+		if(debug) std::cout << "--- prob = " << p << std::endl;
+	} else // oov
+	{
 	}
+
+	if(debug) std::cout << " done\n";
+
+	return p;
+}
+
+
+
+
+
+
+
 
 
 
@@ -479,8 +396,9 @@ LimitedNaiveBackoffStrategy::LimitedNaiveBackoffStrategy(SNCBWProgramOptions& _p
 		cpyp::PYPLM<kORDER>& _lm,
 		PatternCounts* _patternCounts,
 		ContextCounts* _contextCounts,
-		ContextValues* _contextValues)
-: BackoffStrategy(_cci, _lm), patternCounts(_patternCounts), contextCounts(_contextCounts), contextValues(_contextValues), po(_po)
+		ContextValues* _contextValues,
+		LimitedCounts* _limitedCounts)
+: BackoffStrategy(_cci, _lm), patternCounts(_patternCounts), contextCounts(_contextCounts), contextValues(_contextValues), limitedCounts(_limitedCounts), po(_po)
 {
 	std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
 
@@ -507,7 +425,7 @@ double LimitedNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& co
 
 	if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
 	{
-		lp = log2(lm.probLimitedNaive(focus, context, patternCounts, contextCounts, contextValues, &cci));
+		lp = log2(lm.probLimitedNaive(focus, context, patternCounts, contextCounts, contextValues, limitedCounts, &cci));
 		fS = focus.tostring(cci.classDecoder);
 	} else // oov
 	{
