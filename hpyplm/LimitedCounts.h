@@ -8,11 +8,11 @@
 #ifndef HPYPLM_LIMITEDCOUNTS_H_
 #define HPYPLM_LIMITEDCOUNTS_H_
 
-#include <classencoder.h>
-#include <classdecoder.h>
-#include <patternmodel.h>
+//#include <classencoder.h>
+//#include <classdecoder.h>
+//#include <patternmodel.h>
 
-#include <map>
+//#include <map>
 
 
 struct LimitedInformation

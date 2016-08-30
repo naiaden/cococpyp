@@ -39,8 +39,10 @@
 #include "PatternCounts.h"
 //
 //
-//#include "strategies.h"
+
 //#include "ContextValues.h"
+#include "LimitedCounts.cpp"
+#include "strategies.cpp"
 
 using date::operator<<;
 
@@ -90,26 +92,26 @@ int main(int argc, char** argv) {
     tsp.start();
 
     ContextCounts contextCounts;
-    contextCounts.fromFile2(cci);
+    contextCounts.fromFile(cci);
 
 	PatternCounts patternCounts;
 	patternCounts.fromFile(cci);
 
-//    MLECounts mleCounts(cci, &patternCounts);
-//    EntropyCounts entropyCounts(cci, &patternCounts);
+    MLECounts mleCounts(cci, &patternCounts);
+    EntropyCounts entropyCounts(cci, &patternCounts);
     UniformCounts uniformCounts(cci);
 
 
-    //LimitedCounts limitedCounts(cci, &patternCounts, new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+//    LimitedCounts limitedCounts(cci, &patternCounts, new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
 
-return 1;
+//return 1;
 //
-//    BackoffStrategies backoffStrategies;
-////    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
+    BackoffStrategies backoffStrategies;
+//    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
 //
-////    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-////    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
-////    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
 //
 ////    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
 //

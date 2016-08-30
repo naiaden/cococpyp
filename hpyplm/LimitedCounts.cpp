@@ -59,9 +59,10 @@ void LimitedCounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* pattern
 				if(patternCounts->get(pattern))
 				{ // not oov
 					++nobackoff;
-					q0 += backoffStrategy->prob(focus, context, focus.tostring(cci.classDecoder));
+					std::cout << "NOT OOV" << pattern.tostring(cci.classDecoder) << std::endl;
+					q0 += backoffStrategy->prob(focus, context, "" /*focus.tostring(cci.classDecoder)*/);
 
-//						std::cout << "NOT OOV" << pattern.tostring(cci.classDecoder) << std::endl;
+
 				}
 			}
 			std::cout << "Q0 ===== " << q0 << std::endl;
@@ -72,7 +73,7 @@ void LimitedCounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* pattern
 	}
 }
 
-LimitedInformation LimitedCounts::get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr) const
+LimitedInformation LimitedCounts::get(const Pattern& pattern, CoCoInitialiser * const cci) const
 {
 	std::unordered_map<Pattern, LimitedInformation>::const_iterator iter = limitedCounts.find(pattern);
 	if ( iter != limitedCounts.end() )

@@ -10,12 +10,12 @@ BackoffStrategy::BackoffStrategy(SNCBWCoCoInitialiser& _cci, cpyp::PYPLM<kORDER>
 
 }
 
-virtual std::string BackoffStrategy::strategyName()
+std::string BackoffStrategy::strategyName()
 {
 	return "I HAVE NO NAME";
 }
 
-virtual double BackoffStrategy::prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
+double BackoffStrategy::prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
 {
 	return 0.0;
 }
@@ -423,7 +423,7 @@ LimitedBackoffStrategy::LimitedBackoffStrategy(SNCBWProgramOptions& _po,
 	probsFile.open(outputProbabilitiesFileName);
 }
 
-virtual LimitedBackoffStrategy::~LimitedBackoffStrategy()
+LimitedBackoffStrategy::~LimitedBackoffStrategy()
 {
 	probsFile.close();
 	delete mout;
@@ -494,43 +494,43 @@ LimitedNaiveBackoffStrategy::LimitedNaiveBackoffStrategy(SNCBWProgramOptions& _p
 	probsFile.open(outputProbabilitiesFileName);
 }
 
-virtual LimitedNaiveBackoffStrategy::~LimitedNaiveBackoffStrategy()
+LimitedNaiveBackoffStrategy::~LimitedNaiveBackoffStrategy()
 {
 	probsFile.close();
 	delete mout;
 }
 
 double LimitedNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
+{
+	double lp = 0.0;
+	std::string fS = focusString;
+
+	if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
 	{
-		double lp = 0.0;
-		std::string fS = focusString;
-
-		if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
-		{
-			lp = log2(lm.probLimitedNaive(focus, context, patternCounts, contextCounts, contextValues, &cci));
-			fS = focus.tostring(cci.classDecoder);
-		} else // oov
-		{
-			++fOOVs;
-			probsFile << "***";
-		}
-
-		std::cout << "\np(" << fS << " |"
-//            probsFile << "p(" << fS << " |"
-				  << context.tostring(cci.classDecoder) << ") = "
-				  << std::fixed << std::setprecision(20) << lp
-				  << std::endl;
-
-		fLLH -= lp;
-		++fCount;
-
-		double lwhatever = (-fLLH * log(2)) / log(10);
-//        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
-		if(!std::isnormal(lwhatever))
-		{
-			exit( 8);
-		}
-
-		return lp;
+		lp = log2(lm.probLimitedNaive(focus, context, patternCounts, contextCounts, contextValues, &cci));
+		fS = focus.tostring(cci.classDecoder);
+	} else // oov
+	{
+		++fOOVs;
+		probsFile << "***";
 	}
+
+	std::cout << "\np(" << fS << " |"
+//            probsFile << "p(" << fS << " |"
+			  << context.tostring(cci.classDecoder) << ") = "
+			  << std::fixed << std::setprecision(20) << lp
+			  << std::endl;
+
+	fLLH -= lp;
+	++fCount;
+
+	double lwhatever = (-fLLH * log(2)) / log(10);
+//        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
+	if(!std::isnormal(lwhatever))
+	{
+		exit( 8);
+	}
+
+	return lp;
+}
 

@@ -769,46 +769,38 @@ template<unsigned N> struct PYPLM {
 			std::cerr << "Do something: Pattern length is not 4" << std::endl;
 		}
 
-		// 4 content words
-		// a b c d
-		Pattern abcd = pattern;
-
-		// 3 content words
-		// a b   d
-		Pattern abxd = abcd.addskip(std::pair<int, int>(1,1));
-		// a   c d
-		Pattern axcd = abcd.addskip(std::pair<int, int>(2,1));
-		//   b c d
-		Pattern xbcd = Pattern(abcd,1,3);
-
-		// 2 content words
-		// a     d
-		Pattern axxd = abcd.addskip(std::pair<int, int>(1,2));
-		//   b   d
-		Pattern xbxd = xbcd.addskip(std::pair<int, int>(1,1));
-		//     c d
-		Pattern xxcd = Pattern(xbcd,1,2);
-
-		// 1 content word
-		//       d
-		Pattern xxxd = Pattern(xxcd,1,1);
-
-		// 0 content words
-		//
-		Pattern xxxx = Pattern();
-
 		CoCoInitialiser* temp_cciPtr = nullptr;
 
-		// -----------------------------
-		// 0
+		Pattern abcd = pattern;
+
+
+
+
+		// 0 content words
+		Pattern xxxx = Pattern();
 		double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, temp_cciPtr);
 		if(debug) std::cout << "xxxx p: " << xxxx_prob << std::endl;
+		if(pattern.size() == 0)
+		{
+			std::cout << "Returning 0-gram prob" << std::endl;
+			return xxxx_prob;
+		}
 
-		// 1
+		// 1 content word
+		Pattern xxxd = Pattern(abcd,3,1);
 		double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, temp_cciPtr);
 		if(debug) std::cout << "xxxd p: " << xxxd_prob << std::endl;
+		if(pattern.size() == 0)
+		{
+			std::cout << "Returning 1-gram prob" << std::endl;
+			return xxxd_prob;
+		}
 
-		// 2
+		// 2 content words
+		Pattern axxd = abcd.addskip(std::pair<int, int>(1,2));
+		Pattern xbxd = abcd.addskip(std::pair<int, int>(0,1)).addskip(std::pair<int, int>(2,1));
+		Pattern xxcd = Pattern(abcd,2,2);
+
 		double axxd_prob = probFullNaiveHelper(xxxd, Pattern(axxd, 0, 3), axxd, xxxd_prob, temp_cciPtr);
 		double axxd_weight = contextValues->get(axxd);
 		if(debug) std::cout << "axxd p: " << axxd_prob << " with weight: " << axxd_weight << std::endl;
@@ -821,7 +813,18 @@ template<unsigned N> struct PYPLM {
 
 		double c2_prob = (axxd_prob * axxd_weight + xbxd_prob * xbxd_weight + xxcd_prob * xxcd_weight) / (axxd_weight + xbxd_weight + xxcd_weight);
 
-		// 3
+		if(pattern.size() == 2)
+		{
+			std::cout << "Returning 2-gram prob" << std::endl;
+			return c2_prob;
+		}
+
+
+		// 3 content words
+		Pattern abxd = abcd.addskip(std::pair<int, int>(1,1));
+		Pattern axcd = abcd.addskip(std::pair<int, int>(2,1));
+		Pattern xbcd = Pattern(abcd,1,3);
+
 		double abxd_prob = probFullNaiveHelper(xxxd, Pattern(abxd, 0, 3), abxd, c2_prob, temp_cciPtr);
 		double abxd_weight = contextValues->get(abxd);
 		if(debug) std::cout << "abxd p: " << abxd_prob << " with weight: " << abxd_weight << std::endl;
@@ -834,7 +837,13 @@ template<unsigned N> struct PYPLM {
 
 		double c3_prob = (abxd_prob * abxd_weight + axcd_prob * axcd_weight + xbcd_prob * xbcd_weight) / (abxd_weight + axcd_weight + xbcd_weight);
 
-		// 4
+		if(pattern.size() == 3)
+		{
+			std::cout << "Returning 3-gram prob" << std::endl;
+			return c3_prob;
+		}
+
+		// 4 content words
 		double abcd_prob = probFullNaiveHelper(xxxd, Pattern(abcd, 0, 3), abcd, c3_prob, temp_cciPtr);
 		double abcd_weight = 1.0;
 		if(debug) std::cout << "abcd p: " << abcd_prob << " with weight: " << abcd_weight << std::endl;

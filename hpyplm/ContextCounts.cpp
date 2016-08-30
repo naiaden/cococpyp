@@ -9,7 +9,7 @@
 
 // The empty pattern can be followed by any word, so get(Pattern()) = V
 //
-void ContextCounts::fromFile2(SNCBWCoCoInitialiser& cci)
+void ContextCounts::fromFile(SNCBWCoCoInitialiser& cci)
 {
 	for(int i = 1; i <= kORDER; ++i)
 	{
