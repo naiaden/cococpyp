@@ -105,16 +105,15 @@ int main(int argc, char** argv) {
 //    LimitedCounts limitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
     LimitedCounts limitedCounts(cci, po.generalLimitedCacheFileName);
 
-return 2;
-//
+
     BackoffStrategies backoffStrategies;
-    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
+//    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
 
 //    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+//    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
 //    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
 //
-////    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
+    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts, &limitedCounts));
 
     std::cout << std::endl;
 
@@ -152,7 +151,7 @@ return 2;
                     Pattern context = cci.classEncoder.buildpattern(contextStream.str());
                     Pattern focus = cci.classEncoder.buildpattern(words[i]);
 
-//                    std::cout << "\n  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
+                    std::cout << "\n  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
 
 
                     double lp = 0.0;

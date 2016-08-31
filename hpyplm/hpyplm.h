@@ -139,18 +139,16 @@ template<unsigned N> struct PYPLM {
 		{
 			bool debug = true;
 
-			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts);
+			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts, cci);
 
-			Pattern pattern(context+w);//plnCache->abcd->pattern);
 
-			if(pattern.size() != 4)
-			{
-				std::cerr << "Do something: Pattern length is not 4" << std::endl;
-			}
 
-			CoCoInitialiser* temp_cciPtr = nullptr;
-
-			return 5.0;
+//			if(plnCache.abcd->getPattern().size() != 4)
+//			{
+//				std::cerr << "Do something: Pattern length is not 4" << std::endl;
+//			}
+//
+//			return plnCache.abcd->compute();
 
 		}
 

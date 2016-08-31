@@ -18,6 +18,7 @@ std::string LimitedCounts::name() const
 
 LimitedCounts::LimitedCounts(SNCBWCoCoInitialiser& cci, const std::string& fileName)
 {
+	std::cout << "Reading LimitedCounts from file: " << fileName << "...";
 	std::ifstream file(fileName);
 	std::string   line;
 
@@ -45,7 +46,7 @@ LimitedCounts::LimitedCounts(SNCBWCoCoInitialiser& cci, const std::string& fileN
 		std::getline(linestream, backoffString, '\t');
 		backoff = std::stod(backoffString);
 
-		std::cout << "[" << backoff << "] {" << nobackoff << "} (" << PValue  << ")" << std::endl;
+//		std::cout << "[" << backoff << "] {" << nobackoff << "} (" << PValue  << ")" << std::endl;
 
 		try {
 			Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
@@ -60,6 +61,7 @@ LimitedCounts::LimitedCounts(SNCBWCoCoInitialiser& cci, const std::string& fileN
 			//
 		}
 	}
+	std::cout << " Done." << std::endl;
 
 }
 

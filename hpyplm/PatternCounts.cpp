@@ -10,7 +10,7 @@
 
 
 
-void PatternCounts::fromFile(SNCBWCoCoInitialiser& cci)
+inline void PatternCounts::fromFile(SNCBWCoCoInitialiser& cci)
 {
 	patternCounts[Pattern()] = 0;
 
@@ -70,7 +70,7 @@ void PatternCounts::fromFile(SNCBWCoCoInitialiser& cci)
 	std::cout << "retrieved count': " << get(removeme) << std::endl;
 }
 
-long int PatternCounts::get(const Pattern& pattern, CoCoInitialiser * const cci) const
+inline long int PatternCounts::get(const Pattern& pattern, CoCoInitialiser * const cci) const
 {
 	std::unordered_map<Pattern,long int>::const_iterator iter = patternCounts.find(pattern);
 
