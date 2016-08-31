@@ -334,24 +334,106 @@ template<unsigned N> struct PYPLM {
 		{
 			P_XBCD() : PatternCache(Pattern(), Pattern()) { }
 			P_XBCD(const Pattern& f, const Pattern& c) : PatternCache(f,c) { }
+
+			double compute()
+			{
+				if(!computed)
+				{
+					weight_ = contextValues->get(context+focus);
+					backoff_ = 1.0;
+					prob_ = 0.0;
+					p0_ = 1.0;
+					if(xbcd.occurs(_patternCounts))
+					{
+						backoff_ = 0.0;
+						prob_ = probLimitedNaiveHelper(xxxd, Pattern(xbcd, 1, 2), xbcd, xbcd_p0, xbcd_backoff, contextCounts, temp_cciPtr);
+					} else
+					{
+						backoff_ = 1.0;
+						p0_ = caches.xxcd.getWeight() * caches.xxcd.getProb() + caches.xbxd.getWeight() * caches.xbxd.getProb();
+
+						prob_ = probLimitedNaiveHelper(xxxd, Pattern(xbcd, 0, 2), xbcd, xbcd_p0, xbcd_backoff, contextCounts, temp_cciPtr);
+					}
+					computed = true;
+
+				}
+				return prob_;
 		};
 
 		class P_AXCD : public PatternCache
 		{
 			P_AXCD() : PatternCache(Pattern(), Pattern()) { }
 			P_AXCD(const Pattern& f, const Pattern& c) : PatternCache(f,c) { }
+
+			double compute()
+			{
+				if(!computed)
+				{
+					weight_ = contextValues->get(context+focus);
+					backoff_ = 1.0;
+					prob_ = 0.0;
+					p0_ = 1.0;
+					if(axcd.occurs(_patternCounts))
+					{
+						backoff_ = 0.0;
+						prob_ = probLimitedNaiveHelper(xxxd, Pattern(axcd, 0, 3), axcd, axcd_p0, axcd_backoff, contextCounts, temp_cciPtr);
+					} else
+					{
+
+
+						backoff_ = 1.0;
+						p0_ = caches.axxd.getWeight() * caches.xxcd.getProb() + xxcd_weight * xxcd_prob;
+
+						if(debug) std::cout << axcd.tostring(cci->classDecoder) << " not found" << std::endl;
+						if(debug) std::cout << "--" << axxd_weight << "*" << axxd_prob << "+" << xxcd_weight << "*" << xxcd_prob << std::endl;
+
+						axcd_prob = probLimitedNaiveHelper(xxxd, Pattern(axcd, 0, 3), axcd, axcd_p0, axcd_backoff, contextCounts, temp_cciPtr);
+					} // axcd
+
+					computed = true;
+				}
+				return prob_;
+			}
 		};
 
 		class P_ABXD : public PatternCache
 		{
 			P_ABXD() : PatternCache(Pattern(), Pattern()) { }
 			P_ABXD(const Pattern& f, const Pattern& c) : PatternCache(f,c) { }
+
+			double compute()
+			{
+				if(!computed)
+				{
+					weight_ = contextValues->get(context+focus);
+					backoff_ = 1.0;
+					prob_ = 0.0;
+					p0_ = 1.0;
+
+					computed = true;
+				}
+				return prob_;
+			}
 		};
 
 		class P_ABCD : public PatternCache
 		{
 			P_ABCD() : PatternCache(Pattern(), Pattern()) { }
 			P_ABCD(const Pattern& f, const Pattern& c) : PatternCache(f,c) { }
+
+			double compute()
+			{
+				if(!computed)
+				{
+					weight_ = contextValues->get(context+focus);
+					backoff_ = 1.0;
+					prob_ = 0.0;
+					p0_ = 1.0;
+
+					computed = true;
+				}
+				return prob_;
+			}
 		};
 
 
