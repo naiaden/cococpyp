@@ -52,8 +52,6 @@ double P_XXXD::compute()
 //			prob_ = probLimitedNaiveHelper(focus, context, pattern, p0_, backoff_, cc, nullptr);
 		} else
 		{
-			parent->xxxx->compute();
-
 			p0_ = parent->xxxx->getWeight() * parent->xxxx->getProb();
 			backoff_ = 1.0;
 
