@@ -139,9 +139,9 @@ template<unsigned N> struct PYPLM {
 		{
 			bool debug = true;
 
-			PLNCache plnCache(w, context, _patternCounts);
+			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts);
 
-			Pattern pattern(context+w);
+			Pattern pattern(context+w);//plnCache->abcd->pattern);
 
 			if(pattern.size() != 4)
 			{
