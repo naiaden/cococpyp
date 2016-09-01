@@ -11,6 +11,8 @@
 
 
 #include <unordered_map>
+#include <pattern.h>
+#include "CoCoInitialiser.h"
 
 /**
  * For each context (or pattern) we store how often it occurs

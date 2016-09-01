@@ -29,12 +29,14 @@ public:
 	ContextValues* cv;
 	LimitedCounts * lc;
 
+	CoCoInitialiser * cci;
+
 	bool debug = false;
 
 	PLNCache(const Pattern& w, const Pattern& context, PatternCounts* pc, ContextCounts* cc, ContextValues* cv, LimitedCounts * lc, CoCoInitialiser * const cci = nullptr)
-		: pc(pc), cc(cc), cv(cv), lc(lc)
+		: pc(pc), cc(cc), cv(cv), lc(lc), cci(cci)
 	{
-		std::cout << "Creating a PLNCache for: " << context.tostring(cci->classDecoder) << " " << w.tostring(cci->classDecoder) << std::endl;
+		if(cci) std::cout << "Creating a PLNCache for: " << context.tostring(cci->classDecoder) << " " << w.tostring(cci->classDecoder) << std::endl;
 
 		abcd = new P_ABCD(this, w, context);
 		abxd = new P_ABXD(this, w, context);

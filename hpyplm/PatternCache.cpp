@@ -10,6 +10,7 @@
 
 #include "ContextValues.h"
 #include "ContextCounts.h"
+#include "PatternCounts.h"
 
 Pattern& PatternCache::getPattern()
 {
@@ -220,6 +221,7 @@ double P_ABCD::compute()
 		prob_ = 0.0;
 		p0_ = 1.0;
 
+		if(parent->cci) std::cout << "Getting pattern: " << pattern.tostring(parent->cci->classDecoder) << std::endl;
 		if(pc->get(pattern, nullptr))
 		{
 

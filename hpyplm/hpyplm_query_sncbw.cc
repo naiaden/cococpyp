@@ -27,6 +27,7 @@
 #include "DefaultPatternModelOptions.h"
 #include "ProgramOptions.h"
 #include "CoCoInitialiser.h"
+#include "PatternCounts.h"
 //
 //#include "utils.h"
 

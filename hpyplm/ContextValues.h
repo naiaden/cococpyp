@@ -12,8 +12,6 @@
 #include "CoCoInitialiser.h"
 #include "utils.h"
 
-#include "PatternCounts.cpp"
-
 
 class ContextValues
 {
