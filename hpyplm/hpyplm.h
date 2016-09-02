@@ -22,6 +22,7 @@
 #include "ContextCounts.h"
 
 #include "PLNCache.h"
+#include "PatternCache.h"
 
 // A not very memory-efficient implementation of an N-gram LM based on PYPs
 // as described in Y.-W. Teh. (2006) A Hierarchical Bayesian Language Model
@@ -36,37 +37,6 @@ template<> struct PYPLM<0> : public UniformVocabulary {
 			UniformVocabulary(vs, a, b, c, d) {
 	}
 };
-
-std::vector<Pattern> generateSkips(const Pattern& p, ClassDecoder* classDecoder = nullptr) {
-    std::vector<Pattern> skip_patterns = std::vector<Pattern>();
-
-    if(classDecoder)
-    {
-    	std::cout << "Generating skips for " << p.tostring(*classDecoder) << std::endl;
-    }
-
-    if(p.size() > 1) 
-    {
-        for(int i = 1; i < p.size(); ++i) 
-        {
-            Pattern q = p.addskip(std::pair<int, int>(i,1));
-
-            if(q!=p)
-            {
-            	if(classDecoder)
-				{
-					std::cout << "\t->" << q.tostring(*classDecoder) << std::endl;
-					if(q.isgap(0))
-						std::cout << "ASDASDASDASD GAAAAP" << std::endl;
-				}
-
-          		skip_patterns.push_back(q);
-            }
-        }
-    }
-
-    return skip_patterns;
-}
 
 // represents an N-gram LM
 template<unsigned N> struct PYPLM {
@@ -125,7 +95,7 @@ template<unsigned N> struct PYPLM {
 			return p0;
 		} else
 		{
-			return it->second.probNaive(context, w, limitedInformation, p0, S);
+			return it->second.probNaive(context, w, p0, S);
 
 		}
 
@@ -133,21 +103,27 @@ template<unsigned N> struct PYPLM {
 
 
 
-		double probLimitedNaive(const Pattern& w, const Pattern& context,PatternCounts* _patternCounts,
+		double probLimitedNaive(const Pattern& w, const Pattern& context,cpyp::PYPLM<kORDER>& _lm, PatternCounts* _patternCounts,
 						ContextCounts* contextCounts, ContextValues* contextValues, LimitedCounts * limitedCounts,
 						CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 		{
 			bool debug = true;
 
+
 			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts, cci);
 
+			plnCache.xxxx->compute(p);
+			plnCache.xxxd->compute(backoff.backoff.backoff.p);
+			plnCache.xxcd->compute(backoff.backoff.p);
+			plnCache.xbxd->compute(backoff.p);
+			plnCache.axxd->compute(p);
+			plnCache.xbcd->compute(backoff.p);
+			plnCache.axcd->compute(p);
+			plnCache.abxd->compute(p);
+			return plnCache.abcd->compute(p);
 
 
-//			if(plnCache.abcd->getPattern().size() != 4)
-//			{
-//				std::cerr << "Do something: Pattern length is not 4" << std::endl;
-//			}
-//
+
 //			return plnCache.abcd->compute();
 
 		}
@@ -435,3 +411,4 @@ template<unsigned N> struct PYPLM {
 }
 
 #endif
+

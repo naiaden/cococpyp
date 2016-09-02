@@ -14,6 +14,8 @@
 
 //#include <map>
 
+#include "CoCoInitialiser.h"
+
 class BackoffStrategy;
 class PatternCounts;
 

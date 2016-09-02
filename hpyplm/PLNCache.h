@@ -8,8 +8,26 @@
 #ifndef HPYPLM_PLNCACHE_H_
 #define HPYPLM_PLNCACHE_H_
 
-#include "PatternCache.h"
-#include "CoCoInitialiser.h"
+//#include "CoCoInitialiser.h"
+class CoCoInitialiser;
+//#include "PatternCounts.h"
+class PatternCounts;
+class ContextCounts;
+class ContextValues;
+class LimitedCounts;
+#include <pattern.h>
+
+//#include "hpyplm.h"
+//#include "PatternCache.h"
+class P_ABCD;
+class P_ABXD;
+class P_AXCD;
+class P_XBCD;
+class P_AXXD;
+class P_XBXD;
+class P_XXCD;
+class P_XXXD;
+class P_XXXX;
 
 class PLNCache {
 public:
@@ -33,31 +51,9 @@ public:
 
 	bool debug = false;
 
-	PLNCache(const Pattern& w, const Pattern& context, PatternCounts* pc, ContextCounts* cc, ContextValues* cv, LimitedCounts * lc, CoCoInitialiser * const cci = nullptr)
-		: pc(pc), cc(cc), cv(cv), lc(lc), cci(cci)
-	{
-		if(cci) std::cout << "Creating a PLNCache for: " << context.tostring(cci->classDecoder) << " " << w.tostring(cci->classDecoder) << std::endl;
+	PLNCache(const Pattern& w, const Pattern& context, PatternCounts* pc, ContextCounts* cc, ContextValues* cv, LimitedCounts * lc, CoCoInitialiser * const cci = nullptr);
 
-		abcd = new P_ABCD(this, w, context);
-		abxd = new P_ABXD(this, w, context);
-		axcd = new P_AXCD(this, w, context);
-		xbcd = new P_XBCD(this, w, context);
-
-		axxd = new P_AXXD(this, w, context);
-		xbxd = new P_XBXD(this, w, context);
-		xxcd = new P_XXCD(this, w, context);
-
-		xxxd = new P_XXXD(this, w, context);
-
-		xxxx = new P_XXXX(this, w, context);
-
-		abcd->compute();
-	}
-
-	~PLNCache() {
-		delete xxxx;
-//		delete xxxd;
-	}
+	~PLNCache();
 
 };
 

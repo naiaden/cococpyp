@@ -410,6 +410,8 @@ LimitedNaiveBackoffStrategy::LimitedNaiveBackoffStrategy(SNCBWProgramOptions& _p
 
 	mout = new my_ostream(outputFile);
 	probsFile.open(outputProbabilitiesFileName);
+
+
 }
 
 LimitedNaiveBackoffStrategy::~LimitedNaiveBackoffStrategy()
@@ -425,7 +427,7 @@ double LimitedNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& co
 
 	if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
 	{
-		lp = log2(lm.probLimitedNaive(focus, context, patternCounts, contextCounts, contextValues, limitedCounts, &cci));
+		lp = log2(lm.probLimitedNaive(focus, context, lm, patternCounts, contextCounts, contextValues, limitedCounts, &cci));
 		fS = focus.tostring(cci.classDecoder);
 	} else // oov
 	{

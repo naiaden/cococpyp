@@ -239,7 +239,7 @@ public:
 	}
 
 	template<typename F>
-	F probNaive(const Pattern& context, const Dish& dish, LimitedInformation* li, const F& p0 = 0.0, const double S = 1.0 ) const {
+	F probNaive(const Pattern& context, const Dish& dish, const F& p0 = 0.0, const double S = 1.0 ) const {
 		bool backoff = (S > 0.5) ? true : false;
 
 		if (num_tables_ == 0)
@@ -255,18 +255,15 @@ public:
 		auto it = dish_locs_.find(dish);
 		if (it == dish_locs_.end()) {
 
-			double r0 = p0;
-			if(!backoff) r0 = (1.0 - li->P) / li->nobackoff;
+			double prob = (strength_ + discount_ * num_tables_) * div * p0;
+			std::cout << "1. discount: " << discount_ << " num_tables: " << num_tables_ << " S: " << S << " p0: " << p0 << "\t\t-->" << prob << std::endl;
 
-			std::cout << "1. discount: " << discount_ << " num_tables: " << num_tables_ << " S: " << S << " r0: " << r0 << "P: " << li->P << " nobackoffs: " << li->nobackoff << "\t\t-->" << (strength_ + discount_ * num_tables_) * div * r0 << std::endl;
-
-			 return (strength_ + discount_ * num_tables_) * div * r0;
+			 return prob;
 		} else {
-			double r0 = p0;
-			if(!backoff) r0 = (1.0 - li->P) / li->nobackoff;
 
-			std::cout << "2. discount: " << discount_ << " custw: " << it->second.num_customers() << " tablesw: " << it->second.num_tables() << " S: " << S << " r0: " << r0 << "P: " << li->P << " nobackoffs: " << li->nobackoff << "\t\t-->" << (it->second.num_customers() - discount_ * it->second.num_tables()) * div + (strength_ + discount_ * num_tables_) * div * r0 << std::endl;
-			return (it->second.num_customers() - discount_ * it->second.num_tables()) * div + (strength_ + discount_ * num_tables_) * div * r0;
+			double prob = (it->second.num_customers() - discount_ * it->second.num_tables()) * div + (strength_ + discount_ * num_tables_) * div * p0;
+			std::cout << "2. discount: " << discount_ << " custw: " << it->second.num_customers() << " tablesw: " << it->second.num_tables() << " S: " << S << " p0: " << p0 << "\t\t-->" << prob << std::endl;
+			return prob;
 		}
 
 	}

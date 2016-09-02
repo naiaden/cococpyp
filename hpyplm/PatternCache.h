@@ -8,12 +8,17 @@
 #ifndef HPYPLM_PATTERNCACHE_H_
 #define HPYPLM_PATTERNCACHE_H_
 
-class PLNCache;
+#include <unordered_map>
+
+#include "PLNCache.h"
+//class PLNCache;
 #include <pattern.h>
 class PatternCounts;
 class ContextValues;
 class ContextCounts;
 class LimitedCounts;
+
+#include "cpyp/crp.h"
 
 	class PatternCache
 		{
@@ -31,21 +36,18 @@ class LimitedCounts;
 			Pattern context;
 			Pattern pattern;
 
-			PatternCounts* pc;
-			ContextCounts* cc;
-			ContextValues* cv;
-			LimitedCounts* lc;
-
 			PLNCache* parent;
 
 		public:
-			PatternCache(PLNCache* parent, const Pattern& _focus, const Pattern& _context) : parent(parent), focus(_focus), context(_context), pattern(_context + _focus), pc(pc), cc(cc), cv(cv), lc(lc) {} ;
+			PatternCache(PLNCache* parent, const Pattern& _focus, const Pattern& _context) : parent(parent), focus(_focus), context(_context), pattern(_context + _focus){} ;
 
-			double compute() {};
+			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p) {};
 
 			Pattern& getPattern();
-			double getWeight();
-			double getProb();
+			double getWeight(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
+			double getProb(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
+
+			double helper(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p, double p0, double S);
 		};
 
 		class P_XXXX : public PatternCache
@@ -56,7 +58,7 @@ class LimitedCounts;
 				context = Pattern();
 			}
 
-			double compute();
+			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 		};
 
 		class P_XXXD : public PatternCache
@@ -67,7 +69,7 @@ class LimitedCounts;
 				context = Pattern();
 			}
 
-			double compute();
+			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 		};
 
 		class P_XXCD : public PatternCache
@@ -78,7 +80,7 @@ class LimitedCounts;
 				context = Pattern(c, 2, 2);
 			}
 
-			double compute();
+			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 		};
 
 		class P_XBXD : public PatternCache
@@ -89,7 +91,7 @@ class LimitedCounts;
 				context = Pattern(c, 1, 2).addskip(std::pair<int, int>(1, 1));
 			}
 
-			double compute();
+			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 		};
 
 		class P_AXXD : public PatternCache
@@ -100,7 +102,7 @@ class LimitedCounts;
 				context = c.addskip(std::pair<int, int>(1, 2));
 			}
 
-			double compute();
+			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 		};
 
 		class P_XBCD : public PatternCache
@@ -111,7 +113,7 @@ class LimitedCounts;
 				context = Pattern(c, 1, 2);
 			}
 
-			double compute();
+			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 		};
 
 		class P_AXCD : public PatternCache
@@ -122,7 +124,7 @@ class LimitedCounts;
 				context = c.addskip(std::pair<int, int>(1, 1));
 			}
 
-			double compute();
+			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 		};
 
 		class P_ABXD : public PatternCache
@@ -133,7 +135,7 @@ class LimitedCounts;
 				context = c.addskip(std::pair<int, int>(2, 1));
 			}
 
-			double compute();
+			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 		};
 
 		class P_ABCD : public PatternCache
@@ -144,7 +146,7 @@ class LimitedCounts;
 
 			};
 
-			double compute();
+			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 		};
 
 
