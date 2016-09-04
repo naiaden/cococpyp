@@ -7,6 +7,8 @@
 
 #include "LimitedCounts.h"
 
+#include "PatternCounts.h"
+#include "strategies.h"
 
 
 

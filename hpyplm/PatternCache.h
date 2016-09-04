@@ -25,7 +25,6 @@ class LimitedCounts;
 		protected:
 			bool occurs_ = false;
 
-			double backoff_ = 0.0;
 			double prob_ = 0.0;
 			double weight_ = 0.0;
 			double p0_ = 0.0;
