@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <pattern.h>
 
+#include "CoCoInitialiser.h"
+
 /**
  * For each context we store by how many focus words it can be followed
  * (according to the train data)
