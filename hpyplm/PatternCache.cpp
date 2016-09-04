@@ -82,7 +82,6 @@ double P_XXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			std::cout << "    Compute unigram prob and continue backoff." << std::endl;
 
 			p0_ = /*parent->xxxx->getWeight(p) * */parent->xxxx->getProb(p);
-			backoff_ = 1.0;
 
 			prob_ = helper(p, p0_, 1.0);
 		}
@@ -100,7 +99,6 @@ double P_XXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	if(!computed)
 	{
 		weight_ = parent->cc->get(pattern);
-		backoff_ = 1.0;
 		prob_ = 0.0;
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
@@ -132,7 +130,6 @@ double P_XBXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	if(!computed)
 	{
 		weight_ = parent->cc->get(pattern);
-		backoff_ = 1.0;
 		prob_ = 0.0;
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
@@ -168,7 +165,6 @@ double P_AXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	if(!computed)
 	{
 		weight_ = parent->cc->get(pattern);
-		backoff_ = 1.0;
 		prob_ = 0.0;
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
@@ -204,7 +200,6 @@ double P_XBCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	if(!computed)
 	{
 		weight_ = parent->cc->get(pattern);
-		backoff_ = 1.0;
 		prob_ = 0.0;
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
@@ -241,7 +236,6 @@ double P_AXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	if(!computed)
 	{
 		weight_ = parent->cc->get(pattern);
-		backoff_ = 1.0;
 		prob_ = 0.0;
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
@@ -275,7 +269,6 @@ double P_ABXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	if(!computed)
 	{
 		weight_ = parent->cc->get(pattern);
-		backoff_ = 1.0;
 		prob_ = 0.0;
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
@@ -308,12 +301,8 @@ double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	std::cout << "." << ((!computed) ? " not computed yet" : "already computed") << std::endl;
 	if(!computed)
 	{
-//		weight_ = contextValues->get(context+focus);
-		backoff_ = 1.0;
 		prob_ = 0.0;
 		p0_ = 1.0;
-
-
 
 		if(parent->pc->get(pattern, nullptr))
 		{
@@ -328,19 +317,6 @@ double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 
 			prob_ = helper(p, p0_, 0.0);
 
-//			auto it = parent->pc->patternCounts.find(pattern.reverse());
-//			if(it != parent->pc->patternCounts.end())
-//			{
-//
-//
-//
-//				LimitedInformation l_it = parent->lc->get(context, nullptr);
-//				std::cout << l_it.P << " " << l_it.backoff << " " << l_it.nobackoff << std::endl;
-//
-////				return it->second.probNaive(context, focus,  1.0, delta, 0.0);
-////				return it->second.probNaive(context, focus, parent->)
-////				F probNaive(const Pattern& context, const Dish& dish, LimitedInformation* li, const F& p0 = 0.0, const double S = 1.0 ) const
-//			}
 		} else
 		{
 			std::cout << " Compute abcd prob and continue backoff." << std::endl;
