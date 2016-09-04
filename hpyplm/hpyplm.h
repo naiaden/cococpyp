@@ -19,6 +19,10 @@
 #include <pattern.h>
 
 #include "ContextValues.h"
+#include "ContextCounts.h"
+
+#include "PLNCache.h"
+#include "PatternCache.h"
 
 // A not very memory-efficient implementation of an N-gram LM based on PYPs
 // as described in Y.-W. Teh. (2006) A Hierarchical Bayesian Language Model
@@ -33,37 +37,6 @@ template<> struct PYPLM<0> : public UniformVocabulary {
 			UniformVocabulary(vs, a, b, c, d) {
 	}
 };
-
-std::vector<Pattern> generateSkips(const Pattern& p, ClassDecoder* classDecoder = nullptr) {
-    std::vector<Pattern> skip_patterns = std::vector<Pattern>();
-
-    if(classDecoder)
-    {
-    	std::cout << "Generating skips for " << p.tostring(*classDecoder) << std::endl;
-    }
-
-    if(p.size() > 1) 
-    {
-        for(int i = 1; i < p.size(); ++i) 
-        {
-            Pattern q = p.addskip(std::pair<int, int>(i,1));
-
-            if(q!=p)
-            {
-            	if(classDecoder)
-				{
-					std::cout << "\t->" << q.tostring(*classDecoder) << std::endl;
-					if(q.isgap(0))
-						std::cout << "ASDASDASDASD GAAAAP" << std::endl;
-				}
-
-          		skip_patterns.push_back(q);
-            }
-        }
-    }
-
-    return skip_patterns;
-}
 
 // represents an N-gram LM
 template<unsigned N> struct PYPLM {
@@ -102,191 +75,301 @@ template<unsigned N> struct PYPLM {
 		}
 	}
 
+	double limitedNaiveOccurs(const Pattern& pattern, PatternCounts* _patternCounts) const
+	{
+		return _patternCounts->get(pattern) > 0 ? true : false;
+	}
 
-	double probFull(const Pattern& w, const Pattern& context,
-				ContextCounts* contextCounts, ContextValues* contextValues,
-				CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
+	double probLimitedNaiveHelper(const Pattern& w, const Pattern& context, const Pattern& pattern, double p0, double S, ContextCounts* contextCounts, LimitedInformation* limitedInformation, CoCoInitialiser * const cci = nullptr) const
+	{
+		if(pattern.size() != N)
 		{
-			bool debug = true;
+			if(cci) std::cout << "My level is " << N << " but the pattern has length " << pattern.size() << std::endl;
+			return backoff.probFullNaiveHelper(w, context, pattern, p0, cci);
+		}
 
-//			Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
-			Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
-
-//			std::cout << indent << "[" << N << "] w: " << w.tostring(cci->classDecoder) << std::endl;
-//			std::cout << indent << "[" << N << "] context: " << context.tostring(cci->classDecoder) << std::endl;
-//			std::cout << indent << "[" << N << "] pContext: " << pContext.tostring(cci->classDecoder) << std::endl;
-
-
-
-
-			std::vector<Pattern> sPatterns;
-
-
-
-			if(N == kORDER)
-			{
-				sPatterns.push_back(context);
-			} else
-			{
-				sPatterns = generateSkips(context);
-				sPatterns.push_back(pContext);
-			}
-
-//			if(N!=kORDER)
-//			{
-//				sPatterns = generateSkips(context, &(cci->classDecoder));
-//				sPatterns = generateSkips(context);
-//			}
-//			if(N==1 && context.size()==1)
-//			{
-//				sPatterns.push_back(context);
-//				std::cout << indent << "[" << N << "] context: " << context.tostring(cci->classDecoder) << std::endl;
-//			} else
-//			{
-//				sPatterns.push_back(pContext);
-//				std::cout << indent << "[" << N << "] pContext: " << pContext.tostring(cci->classDecoder) << std::endl;
-//			}
-
-//			sPatterns.push_back(pContext);
-//			std::cout << indent << "[" << N << "] pContext: " << pContext.tostring(cci->classDecoder) << std::endl;
-//			sPatterns.push_back(context);
-//			std::cout << indent << "[" << N << "] context: " << context.tostring(cci->classDecoder) << std::endl;
-
-
-
-
-
-			std::vector<double> sPatternProbs;
-			std::vector<double> sPatternWeights;
-			double sPatternWeightSum = 0.0;
-			double probSum = 0.0;
-
-			for(const Pattern& sPattern : sPatterns)
-			{
-
-
-
-				double weight = contextValues->get(sPattern, w, cci, indent);
-				sPatternWeights.push_back(weight);
-				sPatternWeightSum += weight;
-
-
-
-				double bla = backoff.probFull(w, sPattern, contextCounts, contextValues, cci, indent + "\t");
-
-				std::cout << indent << "[" << N << "] context: " << sPattern.tostring(cci->classDecoder) << std::endl;
-
-				Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
-				lookup = lookup.reverse();
-
-//				std::cout << indent << "[" << N << "]\t Looking for " << lookup.tostring(cci->classDecoder) << std::endl;
-
-				double probability = 0.0;
-				auto it = p.find(lookup);
-				if(it != p.end())
-				{
-//					const long int invDelta = contextCounts->V - contextCounts->get(lookup.reverse());
-					const long int invDelta = 1;//contextCounts->V - contextCounts->get(lookup); // MOET DIT GEEN CONSTANTE ZIJN?
-					double boob = it->second.probLimited(w, bla, invDelta);
-					probability = boob;
-					if(debug)
-					{
-						std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
-						std::cout << indent << "[" << N << "]\t BOOB " << boob << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << " and p0/bla: " << bla << std::endl;
-					}
-				} else
-				{
-					probability = bla;
-					if(debug)
-					{
-						std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
-						std::cout << indent << "[" << N << "]\t BLA " << bla << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << " and p0/bla: " << bla << std::endl;
-					}
-				}
-
-				sPatternProbs.push_back(probability);
-
-				probSum += (weight * probability);
-			}
-
-			return probSum/sPatternWeightSum;
+		if(cci) std::cout << "Doing something with co" << N << "gram " << pattern.tostring(cci->classDecoder) << std::endl;
+		auto it = p.find(context.reverse());
+		if(it == p.end())
+		{
+			return p0;
+		} else
+		{
+			return it->second.probNaive(context, w, p0, S);
 
 		}
 
-	double probLimited(const Pattern& w, const Pattern& context, PatternCounts* patternCounts,
+	}
+
+
+
+		double probLimitedNaive(const Pattern& w, const Pattern& context,cpyp::PYPLM<kORDER>& _lm, PatternCounts* _patternCounts,
+						ContextCounts* contextCounts, ContextValues* contextValues, LimitedCounts * limitedCounts,
+						CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
+		{
+			bool debug = true;
+
+
+			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts, cci);
+
+			plnCache.xxxx->compute(p);
+			plnCache.xxxd->compute(backoff.backoff.backoff.p);
+			plnCache.xxcd->compute(backoff.backoff.p);
+			plnCache.xbxd->compute(backoff.p);
+			plnCache.axxd->compute(p);
+			plnCache.xbcd->compute(backoff.p);
+			plnCache.axcd->compute(p);
+			plnCache.abxd->compute(p);
+			return plnCache.abcd->compute(p);
+
+
+
+//			return plnCache.abcd->compute();
+
+		}
+
+
+	double probFullNaiveHelper(const Pattern& w, const Pattern& context, const Pattern& pattern, double p0, CoCoInitialiser * const cci = nullptr) const
+	{
+		if(pattern.size() != N)
+		{
+			if(cci) std::cout << "My level is " << N << " but the pattern has length " << pattern.size() << std::endl;
+			return backoff.probFullNaiveHelper(w, context, pattern, p0, cci);
+		}
+
+		if(N == 1)
+		{
+			if(cci) std::cout << "Doing something with unigram" << pattern.tostring(cci->classDecoder) << std::endl;
+			auto it = p.find(Pattern());
+			if (it == p.end()) { // if the pattern is not in the train data
+				if(cci) std::cout << "It's not in the training data, but whatever" << std::endl;;
+				return p0;
+			}
+
+			return it->second.prob(w, p0);
+		}
+
+
+		if(cci) std::cout << "Doing something with co" << N << "gram " << pattern.tostring(cci->classDecoder) << std::endl;
+		auto it = p.find(context);
+		if (it == p.end()) { // if the pattern is not in the train data
+			return p0;
+		}
+
+		return it->second.prob(w, p0);
+
+
+	}
+
+	double probFullNaive(const Pattern& w, const Pattern& context,
 					ContextCounts* contextCounts, ContextValues* contextValues,
 					CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
+	{
+		bool debug = false;
+
+		Pattern pattern = context + w;
+		if(pattern.size() != 4)
+		{
+			std::cerr << "Do something: Pattern length is not 4" << std::endl;
+		}
+
+		// 4 content words
+		// a b c d
+		Pattern abcd = pattern;
+
+		// 3 content words
+		// a b   d
+		Pattern abxd = abcd.addskip(std::pair<int, int>(1,1));
+		// a   c d
+		Pattern axcd = abcd.addskip(std::pair<int, int>(2,1));
+		//   b c d
+		Pattern xbcd = Pattern(abcd,1,3);
+
+		// 2 content words
+		// a     d
+		Pattern axxd = abcd.addskip(std::pair<int, int>(1,2));
+		//   b   d
+		Pattern xbxd = xbcd.addskip(std::pair<int, int>(1,1));
+		//     c d
+		Pattern xxcd = Pattern(xbcd,1,2);
+
+		// 1 content word
+		//       d
+		Pattern xxxd = Pattern(xxcd,1,1);
+
+		// 0 content words
+		//
+		Pattern xxxx = Pattern();
+
+		CoCoInitialiser* temp_cciPtr = nullptr;
+
+		// -----------------------------
+		// 0
+		double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, temp_cciPtr);
+		if(debug) std::cout << "xxxx p: " << xxxx_prob << std::endl;
+
+		// 1
+		double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, temp_cciPtr);
+		if(debug) std::cout << "xxxd p: " << xxxd_prob << std::endl;
+
+		// 2
+		double axxd_prob = probFullNaiveHelper(xxxd, Pattern(axxd, 0, 3), axxd, xxxd_prob, temp_cciPtr);
+		double axxd_weight = contextValues->get(axxd);
+		if(debug) std::cout << "axxd p: " << axxd_prob << " with weight: " << axxd_weight << std::endl;
+		double xbxd_prob = probFullNaiveHelper(xxxd, Pattern(xbxd, 0, 2), xbxd, xxxd_prob, temp_cciPtr);
+		double xbxd_weight = contextValues->get(xbxd);
+		if(debug) std::cout << "xbxd p: " << xbxd_prob << " with weight: " << xbxd_weight << std::endl;
+		double xxcd_prob = probFullNaiveHelper(xxxd, Pattern(xxcd, 0, 1), xxcd, xxxd_prob, temp_cciPtr);
+		double xxcd_weight = contextValues->get(xxcd);
+		if(debug) std::cout << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
+
+		double c2_prob = (axxd_prob * axxd_weight + xbxd_prob * xbxd_weight + xxcd_prob * xxcd_weight) / (axxd_weight + xbxd_weight + xxcd_weight);
+
+		// 3
+		double abxd_prob = probFullNaiveHelper(xxxd, Pattern(abxd, 0, 3), abxd, c2_prob, temp_cciPtr);
+		double abxd_weight = contextValues->get(abxd);
+		if(debug) std::cout << "abxd p: " << abxd_prob << " with weight: " << abxd_weight << std::endl;
+		double axcd_prob = probFullNaiveHelper(xxxd, Pattern(axcd, 0, 3), axcd, c2_prob, temp_cciPtr);
+		double axcd_weight = contextValues->get(axcd);
+		if(debug) std::cout << "axcd p: " << axcd_prob << " with weight: " << axcd_weight << std::endl;
+		double xbcd_prob = probFullNaiveHelper(xxxd, Pattern(xbcd, 0, 2), xbcd, c2_prob, temp_cciPtr);
+		double xbcd_weight = contextValues->get(xbcd);
+		if(debug) std::cout << "xbcd p: " << xbcd_prob << " with weight: " << xbcd_weight << std::endl;
+
+		double c3_prob = (abxd_prob * abxd_weight + axcd_prob * axcd_weight + xbcd_prob * xbcd_weight) / (abxd_weight + axcd_weight + xbcd_weight);
+
+		// 4
+		double abcd_prob = probFullNaiveHelper(xxxd, Pattern(abcd, 0, 3), abcd, c3_prob, temp_cciPtr);
+		double abcd_weight = 1.0;
+		if(debug) std::cout << "abcd p: " << abcd_prob << " with weight: " << abcd_weight << std::endl;
+
+		return abcd_prob;
+
+	}
+
+	double probFullNaive1(const Pattern& w, const Pattern& context,
+							ContextCounts* contextCounts, ContextValues* contextValues,
+							CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 			{
 				bool debug = false;
 
-				Pattern pContext = (N==1) ? Pattern() : Pattern(context, kORDER-N, N-1);
-
-				std::vector<Pattern> sPatterns;
-
-				if(N == kORDER)
+				Pattern pattern = context + w;
+				if(pattern.size() != 1)
 				{
-					sPatterns.push_back(context);
-				} else
-				{
-					sPatterns = generateSkips(context);
-					sPatterns.push_back(pContext);
+					std::cerr << "[ProbFullNaive1]\tDo something: Pattern length is not 1" << std::endl;
 				}
 
-				std::vector<double> sPatternProbs;
-				std::vector<double> sPatternWeights;
-				double sPatternWeightSum = 0.0;
-				double probSum = 0.0;
+				// 1 word
+				Pattern xxxd = pattern;
+				// 0 words
+				Pattern xxxx = Pattern();
 
-				for(const Pattern& sPattern : sPatterns)
-				{
-					bool recursive = patternCounts->get(sPattern + w) > 0 ? false : true;
+				CoCoInitialiser* temp_cciPtr = nullptr;
 
-					double bla = 0.5; // ??
-					if(recursive)
-					{
-						bla = backoff.probLimited(w, sPattern, patternCounts, contextCounts, contextValues, cci, indent + "\t");
-					}
+				// -----------------------------
+				// 0
+				double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, temp_cciPtr);
+				if(debug) std::cout << "xxxx p: " << xxxx_prob << std::endl;
 
+				// 1
+				double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, temp_cciPtr);
+				if(debug) std::cout << "xxxd p: " << xxxd_prob << std::endl;
 
-					double weight = contextValues->get(sPattern, w, cci, indent);
-					sPatternWeights.push_back(weight);
-					sPatternWeightSum += weight;
-
-
-
-					Pattern lookup = (N==1) ? Pattern() : Pattern(context.reverse(), 0, N-1);
-					lookup = lookup.reverse();
-
-					double probability = 0.0;
-					auto it = p.find(lookup);
-					if(it != p.end())
-					{
-						const long int invDelta = contextCounts->V - contextCounts->get(lookup);
-						double boob = it->second.probLimited(w, bla, invDelta);
-						probability = boob;
-						if(debug)
-						{
-							std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
-							std::cout << indent << "[" << N << "]\t BOOB " << boob << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
-						}
-					} else
-					{
-						probability = bla;
-						if(debug)
-						{
-							std::cout << indent << "[" << N << "]\t Looking for \"" << lookup.tostring(cci->classDecoder) << "\"" << std::endl;
-							std::cout << indent << "[" << N << "]\t BLA " << bla << " with weight: " << weight << " and delta: " << contextCounts->get(lookup) << std::endl;
-						}
-					}
-
-					sPatternProbs.push_back(probability);
-
-					probSum += (weight * probability);
-				}
-
-				return probSum/sPatternWeightSum;
-
+				return xxxd_prob;
 			}
+
+	double probFullNaive2(const Pattern& w, const Pattern& context,
+						ContextCounts* contextCounts, ContextValues* contextValues,
+						CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
+		{
+			bool debug = false;
+
+			Pattern pattern = context + w;
+			if(pattern.size() != 2)
+			{
+				std::cerr << "[ProbFullNaive2]\tDo something: Pattern length is not 2" << std::endl;
+			}
+
+			// 2 words
+			Pattern xxcd = pattern;
+			// 1 word
+			Pattern xxxd = Pattern(xxcd,1,1);
+			// 0 words
+			Pattern xxxx = Pattern();
+
+			CoCoInitialiser* temp_cciPtr = nullptr;
+
+			// -----------------------------
+			// 0
+			double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, temp_cciPtr);
+			if(debug) std::cout << "xxxx p: " << xxxx_prob << std::endl;
+
+			// 1
+			double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, temp_cciPtr);
+			if(debug) std::cout << "xxxd p: " << xxxd_prob << std::endl;
+
+			// 2
+			double xxcd_prob = probFullNaiveHelper(xxxd, Pattern(xxcd, 0, 1), xxcd, xxxd_prob, temp_cciPtr);
+			double xxcd_weight = contextValues->get(xxcd);
+			if(debug) std::cout << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
+
+			double c2_prob = xxcd_prob;// * xxcd_weight / xxcd_weight;
+			return c2_prob;
+		}
+
+	double probFullNaive3(const Pattern& w, const Pattern& context,
+						ContextCounts* contextCounts, ContextValues* contextValues,
+						CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
+		{
+			bool debug = false;
+
+			Pattern pattern = context + w;
+			if(pattern.size() != 3)
+			{
+				std::cerr << "[ProbFullNaive3]\tDo something: Pattern length is not 3" << std::endl;
+			}
+
+
+			// 3 words
+			Pattern xbcd = pattern;
+			// 2 words
+			Pattern xbxd = xbcd.addskip(std::pair<int, int>(1,1));
+			Pattern xxcd = Pattern(xbcd,1,2);
+			// 1 word
+			Pattern xxxd = Pattern(xxcd,1,1);
+			// 0 words
+			Pattern xxxx = Pattern();
+
+			CoCoInitialiser* temp_cciPtr = nullptr;
+
+			// -----------------------------
+			// 0
+			double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, temp_cciPtr);
+			if(debug) std::cout << "xxxx p: " << xxxx_prob << std::endl;
+
+			// 1
+			double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, temp_cciPtr);
+			if(debug) std::cout << "xxxd p: " << xxxd_prob << std::endl;
+
+			// 2
+			double xbxd_prob = probFullNaiveHelper(xxxd, Pattern(xbxd, 0, 2), xbxd, xxxd_prob, temp_cciPtr);
+			double xbxd_weight = contextValues->get(xbxd);
+			if(debug) std::cout << "xbxd p: " << xbxd_prob << " with weight: " << xbxd_weight << std::endl;
+			double xxcd_prob = probFullNaiveHelper(xxxd, Pattern(xxcd, 0, 1), xxcd, xxxd_prob, temp_cciPtr);
+			double xxcd_weight = contextValues->get(xxcd);
+			if(debug) std::cout << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
+
+			double c2_prob = (xbxd_prob * xbxd_weight + xxcd_prob * xxcd_weight) / (xbxd_weight + xxcd_weight);
+
+			// 3
+			double xbcd_prob = probFullNaiveHelper(xxxd, Pattern(xbcd, 0, 2), xbcd, c2_prob, temp_cciPtr);
+			double xbcd_weight = contextValues->get(xbcd);
+			if(debug) std::cout << "xbcd p: " << xbcd_prob << " with weight: " << xbcd_weight << std::endl;
+
+			double c3_prob = xbcd_prob;// * xbcd_weight / xbcd_weight;
+			return c3_prob;
+
+		}
 
 	double prob(const Pattern& w, const Pattern& context, CoCoInitialiser * const cci = nullptr) const {
 
@@ -328,3 +411,4 @@ template<unsigned N> struct PYPLM {
 }
 
 #endif
+

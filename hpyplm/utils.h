@@ -13,8 +13,34 @@
 #include <iostream>
 #include <fstream>
 
+#include <pattern.h>
 
-std::vector<std::string> split(std::string const &input) {
+enum class Backoff { NGRAM, LIMITED, FULL, ENTINT, FREQINT, ALL };
+
+inline Backoff fromString(const std::string& s) {
+    if(s.compare("ngram") == 0) return Backoff::NGRAM;
+    else if(s.compare("limited") == 0) return Backoff::LIMITED;
+    else if(s.compare("full") == 0) return Backoff::FULL;
+    else if(s.compare("entint") == 0) return Backoff::ENTINT;
+    else if(s.compare("freqint") == 0) return Backoff::FREQINT;
+
+    else if(s.compare("all") == 0) return Backoff::ALL;
+
+    else return Backoff::NGRAM;
+}
+
+inline std::string toString(Backoff b) {
+    if(b == Backoff::NGRAM) return "ngram";
+    if(b == Backoff::LIMITED) return "limited";
+    if(b == Backoff::FULL) return "full";
+    if(b == Backoff::ENTINT) return "entint";
+    if(b == Backoff::FREQINT) return "freqint";
+    if(b == Backoff::ALL) return "all";
+    return "unknown backoff method";
+}
+
+
+inline std::vector<std::string> split(std::string const &input) {
     std::istringstream buffer(input);
     std::vector<std::string> ret{std::istream_iterator<std::string>(buffer),
                                  std::istream_iterator<std::string>()};
