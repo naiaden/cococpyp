@@ -5,6 +5,7 @@
 
 #include "strategies.h"
 
+#include "PatternCounts.h"
 
 
 

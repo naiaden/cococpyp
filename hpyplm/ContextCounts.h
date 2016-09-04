@@ -9,6 +9,7 @@
 #define HPYPLM_CONTEXTCOUNTS_H_
 
 #include <unordered_map>
+#include <pattern.h>
 
 /**
  * For each context we store by how many focus words it can be followed

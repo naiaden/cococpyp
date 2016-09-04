@@ -12,6 +12,7 @@
 #include "CoCoInitialiser.h"
 #include "utils.h"
 
+class PatternCounts;
 
 class ContextValues
 {
