@@ -35,11 +35,18 @@ int BackoffStrategy::nextFile()
 	fCount = 0;
 	fOOVs = 0;
 
+	lLLH = 0.0;
+
 	return files;
 }
 
 int BackoffStrategy::nextLine()
 {
+	sentenceFile << fLines << "\t " << lLLH << std::endl;
+
+
+	lLLH = 0.0;
+
 	return ++fLines;
 }
 
@@ -168,12 +175,16 @@ NgramBackoffStrategy::NgramBackoffStrategy(SNCBWProgramOptions& _po, SNCBWCoCoIn
 
 	baseOutputName = _po.generalBaseOutputName + "_" + strategyName() + "_" + std::to_string(_po.n);
 	outputProbabilitiesFileName = baseOutputName + ".probs";
+	outputSentenceProbabilitiesFileName = baseOutputName + ".sentences";
 	outputFile = baseOutputName + ".output";
 
 	std::cout << "Writing backoff output to " << outputFile << std::endl;
 
 	mout = new my_ostream(outputFile);
 	probsFile.open(outputProbabilitiesFileName);
+	sentenceFile.open(outputProbabilitiesFileName);
+
+
 
 	debug = false;
 }
@@ -181,6 +192,7 @@ NgramBackoffStrategy::NgramBackoffStrategy(SNCBWProgramOptions& _po, SNCBWCoCoIn
 NgramBackoffStrategy::~NgramBackoffStrategy()
 {
 	probsFile.close();
+	sentenceFile.close();
 	delete mout;
 }
 
@@ -220,6 +232,8 @@ double NgramBackoffStrategy::prob(const Pattern& focus, const Pattern& context, 
 	fLLH -= lp;
 	++fCount;
 
+	lLLH -= lp;
+
 	if(debug) std::cout << " done\n";
 
 	return lp;
@@ -255,12 +269,14 @@ FullNaiveBackoffStrategy::FullNaiveBackoffStrategy(SNCBWProgramOptions& _po,
 
 	baseOutputName = _po.generalBaseOutputName + "_" + strategyName() + "_" + std::to_string(_po.n) + "_" + _contextValues->name();
 	outputProbabilitiesFileName = baseOutputName + ".probs";
+	outputSentenceProbabilitiesFileName = baseOutputName + ".sentences";
 	outputFile = baseOutputName + ".output";
 
 	std::cout << "Writing backoff output to " << outputFile << std::endl;
 
 	mout = new my_ostream(outputFile);
 	probsFile.open(outputProbabilitiesFileName);
+	sentenceFile.open(outputProbabilitiesFileName);
 
 	debug = false;
 }
@@ -268,6 +284,7 @@ FullNaiveBackoffStrategy::FullNaiveBackoffStrategy(SNCBWProgramOptions& _po,
 FullNaiveBackoffStrategy::~FullNaiveBackoffStrategy()
 {
 	probsFile.close();
+	sentenceFile.close();
 	delete mout;
 }
 
@@ -404,12 +421,14 @@ LimitedNaiveBackoffStrategy::LimitedNaiveBackoffStrategy(SNCBWProgramOptions& _p
 
 	baseOutputName = _po.generalBaseOutputName + "_" + strategyName() + "_" + std::to_string(_po.n) + "_" + _contextValues->name();
 	outputProbabilitiesFileName = baseOutputName + ".probs";
+	outputSentenceProbabilitiesFileName = baseOutputName + ".sentences";
 	outputFile = baseOutputName + ".output";
 
 	std::cout << "Writing backoff output to " << outputFile << std::endl;
 
 	mout = new my_ostream(outputFile);
 	probsFile.open(outputProbabilitiesFileName);
+	sentenceFile.open(outputProbabilitiesFileName);
 
 
 }
@@ -417,6 +436,7 @@ LimitedNaiveBackoffStrategy::LimitedNaiveBackoffStrategy(SNCBWProgramOptions& _p
 LimitedNaiveBackoffStrategy::~LimitedNaiveBackoffStrategy()
 {
 	probsFile.close();
+	sentenceFile.close();
 	delete mout;
 }
 
@@ -435,8 +455,8 @@ double LimitedNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& co
 		probsFile << "***";
 	}
 
-	std::cout << "\np(" << fS << " |"
-//            probsFile << "p(" << fS << " |"
+//	std::cout << "\np(" << fS << " |"
+            probsFile << "p(" << fS << " |"
 			  << context.tostring(cci.classDecoder) << ") = "
 			  << std::fixed << std::setprecision(20) << lp
 			  << std::endl;
