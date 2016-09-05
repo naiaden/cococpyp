@@ -20,6 +20,9 @@ public:
     unsigned long long fCount = 0;
     unsigned long long fOOVs = 0;
 
+    double lLLH = 0.0;
+    unsigned long long lCount = 0;
+
     SNCBWCoCoInitialiser& cci;
 
     std::string baseOutputName;
@@ -27,10 +30,12 @@ public:
     std::string outputCorpusFileName;
     std::string outputPatternModelFileName;
     std::string outputProbabilitiesFileName;
+    std::string outputSentenceProbabilitiesFileName;
     std::string outputFile;
 
     my_ostream* mout;
     std::ofstream probsFile;
+    std::ofstream sentenceFile;
 
     cpyp::PYPLM<kORDER>& lm;
 
@@ -57,7 +62,7 @@ class BackoffStrategies
 public:
     std::vector<BackoffStrategy*> backoffStrategies;
 
-    void prob(const Pattern& focus, const Pattern& context, const std::string& focusString);
+    double prob(const Pattern& focus, const Pattern& context, const std::string& focusString);
 
     void addBackoffStrategy(BackoffStrategy* strategy);
 
