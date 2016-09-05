@@ -36,14 +36,14 @@ double PatternCache::getProb(const std::unordered_map<Pattern, cpyp::crp<Pattern
 double PatternCache::helper(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p, double p0, double S)
 {
 	auto it = p.find(context.reverse());
-	if(it == p.end())
-	{
-		std::cout << "H: returning p0: " << p0 << std::endl;
-		return p0;
-	} else
+	if(it != p.end())
 	{
 		return it->second.probNaive(context, focus, p0, S);
 
+	} else
+	{
+		std::cout << "H: returning p0: " << p0 << std::endl;
+		return p0;
 	}
 }
 
@@ -218,6 +218,7 @@ double P_XBCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		{
 			std::cout << "  Compute xbcd prob and continue backoff." << std::endl;
 			p0_ = parent->xxcd->getWeight(p) * parent->xxcd->getProb(p) + parent->xbxd->getWeight(p) * parent->xbxd->getProb(p);
+			p0_ = p0_ / (parent->xxcd->getWeight(p) + parent->xbxd->getWeight(p));
 			std::cout << "  -- [" << parent->xxcd->getWeight(p) << "," << parent->xxcd->getProb(p) << "] [" << parent->xbxd->getWeight(p) << "," << parent->xbxd->getProb(p) << "]" << std::endl;
 
 			prob_ = helper(p, p0_, 0.0);
@@ -254,6 +255,8 @@ double P_AXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		{
 			std::cout << " Compute axcd prob and continue backoff." << std::endl;
 			p0_ = parent->axxd->getWeight(p) * parent->axxd->getProb(p) + parent->xxcd->getWeight(p) * parent->xxcd->getProb(p);
+			p0_ = p0_ / (parent->axxd->getWeight(p) + parent->xxcd->getWeight(p));
+			std::cout << "  -- [" << parent->axxd->getWeight(p) << "," << parent->axxd->getProb(p) << "] [" << parent->xxcd->getWeight(p) << "," << parent->xxcd->getProb(p) << "]" << std::endl;
 
 			prob_ = helper(p, p0_, 0.0);
 		}
@@ -287,6 +290,8 @@ double P_ABXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		{
 			std::cout << " Compute abxd prob and continue backoff." << std::endl;
 			p0_ = parent->xbxd->getWeight(p) * parent->xbxd->getProb(p) + parent->axxd->getWeight(p) * parent->axxd->getProb(p);
+			p0_ = p0_ / (parent->xbxd->getWeight(p) + parent->axxd->getWeight(p));
+			std::cout << "  -- [" << parent->xbxd->getWeight(p) << "," << parent->xbxd->getProb(p) << "] [" << parent->axxd->getWeight(p) << "," << parent->axxd->getProb(p) << "]" << std::endl;
 
 			prob_ = helper(p, p0_, 0.0);
 		}
@@ -320,8 +325,13 @@ double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		} else
 		{
 			std::cout << " Compute abcd prob and continue backoff." << std::endl;
+			double p1 = parent->xbcd->getWeight(p) * parent->xbcd->getProb(p);
+			double p2 = parent->axcd->getWeight(p) * parent->axcd->getProb(p);
+			double p3 = parent->abxd->getWeight(p) * parent->abxd->getProb(p);
 
-			p0_ = parent->xbcd->getWeight(p) * parent->xbcd->getProb(p) + parent->axcd->getWeight(p) * parent->axcd->getProb(p) + parent->abxd->getWeight(p) * parent->abxd->getProb(p);
+			p0_ = p1 + p2 + p3;
+			p0_ = p0_ / (parent->xbcd->getWeight(p) + parent->axcd->getWeight(p) + parent->abxd->getWeight(p));
+			std::cout << "  -- [" << parent->xbcd->getWeight(p) << "," << parent->xbcd->getProb(p) << "] == " << p1 << " [" << parent->axcd->getWeight(p) << "," << parent->axcd->getProb(p) << "] == " << p2 << " [" << parent->abxd->getWeight(p) << "," << parent->abxd->getProb(p) << "] == " << p3 << std::endl;
 
 			prob_ = helper(p, p0_, 0.0);
 		}

@@ -103,8 +103,8 @@ int main(int argc, char** argv) {
     UniformCounts uniformCounts(cci);
 
 
-    LimitedCounts limitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
-//    LimitedCounts limitedCounts(cci, po.generalLimitedCacheFileName);
+//    LimitedCounts limitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+    LimitedCounts limitedCounts(cci, po.generalLimitedCacheFileName);
 
 
     BackoffStrategies backoffStrategies;
