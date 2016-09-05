@@ -78,7 +78,7 @@ void LimitedCounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* pattern
 
 	SNCBWProgramOptions* po = (SNCBWProgramOptions*) cci.po;
 	std::ofstream probsFile;
-	probsFile.open(po->generalLimitedCacheFileName);
+	probsFile.open(po->generalLimitedCacheFileName + "." + backoffStrategy->strategyName());
 
 	PatternSet<uint64_t> allFocusWords = cci.trainPatternModel.extractset(1,1);
 	long int numberOfFocusWords = allFocusWords.size();

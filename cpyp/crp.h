@@ -238,31 +238,35 @@ public:
 		}
 	}
 
+
+
 	template<typename F>
 	F probNaive(const Pattern& context, const Dish& dish, const F& p0 = 0.0, const double S = 1.0 ) const {
+		bool debug = false;
+
 		bool backoff = (S > 0.5) ? true : false;
 
 		if (num_tables_ == 0)
 		{
-			std::cout << "NUM TABLES = 0";
+			if(debug) std::cout << "NUM TABLES = 0";
 			return p0;
 		}
 
 		double div = 1.0 / (strength_ + num_customers_);
 
-		std::cout << " strength: " << strength_ << " num_cust: " << num_customers_ << "\t\t-->" << div << std::endl;
+		if(debug) std::cout << " strength: " << strength_ << " num_cust: " << num_customers_ << "\t\t-->" << div << std::endl;
 
 		auto it = dish_locs_.find(dish);
 		if (it == dish_locs_.end()) {
 
 			double prob = (strength_ + discount_ * num_tables_) * div * p0;
-			std::cout << "1. discount: " << discount_ << " num_tables: " << num_tables_ << " S: " << S << " p0: " << p0 << "\t\t-->" << prob << std::endl;
+			if(debug) std::cout << "1. discount: " << discount_ << " num_tables: " << num_tables_ << " S: " << S << " p0: " << p0 << "\t\t-->" << prob << std::endl;
 
 			 return prob;
 		} else {
 
 			double prob = (it->second.num_customers() - discount_ * it->second.num_tables()) * div + (strength_ + discount_ * num_tables_) * div * p0;
-			std::cout << "2. discount: " << discount_ << " custw: " << it->second.num_customers() << " tablesw: " << it->second.num_tables() << " S: " << S << " p0: " << p0 << "\t\t-->" << prob << std::endl;
+			if(debug) std::cout << "2. discount: " << discount_ << " custw: " << it->second.num_customers() << " tablesw: " << it->second.num_tables() << " S: " << S << " p0: " << p0 << "\t\t-->" << prob << std::endl;
 			return prob;
 		}
 

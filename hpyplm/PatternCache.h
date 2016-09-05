@@ -37,6 +37,8 @@ class LimitedCounts;
 
 			PLNCache* parent;
 
+			bool debug = false;
+
 		public:
 			PatternCache(PLNCache* parent, const Pattern& _focus, const Pattern& _context) : parent(parent), focus(_focus), context(_context), pattern(_context + _focus){} ;
 
