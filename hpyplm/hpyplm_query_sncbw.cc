@@ -35,15 +35,15 @@
 #include "hpyplm.h"
 
 //#include "ContextCounts.h"
-#include "ContextCounts.cpp"
-#include "ContextValues.cpp"
+#include "ContextCounts.h"
+#include "ContextValues.h"
 #include "PatternCounts.h"
 //
 //
 
 //#include "ContextValues.h"
-#include "LimitedCounts.cpp"
-#include "strategies.cpp"
+#include "LimitedCounts.h"
+#include "strategies.h"
 
 using date::operator<<;
 
@@ -103,28 +103,31 @@ int main(int argc, char** argv) {
     UniformCounts uniformCounts(cci);
 
 
-    LimitedCounts uniformLimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
-    LimitedCounts entropyLimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
-    LimitedCounts mleLimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-//    LimitedCounts uniformLimitedCounts(cci, po.generalLimitedCacheFileName);
-
+//    LimitedCounts uniformLimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+//    LimitedCounts entropyLimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+//    LimitedCounts mleLimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+    LimitedCounts uniformLimitedCounts(cci, "/home/louis/data/cococpypv2/derived/1bw-4gramsm-100k_4_W2_t2_T2_s10_p0_v2-1bw_ngram-common_4.lim.basicfullnaiveentropy");
+    LimitedCounts entropyLimitedCounts(cci, "/home/louis/data/cococpypv2/derived/1bw-4gramsm-100k_4_W2_t2_T2_s10_p0_v2-1bw_ngram-common_4.lim.basicfullnaiveentropy");
+    LimitedCounts mleLimitedCounts(cci, "/home/louis/data/cococpypv2/derived/1bw-4gramsm-100k_4_W2_t2_T2_s10_p0_v2-1bw_ngram-common_4.lim.basicfullnaiveentropy");
 
     BackoffStrategies backoffStrategies;
-    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
+//    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
 
     backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
-    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
-//
-    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts, &uniformLimitedCounts));
-    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &entropyCounts, &entropyLimitedCounts));
+//    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+//    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+
+//    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts, &uniformLimitedCounts));
+//    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &entropyCounts, &entropyLimitedCounts));
     backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts, &mleLimitedCounts));
+
+
 
     std::cout << std::endl;
 
     for(std::string inputFileName : po.testInputFiles)                          // files
     {
-//        std::cout << "> " << inputFileName << std::endl;
+        std::cout << "> " << inputFileName << std::endl;
 
         backoffStrategies.nextFile();
         tsp.nextFile();
@@ -168,13 +171,13 @@ int main(int argc, char** argv) {
                     }
 
 
-//                    tsp.printTimeStats(!focusString.empty());
+                    tsp.printTimeStats(!focusString.empty());
                     backoffStrategies.prob(focus, context, focusString);
 //                    std::cout << "  calculated prob\n\n";
                }
             }
         }
-//        tsp.done();
+        tsp.done();
         backoffStrategies.printFileResults();
     }
     backoffStrategies.done();

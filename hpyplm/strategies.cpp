@@ -61,12 +61,14 @@ void BackoffStrategy::done()
 void BackoffStrategy::printFileResults()
 {
 	double lprob = (-fLLH * log(2)) / log(10); // in cpyp: (-llh * log(2) / log(10))
+	*mout << "         File: " << files << std::endl;
 	*mout << "        Lines: " << fLines << std::endl;
 	*mout << "  Log_10 prob: " << lprob << std::endl;
 	*mout << "        Count: " << fCount-fOOVs << std::endl;
 	*mout << "         OOVs: " << fOOVs << std::endl;
 	*mout << "Cross-Entropy: " << (fLLH/fCount) << std::endl;
 	*mout << "   Perplexity: " << pow(2, fLLH/fCount) << std::endl;
+	*mout << "               " << std::endl;
 }
 
 void BackoffStrategy::printResults()
@@ -93,7 +95,7 @@ void BackoffStrategy::printResults()
 
 
 
-void BackoffStrategies::prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
+double BackoffStrategies::prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
 {
 	for(BackoffStrategy* bs: backoffStrategies)
 	{
@@ -182,7 +184,7 @@ NgramBackoffStrategy::NgramBackoffStrategy(SNCBWProgramOptions& _po, SNCBWCoCoIn
 
 	mout = new my_ostream(outputFile);
 	probsFile.open(outputProbabilitiesFileName);
-	sentenceFile.open(outputProbabilitiesFileName);
+	sentenceFile.open(outputSentenceProbabilitiesFileName);
 
 
 
@@ -276,7 +278,7 @@ FullNaiveBackoffStrategy::FullNaiveBackoffStrategy(SNCBWProgramOptions& _po,
 
 	mout = new my_ostream(outputFile);
 	probsFile.open(outputProbabilitiesFileName);
-	sentenceFile.open(outputProbabilitiesFileName);
+	sentenceFile.open(outputSentenceProbabilitiesFileName);
 
 	debug = false;
 }
@@ -316,15 +318,8 @@ double FullNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& conte
 			  << std::endl;
 
 	fLLH -= lp;
+	lLLH -= lp;
 	++fCount;
-
-	double lwhatever = (-fLLH * log(2)) / log(10);
-//        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
-	if(!std::isnormal(lwhatever))
-	{
-		std::cout << "lp is not normal" << std::endl;
-		exit( 8);
-	}
 
 	if(debug) std::cout << " done\n";
 
@@ -343,7 +338,7 @@ double FullNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& conte
 
 std::string BasicFullNaiveBackoffStrategy::strategyName()
 {
-	return "basicfullnaive";
+	return "basicfullnaive" + contextValues->name();
 }
 
 BasicFullNaiveBackoffStrategy::BasicFullNaiveBackoffStrategy(SNCBWProgramOptions& _po,
@@ -428,7 +423,7 @@ LimitedNaiveBackoffStrategy::LimitedNaiveBackoffStrategy(SNCBWProgramOptions& _p
 
 	mout = new my_ostream(outputFile);
 	probsFile.open(outputProbabilitiesFileName);
-	sentenceFile.open(outputProbabilitiesFileName);
+	sentenceFile.open(outputSentenceProbabilitiesFileName);
 
 
 }
@@ -461,14 +456,8 @@ double LimitedNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& co
 			  << std::endl;
 
 	fLLH -= lp;
+	lLLH -= lp;
 	++fCount;
-
-	double lwhatever = (-fLLH * log(2)) / log(10);
-//        std::cout << "-LLH:" << -fLLH << "\tW/E:" << lwhatever << std::endl;
-	if(!std::isnormal(lwhatever))
-	{
-		exit( 8);
-	}
 
 	return lp;
 }
