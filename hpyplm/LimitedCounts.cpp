@@ -78,14 +78,14 @@ void LimitedCounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* pattern
 
 	SNCBWProgramOptions* po = (SNCBWProgramOptions*) cci.po;
 	std::ofstream probsFile;
-	probsFile.open(po->generalLimitedCacheFileName);
+	probsFile.open(po->generalLimitedCacheFileName + "." + backoffStrategy->strategyName());
 
 	PatternSet<uint64_t> allFocusWords = cci.trainPatternModel.extractset(1,1);
 	long int numberOfFocusWords = allFocusWords.size();
 
 	for(int n = 1; n <= kORDER; ++n)
 	{
-		std::cout << "Extracting LimitedCounts set for " << n << "...";
+		std::cout << "Extracting LimitedCounts set with " << backoffStrategy->strategyName() << " for " << n << "...";
 		PatternSet<uint64_t> allPatterns;
 		if(n == 1)
 		{

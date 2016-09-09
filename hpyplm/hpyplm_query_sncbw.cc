@@ -35,15 +35,15 @@
 #include "hpyplm.h"
 
 //#include "ContextCounts.h"
-#include "ContextCounts.cpp"
-#include "ContextValues.cpp"
+#include "ContextCounts.h"
+#include "ContextValues.h"
 #include "PatternCounts.h"
 //
 //
 
 //#include "ContextValues.h"
-#include "LimitedCounts.cpp"
-#include "strategies.cpp"
+#include "LimitedCounts.h"
+#include "strategies.h"
 
 using date::operator<<;
 
@@ -98,37 +98,50 @@ int main(int argc, char** argv) {
 	PatternCounts patternCounts;
 	patternCounts.fromFile(cci);
 
-//    MLECounts mleCounts(cci, &patternCounts);
-//    EntropyCounts entropyCounts(cci, &patternCounts);
+    MLECounts mleCounts(cci, &patternCounts);
+    EntropyCounts entropyCounts(cci, &patternCounts);
     UniformCounts uniformCounts(cci);
 
+    LimitedCounts* mleLimitedCounts;
+	LimitedCounts* entropyLimitedCounts;
+	LimitedCounts* uniformLimitedCounts;
 
-//    LimitedCounts limitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
-    LimitedCounts limitedCounts(cci, po.generalLimitedCacheFileName);
+    if(po.limitedMLECacheFile.empty())
+    	mleLimitedCounts = new LimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+    else
+    	mleLimitedCounts = new LimitedCounts(cci, po.limitedMLECacheFile);
+
+    if(po.limitedEntropyCacheFile.empty())
+    	entropyLimitedCounts = new LimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+    else
+    	entropyLimitedCounts = new LimitedCounts(cci, po.limitedEntropyCacheFile);
+
+    if(po.limitedUniformCacheFile.empty())
+    	uniformLimitedCounts = new LimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+    else
+    	uniformLimitedCounts = new LimitedCounts(cci, po.limitedUniformCacheFile);
+
+
+
 
 
     BackoffStrategies backoffStrategies;
 //    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
 
-<<<<<<< HEAD
-    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts));
-    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-
-//    backoffStrategies.addBackoffStrategy(new LimitedBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts));
-//    backoffStrategies.addBackoffStrategy(new FullBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
-=======
 //    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
 //    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
 //    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
-//
-    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts, &limitedCounts));
->>>>>>> 4a2188c856ee99617a7c4b1eadf20c38412abda4
+
+    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts, uniformLimitedCounts));
+    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &entropyCounts, entropyLimitedCounts));
+    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts, mleLimitedCounts));
+
 
     std::cout << std::endl;
 
     for(std::string inputFileName : po.testInputFiles)                          // files
     {
-//        std::cout << "> " << inputFileName << std::endl;
+        std::cout << "> " << inputFileName << std::endl;
 
         backoffStrategies.nextFile();
         tsp.nextFile();
@@ -160,7 +173,7 @@ int main(int argc, char** argv) {
                     Pattern context = cci.classEncoder.buildpattern(contextStream.str());
                     Pattern focus = cci.classEncoder.buildpattern(words[i]);
 
-                    std::cout << "\n  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
+//                    std::cout << "\n  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
 
 
                     double lp = 0.0;
@@ -172,20 +185,22 @@ int main(int argc, char** argv) {
                     }
 
 
-//                    tsp.printTimeStats(!focusString.empty());
+                    tsp.printTimeStats(!focusString.empty());
                     backoffStrategies.prob(focus, context, focusString);
 //                    std::cout << "  calculated prob\n\n";
                }
             }
         }
-//        tsp.done();
+        tsp.done();
         backoffStrategies.printFileResults();
     }
     backoffStrategies.done();
     std::cout << "\n\n" << std::endl;
     backoffStrategies.printResults();
 
-
+    delete mleLimitedCounts;
+    delete entropyLimitedCounts;
+    delete uniformLimitedCounts;
 }
 
 
