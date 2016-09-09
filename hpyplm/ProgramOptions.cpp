@@ -95,7 +95,10 @@
 
         clp.add<std::string>("countfile", 'C', "count file base", false, "");
 
-        clp.add<std::string>("limitedcachefile", 'L', "limited cache file with q values", false, "");
+        clp.add<std::string>("limitedcachefile", 'L', "limited cache base file name", false, "");
+        clp.add<std::string>("limiteduniformcachefile", 0, "limited uniform cache file with q values", false, "");
+        clp.add<std::string>("limitedentropycachefile", 0, "limited entropy cache file with q values", false, "");
+        clp.add<std::string>("limitedmlecachefile", 0, "limited mle cache file with q values", false, "");
 
         clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram", cmdline::oneof<std::string>("glm", "bobaco", "ngram", "all"));
         clp.parse_check(argc, argv);
@@ -110,6 +113,9 @@
         countFileBase = clp.get<std::string>("countfile");
 
         limitedCacheFile = clp.get<std::string>("limitedcachefile");
+        limitedUniformCacheFile = clp.get<std::string>("limiteduniformcachefile");
+        limitedEntropyCacheFile = clp.get<std::string>("limitedentropycachefile");
+        limitedMLECacheFile = clp.get<std::string>("limitedmlecachefile");
 
         backoffMethod = fromString(clp.get<std::string>("backoff"));
     }
@@ -228,10 +234,10 @@
             }
         } else
         {
-            if(_clo.testInputFile.empty())
-            {
-                std::cerr << "Did you use -f instead of -F? No input files for testing found." << std::endl;
-            }
+//            if(_clo.testInputFile.empty())
+//            {
+//                std::cerr << "Did you use -f instead of -F? No input files for testing found." << std::endl;
+//            }
             testInputFiles.push_back(_clo.testInputFile);
         }
         for(auto f: testInputFiles)
@@ -252,9 +258,11 @@
 		{
 			generalLimitedCacheFileName = _clo.limitedCacheFile;
 		}
-               std::cout << "PO: generalLimitedCacheFileName = " << generalLimitedCacheFileName << std::endl;
+	   std::cout << "PO: generalLimitedCacheFileName = " << generalLimitedCacheFileName << std::endl;
 
-
+	   limitedEntropyCacheFile = _clo.limitedEntropyCacheFile;
+	   limitedMLECacheFile = _clo.limitedMLECacheFile;
+	   limitedUniformCacheFile = _clo.limitedUniformCacheFile;
 
         countFilesBase = _clo.countFileBase;
     }

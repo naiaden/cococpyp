@@ -102,24 +102,39 @@ int main(int argc, char** argv) {
     EntropyCounts entropyCounts(cci, &patternCounts);
     UniformCounts uniformCounts(cci);
 
+    LimitedCounts* mleLimitedCounts;
+	LimitedCounts* entropyLimitedCounts;
+	LimitedCounts* uniformLimitedCounts;
 
-//    LimitedCounts uniformLimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
-//    LimitedCounts entropyLimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
-//    LimitedCounts mleLimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-    LimitedCounts uniformLimitedCounts(cci, "/home/louis/data/cococpypv2/derived/1bw-4gramsm-100k_4_W2_t2_T2_s10_p0_v2-1bw_ngram-common_4.lim.basicfullnaiveentropy");
-    LimitedCounts entropyLimitedCounts(cci, "/home/louis/data/cococpypv2/derived/1bw-4gramsm-100k_4_W2_t2_T2_s10_p0_v2-1bw_ngram-common_4.lim.basicfullnaiveentropy");
-    LimitedCounts mleLimitedCounts(cci, "/home/louis/data/cococpypv2/derived/1bw-4gramsm-100k_4_W2_t2_T2_s10_p0_v2-1bw_ngram-common_4.lim.basicfullnaiveentropy");
+    if(po.limitedMLECacheFile.empty())
+    	mleLimitedCounts = new LimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+    else
+    	mleLimitedCounts = new LimitedCounts(cci, po.limitedMLECacheFile);
+
+    if(po.limitedEntropyCacheFile.empty())
+    	entropyLimitedCounts = new LimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+    else
+    	entropyLimitedCounts = new LimitedCounts(cci, po.limitedEntropyCacheFile);
+
+    if(po.limitedUniformCacheFile.empty())
+    	uniformLimitedCounts = new LimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+    else
+    	uniformLimitedCounts = new LimitedCounts(cci, po.limitedUniformCacheFile);
+
+
+
+
 
     BackoffStrategies backoffStrategies;
 //    backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
 
-    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+//    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
 //    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
 //    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
 
-//    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts, &uniformLimitedCounts));
-//    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &entropyCounts, &entropyLimitedCounts));
-    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts, &mleLimitedCounts));
+    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts, uniformLimitedCounts));
+    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &entropyCounts, entropyLimitedCounts));
+    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts, mleLimitedCounts));
 
 
 
@@ -184,7 +199,9 @@ int main(int argc, char** argv) {
     std::cout << "\n\n" << std::endl;
     backoffStrategies.printResults();
 
-
+    delete mleLimitedCounts;
+    delete entropyLimitedCounts;
+    delete uniformLimitedCounts;
 }
 
 

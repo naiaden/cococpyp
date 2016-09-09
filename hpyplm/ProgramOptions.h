@@ -66,6 +66,9 @@ struct SNCBWCommandLineOptions : public CommandLineOptions
     std::string outputRunName;
 
     std::string limitedCacheFile;
+    std::string limitedEntropyCacheFile;
+    std::string limitedMLECacheFile;
+    std::string limitedUniformCacheFile;
 
     std::string countFileBase;
 
@@ -131,6 +134,10 @@ struct SNCBWProgramOptions : public ProgramOptions
     std::vector<std::string> testInputFiles;
     
     std::string countFilesBase;
+
+    std::string limitedEntropyCacheFile;
+    std::string limitedMLECacheFile;
+    std::string limitedUniformCacheFile;
 
     SNCBWProgramOptions(SNCBWCommandLineOptions& _clo, int _n);
 };
