@@ -14,7 +14,7 @@ class CoCoInitialiser;
 class PatternCounts;
 class ContextCounts;
 class ContextValues;
-class LimitedCounts;
+class LimitedCountsCache;
 #include <pattern.h>
 
 //#include "hpyplm.h"
@@ -45,13 +45,13 @@ public:
 	PatternCounts* pc;
 	ContextCounts* cc;
 	ContextValues* cv;
-	LimitedCounts * lc;
+	LimitedCountsCache * lc;
 
 	CoCoInitialiser * cci;
 
 	bool debug = false;
 
-	PLNCache(const Pattern& w, const Pattern& context, PatternCounts* pc, ContextCounts* cc, ContextValues* cv, LimitedCounts * lc, CoCoInitialiser * const cci = nullptr);
+	PLNCache(const Pattern& w, const Pattern& context, PatternCounts* pc, ContextCounts* cc, ContextValues* cv, LimitedCountsCache * lc, CoCoInitialiser * const cci = nullptr);
 
 	~PLNCache();
 

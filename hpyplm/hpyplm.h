@@ -104,7 +104,7 @@ template<unsigned N> struct PYPLM {
 
 
 		double probLimitedNaive(const Pattern& w, const Pattern& context,cpyp::PYPLM<kORDER>& _lm, PatternCounts* _patternCounts,
-						ContextCounts* contextCounts, ContextValues* contextValues, LimitedCounts * limitedCounts,
+						ContextCounts* contextCounts, ContextValues* contextValues, LimitedCountsCache * limitedCounts,
 						CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 		{
 			bool debug = true;

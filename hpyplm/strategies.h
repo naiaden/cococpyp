@@ -136,7 +136,7 @@ class LimitedNaiveBackoffStrategy : public BackoffStrategy
 {
 	ContextCounts* contextCounts;
 	ContextValues* contextValues;
-	LimitedCounts* limitedCounts;
+	LimitedCountsCache* limitedCounts;
 
 public:
     std::string strategyName();
@@ -149,7 +149,7 @@ public:
 			PatternCounts* _patternCounts,
 			ContextCounts* _contextCounts,
 			ContextValues* _contextValues,
-			LimitedCounts* _limitedCounts);
+			LimitedCountsCache* _limitedCounts);
 
     virtual ~LimitedNaiveBackoffStrategy();
 

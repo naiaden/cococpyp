@@ -16,7 +16,7 @@
 class PatternCounts;
 class ContextValues;
 class ContextCounts;
-class LimitedCounts;
+class LimitedCountsCache;
 
 #include "cpyp/crp.h"
 

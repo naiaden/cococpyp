@@ -26,23 +26,47 @@ struct LimitedInformation
 	double P = 0.0; // sum over all p0
 };
 
+//class LimitedCounts
+//{
+//public:
+//	std::string name() const;
+//
+//	std::unordered_map<Pattern, LimitedInformation> limitedCounts;
+//	BackoffStrategy * backoffStrategy;
+//	std::ofstream probsFile;
+//	PatternSet<uint64_t> allFocusWords;
+//
+//	LimitedCounts(SNCBWCoCoInitialiser& cci, const std::string& fileName);
+//	LimitedCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, BackoffStrategy* _backoffStrategy);
+//	~LimitedCounts();
+//
+//	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts);
+//
+//	LimitedInformation get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr);
+//};
 
 
-
-class LimitedCounts
+class LimitedCountsCache
 {
 public:
 	std::string name() const;
 
 	std::unordered_map<Pattern, LimitedInformation> limitedCounts;
+	PatternCounts * patternCounts;
 	BackoffStrategy * backoffStrategy;
+	std::ofstream probsFile;
 
-	LimitedCounts(SNCBWCoCoInitialiser& cci, const std::string& fileName);
-	LimitedCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, BackoffStrategy* _backoffStrategy);
+	PatternSet<uint64_t> allFocusWords;
+	long int numberOfFocusWords = 0;
 
-	void initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts);
+	LimitedCountsCache(SNCBWCoCoInitialiser& cci, const std::string& fileName);
+	LimitedCountsCache(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, BackoffStrategy* _backoffStrategy);
+	~LimitedCountsCache();
 
-	LimitedInformation get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr) const;
+	void initialise(SNCBWCoCoInitialiser& cci);
+
+
+	LimitedInformation get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr);
 };
 
 
