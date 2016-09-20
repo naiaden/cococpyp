@@ -60,7 +60,7 @@ public:
 	PatternSet<uint64_t> allFocusWords;
 	long int numberOfFocusWords = 0;
 
-	LimitedCountsCache(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, const std::string& fileName);
+	LimitedCountsCache(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, const std::string& fileName, const std::string& fileAppender, BackoffStrategy* _backoffStrategy);
 	LimitedCountsCache(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, BackoffStrategy* _backoffStrategy);
 	~LimitedCountsCache();
 

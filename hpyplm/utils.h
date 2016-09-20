@@ -160,12 +160,12 @@ public:
 
             double avgPerSecond = fCounter*1.0/elapsedSeconds.count();
 
-            std::cout << std::fixed << "\r" 
+            *mout << std::fixed << "\r"
                       << "\tPattern: " << std::setw(10) << fCounter 
                       << " (" << std::setw(4) << (fOOV*1.0/fCounter*100) << "% OOV) "
                       << std::setw(8) << ((int) avgPerSecond) << "P/s"
                       << " took " << elapsedSeconds.count() << " seconds"; 
-            std::cout << std::flush;
+            *mout << std::flush;
         }
     }
 };
