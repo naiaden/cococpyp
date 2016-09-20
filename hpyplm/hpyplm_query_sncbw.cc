@@ -106,15 +106,15 @@ int main(int argc, char** argv) {
 	LimitedCounts* entropyLimitedCounts;
 	LimitedCounts* uniformLimitedCounts;
 
-    if(po.limitedMLECacheFile.empty())
-    	mleLimitedCounts = new LimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
-    else
-    	mleLimitedCounts = new LimitedCounts(cci, po.limitedMLECacheFile);
-
-    if(po.limitedEntropyCacheFile.empty())
-    	entropyLimitedCounts = new LimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
-    else
-    	entropyLimitedCounts = new LimitedCounts(cci, po.limitedEntropyCacheFile);
+//    if(po.limitedMLECacheFile.empty())
+//    	mleLimitedCounts = new LimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+//    else
+//    	mleLimitedCounts = new LimitedCounts(cci, po.limitedMLECacheFile);
+//
+//    if(po.limitedEntropyCacheFile.empty())
+//    	entropyLimitedCounts = new LimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+//    else
+//    	entropyLimitedCounts = new LimitedCounts(cci, po.limitedEntropyCacheFile);
 
     if(po.limitedUniformCacheFile.empty())
     	uniformLimitedCounts = new LimitedCounts(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
@@ -133,8 +133,8 @@ int main(int argc, char** argv) {
 //    backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
 
     backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts, uniformLimitedCounts));
-    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &entropyCounts, entropyLimitedCounts));
-    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts, mleLimitedCounts));
+//    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &entropyCounts, entropyLimitedCounts));
+//    backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts, mleLimitedCounts));
 
 
     std::cout << std::endl;
