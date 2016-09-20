@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
     if(po.limitedMLECacheFile.empty())
     	mleLimitedCounts = new LimitedCountsCache(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
     else
-    	mleLimitedCounts = new LimitedCountsCache(cci, po.limitedMLECacheFile);
+    	mleLimitedCounts = new LimitedCountsCache(cci, &patternCounts, po.limitedMLECacheFile);
 
 //    if(po.limitedEntropyCacheFile.empty())
 //    	entropyLimitedCounts = new LimitedCountsCache(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));

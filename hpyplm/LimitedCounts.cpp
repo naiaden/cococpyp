@@ -122,8 +122,11 @@ std::string LimitedCountsCache::name() const
 	return "limitedcounts";
 }
 
-LimitedCountsCache::LimitedCountsCache(SNCBWCoCoInitialiser& cci, const std::string& fileName)
+LimitedCountsCache::LimitedCountsCache(SNCBWCoCoInitialiser& _cci, PatternCounts* _patternCounts, const std::string& fileName)
 {
+	patternCounts = _patternCounts;
+	cci = &_cci;
+
 	std::cout << "Reading LimitedCounts from file: " << fileName << "...";
 	std::ifstream file(fileName);
 	std::string   line;
@@ -155,7 +158,7 @@ LimitedCountsCache::LimitedCountsCache(SNCBWCoCoInitialiser& cci, const std::str
 //		std::cout << "[" << backoff << "] {" << nobackoff << "} (" << PValue  << ")" << std::endl;
 
 		try {
-			Pattern pattern = cci.classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
+			Pattern pattern = cci->classEncoder.buildpattern(patternString, allowUnknown, autoAddUnknown);
 
 			LimitedInformation li;
 			li.backoff = backoff;
@@ -171,20 +174,21 @@ LimitedCountsCache::LimitedCountsCache(SNCBWCoCoInitialiser& cci, const std::str
 
 }
 
-LimitedCountsCache::LimitedCountsCache(SNCBWCoCoInitialiser& cci, PatternCounts* _patternCounts, BackoffStrategy* _backoffStrategy)
+LimitedCountsCache::LimitedCountsCache(SNCBWCoCoInitialiser& _cci, PatternCounts* _patternCounts, BackoffStrategy* _backoffStrategy)
 {
 	backoffStrategy = _backoffStrategy;
 	patternCounts = _patternCounts;
-	initialise(cci);
+	cci = &_cci;
+	initialise();
 }
 
-void LimitedCountsCache::initialise(SNCBWCoCoInitialiser& cci)
+void LimitedCountsCache::initialise()
 {
 
-	SNCBWProgramOptions* po = (SNCBWProgramOptions*) cci.po;
+	SNCBWProgramOptions* po = (SNCBWProgramOptions*) cci->po;
 	probsFile.open(po->generalLimitedCacheFileName + "." + backoffStrategy->strategyName());
 
-	allFocusWords = cci.trainPatternModel.extractset(1,1);
+	allFocusWords = cci->trainPatternModel.extractset(1,1);
 	numberOfFocusWords = allFocusWords.size();
 
 	for(int n = 1; n < /*=*/ kORDER; ++n)
@@ -196,7 +200,7 @@ void LimitedCountsCache::initialise(SNCBWCoCoInitialiser& cci)
 			allPatterns = allFocusWords;
 		} else
 		{
-			allPatterns = cci.trainPatternModel.extractset(n,n);
+			allPatterns = cci->trainPatternModel.extractset(n,n);
 		}
 		std::cout << " done" << std::endl;
 
@@ -233,7 +237,7 @@ void LimitedCountsCache::initialise(SNCBWCoCoInitialiser& cci)
 			li.P = P;
 			limitedCounts[context] = li;
 
-			probsFile << context.tostring(cci.classDecoder) << "\t" << P << "\t" << nobackoff << "\t" << li.backoff << "\n";
+			probsFile << context.tostring(cci->classDecoder) << "\t" << P << "\t" << nobackoff << "\t" << li.backoff << "\n";
 
 			if(kounter % 10 == 0) // std::setw(4) << (oov*1.0/counter*100) << "%
 				std::cout << std::fixed << "\r" << kounter << ":" << std::setw(6) << kounter*1.0/allContexts.size()*100 << "%" << std::flush;
@@ -248,7 +252,7 @@ LimitedCountsCache::~LimitedCountsCache()
 	probsFile.close();
 }
 
-LimitedInformation LimitedCountsCache::get(const Pattern& pattern, CoCoInitialiser * const cci)
+LimitedInformation LimitedCountsCache::get(const Pattern& pattern)
 {
 	std::unordered_map<Pattern, LimitedInformation>::const_iterator iter = limitedCounts.find(pattern);
 	if ( iter != limitedCounts.end() )
