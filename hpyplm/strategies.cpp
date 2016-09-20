@@ -409,7 +409,7 @@ LimitedNaiveBackoffStrategy::LimitedNaiveBackoffStrategy(SNCBWProgramOptions& _p
 		PatternCounts* _patternCounts,
 		ContextCounts* _contextCounts,
 		ContextValues* _contextValues,
-		LimitedCounts* _limitedCounts)
+		LimitedCountsCache* _limitedCounts)
 : BackoffStrategy(_cci, _lm), patternCounts(_patternCounts), contextCounts(_contextCounts), contextValues(_contextValues), limitedCounts(_limitedCounts), po(_po)
 {
 	std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;

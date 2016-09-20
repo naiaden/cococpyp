@@ -14,7 +14,7 @@
 //#include "hpyplm.h"
 
 
-PLNCache::PLNCache(const Pattern& w, const Pattern& context, PatternCounts* pc, ContextCounts* cc, ContextValues* cv, LimitedCounts * lc, CoCoInitialiser * const cci)
+PLNCache::PLNCache(const Pattern& w, const Pattern& context, PatternCounts* pc, ContextCounts* cc, ContextValues* cv, LimitedCountsCache * lc, CoCoInitialiser * const cci)
 	: pc(pc), cc(cc), cv(cv), lc(lc), cci(cci)
 {
 	abcd = new P_ABCD(this, w, context);
