@@ -11,6 +11,7 @@
 
 #include "ProgramOptions.h"
 
+#include "utils.h"
 
     CommandLineOptions::CommandLineOptions(int argc, char** argv)
     {
@@ -100,7 +101,8 @@
         clp.add<std::string>("limitedentropycachefile", 0, "limited entropy cache file with q values", false, "");
         clp.add<std::string>("limitedmlecachefile", 0, "limited mle cache file with q values", false, "");
 
-        clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram", cmdline::oneof<std::string>("glm", "bobaco", "ngram", "all"));
+//        clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram", cmdline::oneof<std::string>("glm", "bobaco", "ngram", "all"));
+        clp.add<std::string>("backoff", 'B', "the backoff method", false, "ngram");
         clp.parse_check(argc, argv);
 
         retrieve();
@@ -246,7 +248,7 @@
         }
 
         baseOutputName = _clo.outputDirectory + "/" + _clo.outputRunName;
-        generalBaseOutputName = baseOutputName + "_" + toString(_clo.backoffMethod)
+        generalBaseOutputName = baseOutputName + "_" + backoffsToString(_clo.backoffMethod)
                                                + "-common_" + std::to_string(_n);
         generalOutputClassFileName = generalBaseOutputName + ".cls";
         generalOutputCorpusFileName = generalBaseOutputName + ".dat";
@@ -325,7 +327,7 @@
          }
 
 
-         generalBaseOutputName = _clo.outputDirectory + "/" + _clo.outputRunName + "_" + toString(_clo.backoffMethod) + "-common_" + std::to_string(_n);
+         generalBaseOutputName = _clo.outputDirectory + "/" + _clo.outputRunName + "_" + backoffsToString(_clo.backoffMethod) + "-common_" + std::to_string(_n);
          generalOutputClassFileName = generalBaseOutputName + ".cls";
          generalOutputCorpusFileName = generalBaseOutputName + ".dat";
 

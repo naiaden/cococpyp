@@ -74,7 +74,7 @@ struct SNCBWCommandLineOptions : public CommandLineOptions
 
     int n;
 
-    Backoff backoffMethod;
+    std::vector<Backoff> backoffMethod;
 
     SNCBWCommandLineOptions(int argc, char** argv);
 };
@@ -87,7 +87,7 @@ struct QueryCommandLineOptions : public CommandLineOptions
     std::string sharedOutputDirectory;
     std::string outputDirectory;
     std::string outputRunName;
-    Backoff backoffMethod;
+    std::vector<Backoff> backoffMethod;
     
     QueryCommandLineOptions(int argc, char** argv);
 

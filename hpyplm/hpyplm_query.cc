@@ -32,24 +32,24 @@ std::vector<std::string> split(std::string const &input) {
     return ret;
 }
 
-enum class Backoff { GLM, BOBACO, NGRAM, REL, ALL};
+//enum class Backoff { GLM, BOBACO, NGRAM, REL, ALL};
 
-Backoff fromString(const std::string& s) {
-    if(s.compare("glm") == 0) return Backoff::GLM;
-    else if(s.compare("bobaco") == 0) return Backoff::BOBACO;
-    else if(s.compare("relative") == 0) return Backoff::REL;
-    else if(s.compare("all") == 0) return Backoff::ALL;
-    else return Backoff::NGRAM;
-}
-
-std::string toString(Backoff b) {
-    if(b == Backoff::GLM) return "glm";
-    if(b == Backoff::BOBACO) return "bobaco";
-    if(b == Backoff::NGRAM) return "ngram";
-    if(b == Backoff::REL) return "relative";
-    if(b == Backoff::ALL) return "all";
-    return "unknown backoff method";
-}
+//Backoff fromString(const std::string& s) {
+//    if(s.compare("glm") == 0) return Backoff::GLM;
+//    else if(s.compare("bobaco") == 0) return Backoff::BOBACO;
+//    else if(s.compare("relative") == 0) return Backoff::REL;
+//    else if(s.compare("all") == 0) return Backoff::ALL;
+//    else return Backoff::NGRAM;
+//}
+//
+//std::string toString(Backoff b) {
+//    if(b == Backoff::GLM) return "glm";
+//    if(b == Backoff::BOBACO) return "bobaco";
+//    if(b == Backoff::NGRAM) return "ngram";
+//    if(b == Backoff::REL) return "relative";
+//    if(b == Backoff::ALL) return "all";
+//    return "unknown backoff method";
+//}
 
 void p2b(const std::string& s, std::ostream& os, std::ofstream& ofs) {
 
