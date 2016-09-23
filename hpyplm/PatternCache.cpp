@@ -53,7 +53,7 @@ double P_XXXX::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	{
 		if(debug) std::cout << "     A priori probabily not computed. " << std::endl;
 
-		LimitedInformation li = parent->lc->get(context, nullptr);
+		LimitedInformation li = parent->lc->get(context);
 		prob_ = 1.0 / (li.nobackoff + li.backoff);
 
 		weight_ = parent->cv->get(pattern);
@@ -73,7 +73,7 @@ double P_XXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		{
 			if(debug) std::cout << "    Compute unigram prob and stop backoff." << std::endl;
 
-			LimitedInformation li =  parent->lc->get(context, nullptr);
+			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
 
 			prob_ = helper(p, p0_, 0.0);
@@ -105,7 +105,7 @@ double P_XXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		{
 			if(debug) std::cout << "   Compute bigram prob and stop backoff." << std::endl;
 
-			LimitedInformation li =  parent->lc->get(context, nullptr);
+			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
 
 			prob_ = helper(p, p0_, 0.0);
@@ -136,7 +136,7 @@ double P_XBXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		{
 			if(debug) std::cout << "  Compute xbxd prob and stop backoff." << std::endl;
 
-			LimitedInformation li =  parent->lc->get(context, nullptr);
+			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{
@@ -171,7 +171,7 @@ double P_AXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		{
 			if(debug) std::cout << " Compute axxd prob and stop backoff." << std::endl;
 
-			LimitedInformation li =  parent->lc->get(context, nullptr);
+			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{
@@ -206,7 +206,7 @@ double P_XBCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		{
 			if(debug) std::cout << "  Compute xbcd prob and stop backoff." << std::endl;
 
-			LimitedInformation li =  parent->lc->get(context, nullptr);
+			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{
@@ -243,7 +243,7 @@ double P_AXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		{
 			if(debug) std::cout << " Compute axcd prob and stop backoff." << std::endl;
 
-			LimitedInformation li =  parent->lc->get(context, nullptr);
+			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{
@@ -278,7 +278,7 @@ double P_ABXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		{
 			if(debug) std::cout << " Compute abxd prob and stop backoff." << std::endl;
 
-			LimitedInformation li =  parent->lc->get(context, nullptr);
+			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{
@@ -313,7 +313,7 @@ double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		{
 			if(debug) std::cout << " Compute abcd prob and stop backoff." << std::endl;
 
-			LimitedInformation li =  parent->lc->get(context, nullptr);
+			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{

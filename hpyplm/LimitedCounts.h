@@ -55,18 +55,19 @@ public:
 	PatternCounts * patternCounts;
 	BackoffStrategy * backoffStrategy;
 	std::ofstream probsFile;
+	SNCBWCoCoInitialiser * cci;
 
 	PatternSet<uint64_t> allFocusWords;
 	long int numberOfFocusWords = 0;
 
-	LimitedCountsCache(SNCBWCoCoInitialiser& cci, const std::string& fileName);
+	LimitedCountsCache(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, const std::string& fileName, const std::string& fileAppender, BackoffStrategy* _backoffStrategy);
 	LimitedCountsCache(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, BackoffStrategy* _backoffStrategy);
 	~LimitedCountsCache();
 
-	void initialise(SNCBWCoCoInitialiser& cci);
+	void initialise();
 
 
-	LimitedInformation get(const Pattern& pattern, CoCoInitialiser * const cci = nullptr);
+	LimitedInformation get(const Pattern& pattern);
 };
 
 
