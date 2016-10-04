@@ -51,7 +51,7 @@ public:
 
 	bool debug = false;
 
-	PLNCache(const Pattern& w, const Pattern& context, PatternCounts* pc, ContextCounts* cc, ContextValues* cv, LimitedCountsCache * lc, CoCoInitialiser * const cci = nullptr);
+	PLNCache(const Pattern& w, const Pattern& context, PatternCounts* pc, ContextCounts* cc, ContextValues* cv, LimitedCountsCache * lc, bool debug = false, CoCoInitialiser * const cci = nullptr);
 
 	~PLNCache();
 

@@ -110,7 +110,7 @@ template<unsigned N> struct PYPLM {
 			bool debug = true;
 
 
-			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts, cci);
+			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts, debug, cci);
 
 			plnCache.xxxx->compute(p);
 			plnCache.xxxd->compute(backoff.backoff.backoff.p);

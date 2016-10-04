@@ -40,7 +40,7 @@ class LimitedCountsCache;
 			bool debug = false;
 
 		public:
-			PatternCache(PLNCache* parent, const Pattern& _focus, const Pattern& _context) : parent(parent), focus(_focus), context(_context), pattern(_context + _focus){} ;
+			PatternCache(PLNCache* parent, const Pattern& _focus, const Pattern& _context, bool debug = false) : parent(parent), focus(_focus), context(_context), pattern(_context + _focus), debug(debug){} ;
 
 			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p) {};
 
@@ -54,7 +54,7 @@ class LimitedCountsCache;
 		class P_XXXX : public PatternCache
 		{
 		public:
-			P_XXXX(PLNCache* parent, const Pattern& f, const Pattern& c) : PatternCache(parent, f,c)
+			P_XXXX(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug = false) : PatternCache(parent, f,c, debug)
 			{
 				context = Pattern();
 			}
@@ -65,7 +65,7 @@ class LimitedCountsCache;
 		class P_XXXD : public PatternCache
 		{
 		public:
-			P_XXXD(PLNCache* parent, const Pattern& f, const Pattern& c) : PatternCache(parent, f,c)
+			P_XXXD(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug = false) : PatternCache(parent, f,c, debug)
 			{
 				context = Pattern();
 			}
@@ -76,7 +76,7 @@ class LimitedCountsCache;
 		class P_XXCD : public PatternCache
 		{
 		public:
-			P_XXCD(PLNCache* parent, const Pattern& f, const Pattern& c) : PatternCache(parent, f,c)
+			P_XXCD(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug = false) : PatternCache(parent, f,c, debug)
 			{
 				context = Pattern(c, 2, 2);
 			}
@@ -87,7 +87,7 @@ class LimitedCountsCache;
 		class P_XBXD : public PatternCache
 		{
 		public:
-			P_XBXD(PLNCache* parent, const Pattern& f, const Pattern& c) : PatternCache(parent, f,c)
+			P_XBXD(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug = false) : PatternCache(parent, f,c, debug)
 			{
 				context = Pattern(c, 1, 2).addskip(std::pair<int, int>(1, 1));
 			}
@@ -98,7 +98,7 @@ class LimitedCountsCache;
 		class P_AXXD : public PatternCache
 		{
 		public:
-			P_AXXD(PLNCache* parent, const Pattern& f, const Pattern& c) : PatternCache(parent, f,c)
+			P_AXXD(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug = false) : PatternCache(parent, f,c, debug)
 			{
 				context = c.addskip(std::pair<int, int>(1, 2));
 			}
@@ -109,7 +109,7 @@ class LimitedCountsCache;
 		class P_XBCD : public PatternCache
 		{
 		public:
-			P_XBCD(PLNCache* parent, const Pattern& f, const Pattern& c) : PatternCache(parent, f,c)
+			P_XBCD(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug = false) : PatternCache(parent, f,c, debug)
 			{
 				context = Pattern(c, 1, 2);
 			}
@@ -120,7 +120,7 @@ class LimitedCountsCache;
 		class P_AXCD : public PatternCache
 		{
 		public:
-			P_AXCD(PLNCache* parent, const Pattern& f, const Pattern& c) : PatternCache(parent, f,c)
+			P_AXCD(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug = false) : PatternCache(parent, f,c, debug)
 			{
 				context = c.addskip(std::pair<int, int>(1, 1));
 			}
@@ -131,7 +131,7 @@ class LimitedCountsCache;
 		class P_ABXD : public PatternCache
 		{
 		public:
-			P_ABXD(PLNCache* parent, const Pattern& f, const Pattern& c) : PatternCache(parent, f,c)
+			P_ABXD(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug = false) : PatternCache(parent, f,c, debug)
 			{
 				context = c.addskip(std::pair<int, int>(2, 1));
 			}
@@ -142,7 +142,7 @@ class LimitedCountsCache;
 		class P_ABCD : public PatternCache
 		{
 		public:
-			P_ABCD(PLNCache* parent, const Pattern& f, const Pattern& c) : PatternCache(parent, f,c)
+			P_ABCD(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug = false) : PatternCache(parent, f,c, debug)
 			{
 
 			};

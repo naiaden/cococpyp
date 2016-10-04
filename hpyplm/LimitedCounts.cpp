@@ -172,7 +172,9 @@ LimitedInformation LimitedCountsCache::get(const Pattern& pattern)
 			{ // not oov
 				++nobackoff;
 //					std::cout << "NOT OOV: " << pattern.tostring(cci.classDecoder) << std::endl;
-				P += backoffStrategy->prob(focus, pattern, "" /*focus.tostring(cci.classDecoder)*/);
+				double prob = backoffStrategy->prob(focus, pattern, "" /*focus.tostring(cci.classDecoder)*/);
+				P += prob;
+				probsFile << "\t" << pattern.tostring(cci->classDecoder) << "\t" << focus.tostring(cci->classDecoder) << "\t" << prob << "\n";
 			}
 		}
 
