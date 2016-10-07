@@ -7,7 +7,7 @@
 class BackoffStrategy
 {
 public:
-	bool debug = false;
+	bool debug = true;
 
     int files = 0;
     unsigned long lines = 0;
