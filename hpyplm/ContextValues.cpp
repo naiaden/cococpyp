@@ -54,6 +54,8 @@ void MLECounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCoun
 {
 	Pattern skip = cci.classEncoder.buildpattern("{*}", false, false);
 
+	std::cout << "### MLE Counts size: " << mleCounts.size() << std::endl;
+
 	for(int n = 1; n <= kORDER; ++n)
 	{
 		std::cout << "Extracting MLE set for " << n << "...";
@@ -92,6 +94,7 @@ void MLECounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCoun
 			}
 		}
 	}
+	std::cout << "### MLE Counts size: " << mleCounts.size() << std::endl;
 }
 
 double MLECounts::get(const Pattern& pattern, CoCoInitialiser * const cci) const

@@ -107,7 +107,7 @@ template<unsigned N> struct PYPLM {
 						ContextCounts* contextCounts, ContextValues* contextValues, LimitedCountsCache * limitedCounts,
 						CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 		{
-			bool debug = true;
+			bool debug = false;
 
 
 			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts, debug, cci);
@@ -167,11 +167,15 @@ template<unsigned N> struct PYPLM {
 	{
 		bool debug = false;
 
+		//remove std::cout << "###:" << contextValues->name() << std::endl;
+
 		Pattern pattern = context + w;
 		if(pattern.size() != 4)
 		{
 			std::cerr << "Do something: Pattern length is not 4" << std::endl;
 		}
+
+		//std::cout << "### Using " << contextValues->name() << std::endl;
 
 		// 4 content words
 		// a b c d
@@ -243,6 +247,7 @@ template<unsigned N> struct PYPLM {
 		double abcd_weight = 1.0;
 		if(debug) std::cout << "abcd p: " << abcd_prob << " with weight: " << abcd_weight << std::endl;
 
+//		return 0.5;
 		return abcd_prob;
 
 	}

@@ -99,6 +99,7 @@ double BackoffStrategies::prob(const Pattern& focus, const Pattern& context, con
 {
 	for(BackoffStrategy* bs: backoffStrategies)
 	{
+		//remove std::cout << "###6: " << bs->strategyName() << std::endl;
 		bs->prob(focus, context, focusString);
 	}
 }
@@ -269,6 +270,9 @@ FullNaiveBackoffStrategy::FullNaiveBackoffStrategy(SNCBWProgramOptions& _po,
 {
 	std::cout << "Initialising backoff strategy: " << strategyName() << std::endl;
 
+	//remove std::cout << "###1: " << _contextValues->name() << std::endl;
+	//remove std::cout << "###2: " << contextValues->name() << std::endl;
+
 	baseOutputName = _po.generalBaseOutputName + "_" + strategyName() + "_" + std::to_string(_po.n) + "_" + _contextValues->name();
 	outputProbabilitiesFileName = baseOutputName + ".probs";
 	outputSentenceProbabilitiesFileName = baseOutputName + ".sentences";
@@ -293,13 +297,14 @@ FullNaiveBackoffStrategy::~FullNaiveBackoffStrategy()
 double FullNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& context, const std::string& focusString)
 {
 	if(debug) std::cout << " Entering " << strategyName() << " backoff\n";
+	//remove std::cout << "###5:" << contextValues->name() << std::endl;
 
 	double lp = 0.0;
 	std::string fS = focusString;
 
 	if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
 	{
-		if(debug) std::cout << "+++ Processing [" << context.tostring(cci.classDecoder) << " " << focus.tostring(cci.classDecoder) << std::endl;
+		if(debug) std::cout << "+++ Processing [" << context.tostring(cci.classDecoder) << "] " << focus.tostring(cci.classDecoder) << std::endl;
 		lp = log2(lm.probFullNaive(focus, context, contextCounts, contextValues, &cci));
 		fS = focus.tostring(cci.classDecoder);
 		if(debug) std::cout << "--- logprob = " << lp << std::endl;

@@ -111,43 +111,46 @@ int main(int argc, char** argv) {
     	backoffStrategies.addBackoffStrategy(new NgramBackoffStrategy(po, cci, lm));
     }
 
+    MLECounts* mleCounts = nullptr;
     if(backoffIn(Backoff::MLE, qclo.backoffMethod))
     {
-    	MLECounts mleCounts(cci, &patternCounts);
+    	mleCounts = new MLECounts(cci, &patternCounts);
+    	//remove std::cout << "###: " << mleCounts->name() << std::endl;
 
 		if(backoffIn(Backoff::FULLMLE, qclo.backoffMethod))
 		{
-			backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+			backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, mleCounts));
 		}
 
         if(backoffIn(Backoff::LIMMLE, qclo.backoffMethod))
         {
             if(po.limitedMLECacheFile.empty())
-            	mleLimitedCounts = new LimitedCountsCache(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+            	mleLimitedCounts = new LimitedCountsCache(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, mleCounts));
             else
-            	mleLimitedCounts = new LimitedCountsCache(cci, &patternCounts, po.limitedMLECacheFile, "mlec", new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &mleCounts));
+            	mleLimitedCounts = new LimitedCountsCache(cci, &patternCounts, po.limitedMLECacheFile, "mlec", new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, mleCounts));
 
-            backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &mleCounts, mleLimitedCounts));
+            backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, mleCounts, mleLimitedCounts));
         }
     }
 
+    EntropyCounts* entropyCounts = nullptr;
 	if(backoffIn(Backoff::ENT, qclo.backoffMethod))
 	{
-		EntropyCounts entropyCounts(cci, &patternCounts);
+		entropyCounts = new EntropyCounts(cci, &patternCounts);
 
 		if(backoffIn(Backoff::FULLENT, qclo.backoffMethod))
 		{
-			backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+			backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, entropyCounts));
 		}
 
 		if(backoffIn(Backoff::LIMENT, qclo.backoffMethod))
 		{
 			if(po.limitedEntropyCacheFile.empty())
-				entropyLimitedCounts = new LimitedCountsCache(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+				entropyLimitedCounts = new LimitedCountsCache(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, entropyCounts));
 			else
-				entropyLimitedCounts = new LimitedCountsCache(cci, &patternCounts, po.limitedEntropyCacheFile, "entc", new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &entropyCounts));
+				entropyLimitedCounts = new LimitedCountsCache(cci, &patternCounts, po.limitedEntropyCacheFile, "entc", new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, entropyCounts));
 
-			backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &entropyCounts, entropyLimitedCounts));
+			backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, entropyCounts, entropyLimitedCounts));
 		}
 	}
 
@@ -210,7 +213,7 @@ int main(int argc, char** argv) {
 						Pattern context = cci.classEncoder.buildpattern(contextStream.str());
 						Pattern focus = cci.classEncoder.buildpattern(words[i]);
 
-	                    std::cout << "\n  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
+//	                    std::cout << "\n  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
 
 
 						double lp = 0.0;
@@ -243,6 +246,8 @@ int main(int argc, char** argv) {
     delete mleLimitedCounts;
     delete entropyLimitedCounts;
     delete uniformLimitedCounts;
+    delete mleCounts;
+    delete entropyCounts;
 }
 
 
