@@ -12,6 +12,7 @@
 #include "ProgramOptions.h"
 
 #include "utils.h"
+#include "Debug.h"
 
     CommandLineOptions::CommandLineOptions(int argc, char** argv)
     {
@@ -27,6 +28,8 @@
         clp.add<std::string>("loadtrainpatternmodel", '\0', "load colibri encoded pattern model", false, "");
         clp.add<std::string>("loadtrainvocabulary", '\0', "load colibri class file", false, "");
         clp.add<std::string>("loadtrainserialisedmodel", '\0', "load colibri serialised model", false, "");
+
+        clp.add<std::string>("debug", '\0', "level of debug output", false, "NONE");
     }
 
     void CommandLineOptions::retrieve()
@@ -38,6 +41,8 @@
         loadTrainPatternModel = clp.get<std::string>("loadtrainpatternmodel");
         loadTrainVocabulary = clp.get<std::string>("loadtrainvocabulary");
         loadTrainSerialisedFile = clp.get<std::string>("loadtrainserialisedmodel");
+
+        Debug::getInstance().set(clp.get<std::string>("debug"));
     }
 
     TrainCommandLineOptions::TrainCommandLineOptions(int argc, char** argv) : CommandLineOptions(argc, argv)

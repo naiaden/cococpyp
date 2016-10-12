@@ -24,6 +24,8 @@
 #include "PLNCache.h"
 #include "PatternCache.h"
 
+#include "Debug.h"
+
 // A not very memory-efficient implementation of an N-gram LM based on PYPs
 // as described in Y.-W. Teh. (2006) A Hierarchical Bayesian Language Model
 // based on Pitman-Yor Processes. In Proc. ACL.
@@ -107,10 +109,8 @@ template<unsigned N> struct PYPLM {
 						ContextCounts* contextCounts, ContextValues* contextValues, LimitedCountsCache * limitedCounts,
 						CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 		{
-			bool debug = false;
 
-
-			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts, debug, cci);
+			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts, cci);
 
 			plnCache.xxxx->compute(p);
 			plnCache.xxxd->compute(backoff.backoff.backoff.p);
@@ -165,8 +165,6 @@ template<unsigned N> struct PYPLM {
 					ContextCounts* contextCounts, ContextValues* contextValues,
 					CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 	{
-		bool debug = false;
-
 		//remove std::cout << "###:" << contextValues->name() << std::endl;
 
 		Pattern pattern = context + w;
@@ -210,42 +208,42 @@ template<unsigned N> struct PYPLM {
 		// -----------------------------
 		// 0
 		double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, temp_cciPtr);
-		if(debug) std::cout << "xxxx p: " << xxxx_prob << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "xxxx p: " << xxxx_prob << std::endl;
 
 		// 1
 		double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, temp_cciPtr);
-		if(debug) std::cout << "xxxd p: " << xxxd_prob << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "xxxd p: " << xxxd_prob << std::endl;
 
 		// 2
 		double axxd_prob = probFullNaiveHelper(xxxd, Pattern(axxd, 0, 3), axxd, xxxd_prob, temp_cciPtr);
 		double axxd_weight = contextValues->get(axxd);
-		if(debug) std::cout << "axxd p: " << axxd_prob << " with weight: " << axxd_weight << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "axxd p: " << axxd_prob << " with weight: " << axxd_weight << std::endl;
 		double xbxd_prob = probFullNaiveHelper(xxxd, Pattern(xbxd, 0, 2), xbxd, xxxd_prob, temp_cciPtr);
 		double xbxd_weight = contextValues->get(xbxd);
-		if(debug) std::cout << "xbxd p: " << xbxd_prob << " with weight: " << xbxd_weight << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "xbxd p: " << xbxd_prob << " with weight: " << xbxd_weight << std::endl;
 		double xxcd_prob = probFullNaiveHelper(xxxd, Pattern(xxcd, 0, 1), xxcd, xxxd_prob, temp_cciPtr);
 		double xxcd_weight = contextValues->get(xxcd);
-		if(debug) std::cout << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
 
 		double c2_prob = (axxd_prob * axxd_weight + xbxd_prob * xbxd_weight + xxcd_prob * xxcd_weight) / (axxd_weight + xbxd_weight + xxcd_weight);
 
 		// 3
 		double abxd_prob = probFullNaiveHelper(xxxd, Pattern(abxd, 0, 3), abxd, c2_prob, temp_cciPtr);
 		double abxd_weight = contextValues->get(abxd);
-		if(debug) std::cout << "abxd p: " << abxd_prob << " with weight: " << abxd_weight << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "abxd p: " << abxd_prob << " with weight: " << abxd_weight << std::endl;
 		double axcd_prob = probFullNaiveHelper(xxxd, Pattern(axcd, 0, 3), axcd, c2_prob, temp_cciPtr);
 		double axcd_weight = contextValues->get(axcd);
-		if(debug) std::cout << "axcd p: " << axcd_prob << " with weight: " << axcd_weight << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "axcd p: " << axcd_prob << " with weight: " << axcd_weight << std::endl;
 		double xbcd_prob = probFullNaiveHelper(xxxd, Pattern(xbcd, 0, 2), xbcd, c2_prob, temp_cciPtr);
 		double xbcd_weight = contextValues->get(xbcd);
-		if(debug) std::cout << "xbcd p: " << xbcd_prob << " with weight: " << xbcd_weight << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "xbcd p: " << xbcd_prob << " with weight: " << xbcd_weight << std::endl;
 
 		double c3_prob = (abxd_prob * abxd_weight + axcd_prob * axcd_weight + xbcd_prob * xbcd_weight) / (abxd_weight + axcd_weight + xbcd_weight);
 
 		// 4
 		double abcd_prob = probFullNaiveHelper(xxxd, Pattern(abcd, 0, 3), abcd, c3_prob, temp_cciPtr);
 		double abcd_weight = 1.0;
-		if(debug) std::cout << "abcd p: " << abcd_prob << " with weight: " << abcd_weight << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "abcd p: " << abcd_prob << " with weight: " << abcd_weight << std::endl;
 
 //		return 0.5;
 		return abcd_prob;
@@ -256,7 +254,7 @@ template<unsigned N> struct PYPLM {
 							ContextCounts* contextCounts, ContextValues* contextValues,
 							CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 			{
-				bool debug = false;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "PFN1" << std::endl;
 
 				Pattern pattern = context + w;
 				if(pattern.size() != 1)
@@ -274,11 +272,11 @@ template<unsigned N> struct PYPLM {
 				// -----------------------------
 				// 0
 				double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, temp_cciPtr);
-				if(debug) std::cout << "xxxx p: " << xxxx_prob << std::endl;
+				Debug::getInstance() << DebugLevel::SUBPATTERN << "xxxx p: " << xxxx_prob << std::endl;
 
 				// 1
 				double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, temp_cciPtr);
-				if(debug) std::cout << "xxxd p: " << xxxd_prob << std::endl;
+				Debug::getInstance() << DebugLevel::SUBPATTERN << "xxxd p: " << xxxd_prob << std::endl;
 
 				return xxxd_prob;
 			}
@@ -287,7 +285,8 @@ template<unsigned N> struct PYPLM {
 						ContextCounts* contextCounts, ContextValues* contextValues,
 						CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 		{
-			bool debug = false;
+
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "PFN2" << std::endl;
 
 			Pattern pattern = context + w;
 			if(pattern.size() != 2)
@@ -307,16 +306,16 @@ template<unsigned N> struct PYPLM {
 			// -----------------------------
 			// 0
 			double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, temp_cciPtr);
-			if(debug) std::cout << "xxxx p: " << xxxx_prob << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "xxxx p: " << xxxx_prob << std::endl;
 
 			// 1
 			double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, temp_cciPtr);
-			if(debug) std::cout << "xxxd p: " << xxxd_prob << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "xxxd p: " << xxxd_prob << std::endl;
 
 			// 2
 			double xxcd_prob = probFullNaiveHelper(xxxd, Pattern(xxcd, 0, 1), xxcd, xxxd_prob, temp_cciPtr);
 			double xxcd_weight = contextValues->get(xxcd);
-			if(debug) std::cout << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
 
 			double c2_prob = xxcd_prob;// * xxcd_weight / xxcd_weight;
 			return c2_prob;
@@ -326,7 +325,7 @@ template<unsigned N> struct PYPLM {
 						ContextCounts* contextCounts, ContextValues* contextValues,
 						CoCoInitialiser * const cci = nullptr, const std::string& indent = "") const
 		{
-			bool debug = false;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "PFN3" << std::endl;
 
 			Pattern pattern = context + w;
 			if(pattern.size() != 3)
@@ -350,26 +349,26 @@ template<unsigned N> struct PYPLM {
 			// -----------------------------
 			// 0
 			double xxxx_prob = probFullNaiveHelper(Pattern(), Pattern(), xxxx, 0, temp_cciPtr);
-			if(debug) std::cout << "xxxx p: " << xxxx_prob << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "xxxx p: " << xxxx_prob << std::endl;
 
 			// 1
 			double xxxd_prob = probFullNaiveHelper(xxxd, Pattern(), xxxd, xxxx_prob, temp_cciPtr);
-			if(debug) std::cout << "xxxd p: " << xxxd_prob << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "xxxd p: " << xxxd_prob << std::endl;
 
 			// 2
 			double xbxd_prob = probFullNaiveHelper(xxxd, Pattern(xbxd, 0, 2), xbxd, xxxd_prob, temp_cciPtr);
 			double xbxd_weight = contextValues->get(xbxd);
-			if(debug) std::cout << "xbxd p: " << xbxd_prob << " with weight: " << xbxd_weight << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "xbxd p: " << xbxd_prob << " with weight: " << xbxd_weight << std::endl;
 			double xxcd_prob = probFullNaiveHelper(xxxd, Pattern(xxcd, 0, 1), xxcd, xxxd_prob, temp_cciPtr);
 			double xxcd_weight = contextValues->get(xxcd);
-			if(debug) std::cout << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "xxcd p: " << xxcd_prob << " with weight: " << xxcd_weight << std::endl;
 
 			double c2_prob = (xbxd_prob * xbxd_weight + xxcd_prob * xxcd_weight) / (xbxd_weight + xxcd_weight);
 
 			// 3
 			double xbcd_prob = probFullNaiveHelper(xxxd, Pattern(xbcd, 0, 2), xbcd, c2_prob, temp_cciPtr);
 			double xbcd_weight = contextValues->get(xbcd);
-			if(debug) std::cout << "xbcd p: " << xbcd_prob << " with weight: " << xbcd_weight << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "xbcd p: " << xbcd_prob << " with weight: " << xbcd_weight << std::endl;
 
 			double c3_prob = xbcd_prob;// * xbcd_weight / xbcd_weight;
 			return c3_prob;
