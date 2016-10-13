@@ -159,9 +159,10 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	UniformCounts* uniformCounts = nullptr;
 	if(backoffIn(Backoff::UNI, qclo.backoffMethod))
 	{
-		UniformCounts uniformCounts(cci);
+		uniformCounts = new UniformCounts(cci);
 
 		if(backoffIn(Backoff::FULLUNI, qclo.backoffMethod))
 		{
@@ -253,5 +254,6 @@ int main(int argc, char** argv) {
     delete uniformLimitedCounts;
     delete mleCounts;
     delete entropyCounts;
+    delete uniformCounts;
 }
 
