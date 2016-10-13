@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     if(backoffIn(Backoff::MLE, qclo.backoffMethod))
     {
     	mleCounts = new MLECounts(cci, &patternCounts);
-    	//remove std::cout << "###: " << mleCounts->name() << std::endl;
+    	Debug::getInstance() << DebugLevel::ALL << "###: " << mleCounts->name() << std::endl;
 
 		if(backoffIn(Backoff::FULLMLE, qclo.backoffMethod))
 		{
