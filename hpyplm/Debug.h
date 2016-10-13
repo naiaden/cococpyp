@@ -77,7 +77,10 @@ public:
 	typedef std::ostream& (*stream_function)(std::ostream&);
 	Debug& operator<<(stream_function func)
 	{
-		func(std::cout);
+		if(doDebug(coutLevel))
+		{
+			func(std::cout);
+		}
 		return *this;
 	}
 
