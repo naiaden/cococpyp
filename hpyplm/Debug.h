@@ -12,8 +12,11 @@
 #include <ostream>
 #include <iostream>
 
+#include "date.h"
+
 enum class DebugLevel { NONE = 0, PATTERN = 2, SUBPATTERN = 4, ALL = 100 };
 
+using date::operator<<;
 
 class Debug {
 public:
@@ -29,6 +32,12 @@ public:
 	DebugLevel get();
 	void set(DebugLevel level);
 	void set(const std::string& level);
+
+	bool setPrintTime(bool enable)
+	{
+		doPrintTime = enable;
+		return doPrintTime;
+	}
 
 	std::string toString(DebugLevel debugLevel) const;
 	std::string toString() const;
@@ -54,7 +63,13 @@ public:
 	{
 		if(doDebug(coutLevel))
 		{
-			std::cout << something;
+			if(doPrintTime)
+			{
+				std::cout << something;
+			} else
+			{
+				std::cout << std::chrono::system_clock::now() << "\t" << something;
+			}
 		}
 		return *this;
 	}
@@ -74,6 +89,8 @@ public:
 private:
 	DebugLevel debugLevel = DebugLevel::NONE;
 	DebugLevel coutLevel = DebugLevel::NONE;
+
+	bool doPrintTime = false;
 
 	Debug() {}
 

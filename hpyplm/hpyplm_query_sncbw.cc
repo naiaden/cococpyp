@@ -51,32 +51,14 @@ using date::operator<<;
 
 int main(int argc, char** argv) {
     std::cout << "Started at " << std::chrono::system_clock::now()  << std::endl;
-//    Debug::getInstance().set(DebugLevel::PATTERN);
 
+    Debug::getInstance().setPrintTime(true);
 
     std::stringstream oss;
 	oss << kORDER;
 	std::string _kORDER = oss.str();
 
 	SNCBWCommandLineOptions qclo = SNCBWCommandLineOptions(argc, argv);
-
-
-    Debug::getInstance() << "Verbosity level: " << Debug::getInstance().toString() << std::endl;
-    Debug::getInstance() << "do i see this?" << std::endl;
-
-
-
-//    Debug::getInstance().setOutputLevel(DebugLevel::NONE);
-    Debug::getInstance() << DebugLevel::NONE << "Verbosity level: " << Debug::getInstance().toString() << std::endl;
-    Debug::getInstance() << DebugLevel::NONE << "do i see this?" << std::endl;
-
-//    Debug::getInstance().setOutputLevel(DebugLevel::PATTERN);
-    Debug::getInstance() << DebugLevel::PATTERN  << "Verbosity level: " << Debug::getInstance().toString() << std::endl;
-    Debug::getInstance() << DebugLevel::PATTERN  << "do i see this?" << std::endl;
-
-//    Debug::getInstance().setOutputLevel(DebugLevel::ALL);
-	Debug::getInstance() << DebugLevel::ALL << "Verbosity level: " << Debug::getInstance().toString() << std::endl;
-	Debug::getInstance() << DebugLevel::ALL << "do i see this?" << std::endl;
 
 	Debug::getInstance() << DebugLevel::ALL << "Loaded QCLO" << std::endl;
     SNCBWProgramOptions po = SNCBWProgramOptions(qclo, std::stoi(_kORDER));

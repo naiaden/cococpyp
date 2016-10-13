@@ -167,6 +167,18 @@ template<unsigned N> struct PYPLM {
 	{
 		//remove std::cout << "###:" << contextValues->name() << std::endl;
 
+		Debug::getInstance() << DebugLevel::ALL << "Testing for contextValues... " << std::endl;
+		if(contextValues)
+		{
+			Debug::getInstance() << DebugLevel::ALL << "\tit's not null..." << std::endl;
+			Debug::getInstance() << DebugLevel::ALL << "Testing for access to the object" << std::endl;
+			Debug::getInstance() << DebugLevel::ALL << contextValues->name() << std::endl;
+		}
+		else
+		{
+			Debug::getInstance() << DebugLevel::ALL << "\tand it's null... damn" << std::endl;
+		}
+
 		Pattern pattern = context + w;
 		if(pattern.size() != 4)
 		{
