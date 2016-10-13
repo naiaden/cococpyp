@@ -166,17 +166,17 @@ int main(int argc, char** argv) {
 
 		if(backoffIn(Backoff::FULLUNI, qclo.backoffMethod))
 		{
-			backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+			backoffStrategies.addBackoffStrategy(new FullNaiveBackoffStrategy(po, cci, lm, &contextCounts, uniformCounts));
 		}
 
 		if(backoffIn(Backoff::LIMUNI, qclo.backoffMethod))
 		{
 			if(po.limitedUniformCacheFile.empty())
-				uniformLimitedCounts = new LimitedCountsCache(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+				uniformLimitedCounts = new LimitedCountsCache(cci, &patternCounts, new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, uniformCounts));
 			else
-				uniformLimitedCounts = new LimitedCountsCache(cci, &patternCounts, po.limitedUniformCacheFile, "unic", new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, &uniformCounts));
+				uniformLimitedCounts = new LimitedCountsCache(cci, &patternCounts, po.limitedUniformCacheFile, "unic", new BasicFullNaiveBackoffStrategy(po, cci, lm, &contextCounts, uniformCounts));
 
-			backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, &uniformCounts, uniformLimitedCounts));
+			backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, uniformCounts, uniformLimitedCounts));
 		}
 	}
 
