@@ -65,10 +65,10 @@ public:
 		{
 			if(doPrintTime)
 			{
-				std::cout << something;
+				std::cout << std::chrono::system_clock::now() << "\t" << something;
 			} else
 			{
-				std::cout << std::chrono::system_clock::now() << "\t" << something;
+				std::cout << something;
 			}
 		}
 		return *this;
@@ -90,7 +90,7 @@ private:
 	DebugLevel debugLevel = DebugLevel::NONE;
 	DebugLevel coutLevel = DebugLevel::NONE;
 
-	bool doPrintTime = false;
+	bool doPrintTime = true;
 
 	Debug() {}
 
