@@ -7,16 +7,28 @@
 #include <pattern.h>
 #include <classdecoder.h>
 
+//#include "ContextCounts.h"
+//#include "PatternCounts.h"
+//#include "ContextValues.h"
+
+class ContextValues;
+class ContextCounts;
+#include "PatternCounts.h"
+
 namespace cpyp {
 
 // uniform distribution over a fixed vocabulary
 struct UniformVocabulary {
   UniformVocabulary(unsigned vs, double, double, double, double) : p0(1.0 / vs), draws() {/*std::cerr << "[vs:" << vs << ",p0:" << p0 << "]";*/}
   template<typename Engine>
-  void increment(const Pattern&, const Pattern&, Engine&, const ClassDecoder *const) { ++draws; }
+  void increment(const Pattern&, const Pattern&, Engine&, CoCoInitialiser * const) { ++draws; }
   template<typename Engine>
-  void decrement(const Pattern&, const Pattern&, Engine&, const ClassDecoder *const) { --draws; assert(draws >= 0); }
-  double prob(const Pattern& , const Pattern&, const ClassDecoder *const, bool) const { /*std::cout << "\t\t\tp(0) " << p0 << std::endl; */return p0; }
+  void decrement(const Pattern&, const Pattern&, Engine&, CoCoInitialiser * const) { --draws; assert(draws >= 0); }
+  double prob(const Pattern& , const Pattern&, CoCoInitialiser * const cci) const { return p0; }
+  double probFullNaiveHelper(const Pattern& w, const Pattern& context, const Pattern& pattern, double p1, CoCoInitialiser * const cci = nullptr) const {
+	  //std::cout << "Doing something with empty Pattern " << std::endl;
+	  return p0;
+  }
   double glm_prob(const Pattern& , const Pattern&, const ClassDecoder *const) const { /*std::cout << "\t\t\tp(0) " << p0 << std::endl; */return p0; }
   template<typename Engine>
   void resample_hyperparameters(Engine&) {}
@@ -29,22 +41,6 @@ struct UniformVocabulary {
   int draws;
 
 
-  double j0(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j1(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j2(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j3(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j4(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j5(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j6(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j7(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j8(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j9(const Pattern&,  const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j10(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j11(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j12(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j13(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j14(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
-  double j15(const Pattern&, const Pattern&, const ClassDecoder *const) { std::cerr << "SHOULDN'T BE HERE!" << std::endl; }
 };
 
 }

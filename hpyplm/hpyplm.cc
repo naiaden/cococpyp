@@ -22,20 +22,20 @@
 
 #include "cmdline.h"
 
-enum class Backoff { GLM, BOBACO, NGRAM };
-
-Backoff fromString(const std::string& s) {
-    if(s.compare("glm") == 0) return Backoff::GLM;
-    else if(s.compare("bobaco") == 0) return Backoff::BOBACO;
-    else return Backoff::NGRAM;
-}
-
-std::string toString(Backoff b) {
-    if(b == Backoff::GLM) return "GLM";
-    if(b == Backoff::BOBACO) return "bobaco";
-    if(b == Backoff::NGRAM) return "ngram";
-    return "unknown backoff method";
-}
+//enum class Backoff { GLM, BOBACO, NGRAM };
+//
+//Backoff fromString(const std::string& s) {
+//    if(s.compare("glm") == 0) return Backoff::GLM;
+//    else if(s.compare("bobaco") == 0) return Backoff::BOBACO;
+//    else return Backoff::NGRAM;
+//}
+//
+//std::string toString(Backoff b) {
+//    if(b == Backoff::GLM) return "GLM";
+//    if(b == Backoff::BOBACO) return "bobaco";
+//    if(b == Backoff::NGRAM) return "ngram";
+//    return "unknown backoff method";
+//}
 
 void p2b(const std::string& s, std::ostream& os, std::ofstream& ofs) {
 

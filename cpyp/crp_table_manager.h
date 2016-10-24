@@ -42,9 +42,9 @@ struct crp_histogram {
   MAPTYPE data;
 };
 
-void swap(crp_histogram& a, crp_histogram& b) {
-  a.swap(b);
-}
+//void swap(crp_histogram& a, crp_histogram& b) {
+//  a.swap(b);
+//}
 
 // A crp_table_manager tracks statistics about all customers
 // and tables serving some dish in a CRP, as well as what
