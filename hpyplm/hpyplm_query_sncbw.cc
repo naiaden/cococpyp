@@ -103,9 +103,9 @@ int main(int argc, char** argv) {
 	PatternCounts patternCounts;
 	patternCounts.fromFile(cci);
 
-    LimitedCountsCache* mleLimitedCounts;
-	LimitedCountsCache* entropyLimitedCounts;
-	LimitedCountsCache* uniformLimitedCounts;
+    LimitedCountsCache* mleLimitedCounts = nullptr;
+	LimitedCountsCache* entropyLimitedCounts = nullptr;
+	LimitedCountsCache* uniformLimitedCounts = nullptr;
 
 
 	mout << "Initialising: " << backoffsToString(qclo.backoffMethod) << std::endl;
