@@ -44,7 +44,7 @@ public:
 
 	bool doDebug(DebugLevel currentLevel) const
 	{
-		return currentLevel >= debugLevel && debugLevel != DebugLevel::NONE;
+		return currentLevel <= debugLevel && debugLevel != DebugLevel::NONE;
 	}
 
 //	template<typename T> Debug& operator<<(DebugLevel dl)

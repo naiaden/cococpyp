@@ -441,8 +441,11 @@ double LimitedNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& co
 
 	if(focusString.empty()) // That means we can derive its string from the class decoder, and it's not oov
 	{
+		Debug::getInstance() << DebugLevel::PATTERN << "+++ Processing [" << context.tostring(cci.classDecoder) << "] " << focus.tostring(cci.classDecoder) << std::endl;
 		lp = log2(lm.probLimitedNaive(focus, context, lm, patternCounts, contextCounts, contextValues, limitedCounts, &cci));
 		fS = focus.tostring(cci.classDecoder);
+		Debug::getInstance() << DebugLevel::PATTERN << "--- logprob = " << lp << std::endl;
+
 	} else // oov
 	{
 		++fOOVs;

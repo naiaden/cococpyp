@@ -14,6 +14,8 @@
 
 #include "LimitedCounts.h"
 
+#include "Debug.h"
+
 Pattern& PatternCache::getPattern()
 {
 	return pattern;
@@ -42,7 +44,7 @@ double PatternCache::helper(const std::unordered_map<Pattern, cpyp::crp<Pattern>
 
 	} else
 	{
-		if(debug) std::cout << "H: returning p0: " << p0 << std::endl;
+		Debug::getInstance() << DebugLevel::ALL << "H: returning p0: " << p0 << "\n";
 		return p0;
 	}
 }
@@ -51,16 +53,18 @@ double P_XXXX::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 {
 	if(!computed)
 	{
-		if(debug) std::cout << "     A priori probabily not computed. " << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     A priori probability not computed. \n";
 
 		LimitedInformation li = parent->lc->get(context);
 		prob_ = 1.0 / (li.nobackoff + li.backoff);
 
 		weight_ = parent->cv->get(pattern);
 		computed = true;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	} else
 	{
-		if(debug) std::cout << "     A priori probabily already computed." << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     A priori probability already computed.\n";
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	}
 	return prob_;
 }
@@ -71,15 +75,17 @@ double P_XXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	{
 		if(parent->pc->get(pattern, nullptr))
 		{
-			if(debug) std::cout << "    Compute unigram prob and stop backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "    Compute unigram prob and stop backoff.\n";
 
 			LimitedInformation li =  parent->lc->get(context);
-			p0_ = (1.0 - li.P) / li.nobackoff;
+			p0_ = (1.0 - li.P) / li.nobackoff; //////////// HIER WORDT SUPERHARD 0 door 0 GEDEELD FIX ME
+
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "        liP:" << li.P << " liN:" << li.nobackoff << " liB:" << li.backoff << " p0:" << p0_ << "\n";
 
 			prob_ = helper(p, p0_, 0.0);
 		} else
 		{
-			if(debug) std::cout << "    Compute unigram prob and continue backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "    Compute unigram prob and continue backoff.\n";
 
 			p0_ = /*parent->xxxx->getWeight(p) * */parent->xxxx->getProb(p);
 
@@ -87,9 +93,11 @@ double P_XXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		}
 		weight_ = parent->cv->get(pattern);
 		computed = true;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	} else
 	{
-		if(debug) std::cout << "    Unigram probability already computed." << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "    Unigram probability already computed.\n";
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	}
 	return prob_;
 }
@@ -103,7 +111,7 @@ double P_XXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
 		{
-			if(debug) std::cout << "   Compute bigram prob and stop backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "   Compute bigram prob and stop backoff.\n";
 
 			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
@@ -111,16 +119,18 @@ double P_XXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			prob_ = helper(p, p0_, 0.0);
 		} else
 		{
-			if(debug) std::cout << "   Compute bigram prob and continue backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "   Compute bigram prob and continue backoff.\n";
 			p0_ = /*parent->xxxd->getWeight(p) * */parent->xxxd->getProb(p);
 
 			prob_ = helper(p, p0_, 1.0);
 		}
 		weight_ = parent->cv->get(pattern);
 		computed = true;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	} else
 	{
-		if(debug) std::cout << "   Bigram probability already computed." << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "   Bigram probability already computed.\n";
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	}
 	return prob_;
 }
@@ -134,7 +144,7 @@ double P_XBXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
 		{
-			if(debug) std::cout << "  Compute xbxd prob and stop backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "  Compute xbxd prob and stop backoff.\n";
 
 			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
@@ -146,16 +156,18 @@ double P_XBXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			prob_ = helper(p, p0_, 0.0);
 		} else
 		{
-			if(debug) std::cout << "  Compute xbxd prob and continue backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "  Compute xbxd prob and continue backoff.\n";
 			p0_ = /*parent->xxxd->getWeight(p) * */parent->xxxd->getProb(p);
 
 			prob_ = helper(p, p0_, 1.0);
 		}
 		weight_ = parent->cv->get(pattern);
 		computed = true;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	} else
 	{
-		std::cout << "  xbxd probability already computed." << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "  xbxd probability already computed.\n";
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	}
 	return prob_;
 }
@@ -169,7 +181,7 @@ double P_AXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
 		{
-			if(debug) std::cout << " Compute axxd prob and stop backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << " Compute axxd prob and stop backoff.\n";
 
 			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
@@ -181,16 +193,18 @@ double P_AXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			prob_ = helper(p, p0_, 0.0);
 		} else
 		{
-			if(debug) std::cout << " Compute axxd prob and continue backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << " Compute axxd prob and continue backoff.\n";
 			p0_ = /*parent->xxxd->getWeight(p) * */parent->xxxd->getProb(p);
 
 			prob_ = helper(p, p0_, 1.0);
 		}
 		weight_ = parent->cv->get(pattern);
 		computed = true;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	} else
 	{
-		if(debug) std::cout << " axxd probability already computed." << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << " axxd probability already computed.\n";
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	}
 	return prob_;
 }
@@ -204,7 +218,7 @@ double P_XBCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
 		{
-			if(debug) std::cout << "  Compute xbcd prob and stop backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "  Compute xbcd prob and stop backoff.\n";
 
 			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
@@ -216,18 +230,20 @@ double P_XBCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			prob_ = helper(p, p0_, 0.0);
 		} else
 		{
-			if(debug) std::cout << "  Compute xbcd prob and continue backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "  Compute xbcd prob and continue backoff.\n";
 			p0_ = parent->xxcd->getWeight(p) * parent->xxcd->getProb(p) + parent->xbxd->getWeight(p) * parent->xbxd->getProb(p);
 			p0_ = p0_ / (parent->xxcd->getWeight(p) + parent->xbxd->getWeight(p));
-			if(debug) std::cout << "  -- [" << parent->xxcd->getWeight(p) << "," << parent->xxcd->getProb(p) << "] [" << parent->xbxd->getWeight(p) << "," << parent->xbxd->getProb(p) << "]" << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "  -- [" << parent->xxcd->getWeight(p) << "," << parent->xxcd->getProb(p) << "] [" << parent->xbxd->getWeight(p) << "," << parent->xbxd->getProb(p) << "]\n";
 
 			prob_ = helper(p, p0_, 0.0);
 		}
 		weight_ = parent->cv->get(pattern);
 		computed = true;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	} else
 	{
-		if(debug) std::cout << "  xbcd probability already computed." << std::endl;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "  xbcd probability already computed.\n";
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	}
 	return prob_;
 }
@@ -241,7 +257,7 @@ double P_AXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
 		{
-			if(debug) std::cout << " Compute axcd prob and stop backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << " Compute axcd prob and stop backoff.\n";
 
 			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
@@ -253,16 +269,17 @@ double P_AXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			prob_ = helper(p, p0_, 0.0);
 		} else
 		{
-			if(debug) std::cout << " Compute axcd prob and continue backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << " Compute axcd prob and continue backoff.\n";
 			p0_ = parent->axxd->getWeight(p) * parent->axxd->getProb(p) + parent->xxcd->getWeight(p) * parent->xxcd->getProb(p);
 			p0_ = p0_ / (parent->axxd->getWeight(p) + parent->xxcd->getWeight(p));
-			if(debug) std::cout << "  -- [" << parent->axxd->getWeight(p) << "," << parent->axxd->getProb(p) << "] [" << parent->xxcd->getWeight(p) << "," << parent->xxcd->getProb(p) << "]" << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "  -- [" << parent->axxd->getWeight(p) << "," << parent->axxd->getProb(p) << "] [" << parent->xxcd->getWeight(p) << "," << parent->xxcd->getProb(p) << "]\n";
 
 			prob_ = helper(p, p0_, 0.0);
 		}
 
 		weight_ = parent->cv->get(pattern);
 		computed = true;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	}
 	return prob_;
 }
@@ -276,7 +293,7 @@ double P_ABXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
 		{
-			if(debug) std::cout << " Compute abxd prob and stop backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << " Compute abxd prob and stop backoff.\n";
 
 			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
@@ -288,22 +305,23 @@ double P_ABXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			prob_ = helper(p, p0_, 0.0);
 		} else
 		{
-			if(debug) std::cout << " Compute abxd prob and continue backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << " Compute abxd prob and continue backoff.\n";
 			p0_ = parent->xbxd->getWeight(p) * parent->xbxd->getProb(p) + parent->axxd->getWeight(p) * parent->axxd->getProb(p);
 			p0_ = p0_ / (parent->xbxd->getWeight(p) + parent->axxd->getWeight(p));
-			if(debug) std::cout << "  -- [" << parent->xbxd->getWeight(p) << "," << parent->xbxd->getProb(p) << "] [" << parent->axxd->getWeight(p) << "," << parent->axxd->getProb(p) << "]" << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "  -- [" << parent->xbxd->getWeight(p) << "," << parent->xbxd->getProb(p) << "] [" << parent->axxd->getWeight(p) << "," << parent->axxd->getProb(p) << "]\n";
 
 			prob_ = helper(p, p0_, 0.0);
 		}
 		weight_ = parent->cv->get(pattern);
 		computed = true;
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	}
 	return prob_;
 }
 
 double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 {
-	if(debug) std::cout << "." << ((!computed) ? " not computed yet" : "already computed") << std::endl;
+	Debug::getInstance() << DebugLevel::SUBPATTERN << "ABCD" << ((!computed) ? " not computed yet" : " already computed") << "\n";
 	if(!computed)
 	{
 		prob_ = 0.0;
@@ -311,7 +329,7 @@ double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 
 		if(parent->pc->get(pattern, nullptr))
 		{
-			if(debug) std::cout << " Compute abcd prob and stop backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << " Compute abcd prob and stop backoff.\n";
 
 			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff;
@@ -324,19 +342,21 @@ double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 
 		} else
 		{
-			if(debug) std::cout << " Compute abcd prob and continue backoff." << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << " Compute abcd prob and continue backoff.\n";
 			double p1 = parent->xbcd->getWeight(p) * parent->xbcd->getProb(p);
 			double p2 = parent->axcd->getWeight(p) * parent->axcd->getProb(p);
 			double p3 = parent->abxd->getWeight(p) * parent->abxd->getProb(p);
 
 			p0_ = p1 + p2 + p3;
 			p0_ = p0_ / (parent->xbcd->getWeight(p) + parent->axcd->getWeight(p) + parent->abxd->getWeight(p));
-			if(debug) std::cout << "  -- [" << parent->xbcd->getWeight(p) << "," << parent->xbcd->getProb(p) << "] == " << p1 << " [" << parent->axcd->getWeight(p) << "," << parent->axcd->getProb(p) << "] == " << p2 << " [" << parent->abxd->getWeight(p) << "," << parent->abxd->getProb(p) << "] == " << p3 << std::endl;
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "  -- [" << parent->xbcd->getWeight(p) << "," << parent->xbcd->getProb(p) << "] == " << p1 << " [" << parent->axcd->getWeight(p) << "," << parent->axcd->getProb(p) << "] == " << p2 << " [" << parent->abxd->getWeight(p) << "," << parent->abxd->getProb(p) << "] == " << p3 << "\n";
 
 			prob_ = helper(p, p0_, 0.0);
 		}
 		computed = true;
 	}
+
+	Debug::getInstance() << DebugLevel::SUBPATTERN << "AABBCCDD\t --> P" << prob_ << "\tW" << weight_ << "\n";
 	return prob_;
 }
 

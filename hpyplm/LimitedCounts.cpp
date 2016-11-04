@@ -10,6 +10,8 @@
 #include "PatternCounts.h"
 #include "strategies.h"
 
+#include <iomanip>
+
 std::string LimitedCountsCache::name() const
 {
 	return "limitedcounts";
@@ -138,7 +140,7 @@ void LimitedCountsCache::initialise()
 			li.P = P;
 			limitedCounts[context] = li;
 
-			probsFile << context.tostring(cci->classDecoder) << "\t" << P << "\t" << nobackoff << "\t" << li.backoff << "\n";
+			probsFile << context.tostring(cci->classDecoder) << "\t" << std::setprecision(17) << std::fixed << P << "\t" << nobackoff << "\t" << li.backoff << "\n";
 
 			if(kounter % 10 == 0) // std::setw(4) << (oov*1.0/counter*100) << "%
 				std::cout << std::fixed << "\r" << kounter << ":" << std::setw(6) << kounter*1.0/allContexts.size()*100 << "%" << std::flush;
@@ -174,7 +176,7 @@ LimitedInformation LimitedCountsCache::get(const Pattern& pattern)
 //					std::cout << "NOT OOV: " << pattern.tostring(cci.classDecoder) << std::endl;
 				double prob = backoffStrategy->prob(focus, pattern, "" /*focus.tostring(cci.classDecoder)*/);
 				P += prob;
-				probsFile << "\t" << pattern.tostring(cci->classDecoder) << "\t" << focus.tostring(cci->classDecoder) << "\t" << prob << "\n";
+				probsFile << "\t" << pattern.tostring(cci->classDecoder) << "\t" << focus.tostring(cci->classDecoder) << "\t" << std::setprecision(17) << std::fixed << prob << "\n";
 			}
 		}
 
@@ -184,10 +186,15 @@ LimitedInformation LimitedCountsCache::get(const Pattern& pattern)
 		limitedCounts[pattern] = li;
 
 //		std::cout << pattern.tostring(cci->classDecoder) << "\t" << P << "\t" << nobackoff << "\t" << li.backoff << " --> " << numberOfFocusWords << "\n";
-		probsFile << pattern.tostring(cci->classDecoder) << "\t" << P << "\t" << nobackoff << "\t" << li.backoff << "\n";
+		probsFile << pattern.tostring(cci->classDecoder) << "\t" << std::setprecision(17) << std::fixed << P << "\t" << nobackoff << "\t" << li.backoff << "\n";
 	} else
 	{
-		return LimitedInformation();//iter->second;
+		LimitedInformation li;
+		li.P = 0.0;
+		li.backoff = 0;
+		li.nobackoff = numberOfFocusWords;
+
+		return li;//iter->second;
 	}
 }
 

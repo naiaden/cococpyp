@@ -47,12 +47,14 @@
 
 #include "Debug.h"
 
+#include <iomanip>
+
 using date::operator<<;
 
 int main(int argc, char** argv) {
     std::cout << "Started at " << std::chrono::system_clock::now()  << std::endl;
 
-    Debug::getInstance().setPrintTime(true);
+    Debug::getInstance().setPrintTime(false);
 
     std::stringstream oss;
 	oss << kORDER;
@@ -182,6 +184,8 @@ int main(int argc, char** argv) {
 
     std::cout << std::endl;
 
+    Debug::getInstance() << DebugLevel::SUBPATTERN << "YOOOOOO PRINTING THIS SHIT\n";
+
     if(qclo.backoffMethod.size())
     {
 
@@ -219,8 +223,9 @@ int main(int argc, char** argv) {
 						Pattern context = cci.classEncoder.buildpattern(contextStream.str());
 						Pattern focus = cci.classEncoder.buildpattern(words[i]);
 
-						Debug::getInstance() << DebugLevel::PATTERN << "\n  C[" << context.tostring(cci.classDecoder) << "] F[" << focus.tostring(cci.classDecoder) << "]\n";
-
+						std::string top = "\n\tC[" + context.tostring(cci.classDecoder) + "] F[" + focus.tostring(cci.classDecoder) + "]\n";
+						Debug::getInstance() << DebugLevel::PATTERN << top;
+//						Debug::getInstance() << DebugLevel::SUBPATTERN << "YOOOOOO PRINTING THIS SHIT\n";
 
 						double lp = 0.0;
 						std::string focusString = "";
