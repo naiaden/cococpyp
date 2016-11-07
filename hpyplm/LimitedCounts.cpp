@@ -191,8 +191,11 @@ LimitedInformation LimitedCountsCache::get(const Pattern& pattern)
 	{
 		LimitedInformation li;
 		li.P = 0.0;
-		li.backoff = 0;
-		li.nobackoff = numberOfFocusWords;
+		li.backoff = numberOfFocusWords;//0
+		li.nobackoff = 0;//numberOfFocusWords;
+		limitedCounts[pattern] = li;
+
+		Debug::getInstance() << DebugLevel::SUBPATTERN << "UNKNOWN PATTERN for LimitedCountsCache::get\n";
 
 		return li;//iter->second;
 	}

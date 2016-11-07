@@ -55,10 +55,10 @@ double P_XXXX::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	{
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     A priori probability not computed. \n";
 
-		LimitedInformation li = parent->lc->get(context);
-		prob_ = 1.0 / (li.nobackoff + li.backoff);
+		//LimitedInformation li = parent->lc->get(context);
+		prob_ = 1.0 / parent->lc->numberOfFocusWords;//(li.nobackoff + li.backoff);
 
-		weight_ = parent->cv->get(pattern);
+		weight_ = 1.0;//parent->cv->get(pattern);
 		computed = true;
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	} else
@@ -79,6 +79,12 @@ double P_XXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 
 			LimitedInformation li =  parent->lc->get(context);
 			p0_ = (1.0 - li.P) / li.nobackoff; //////////// HIER WORDT SUPERHARD 0 door 0 GEDEELD FIX ME
+			if(!std::isnormal(p0_))
+			{
+				Debug::getInstance() << DebugLevel::SUBPATTERN << "p0_ is not normal, resetting to 0\n";
+						p0_ = 0.0;
+			}
+
 
 			Debug::getInstance() << DebugLevel::SUBPATTERN << "        liP:" << li.P << " liN:" << li.nobackoff << " liB:" << li.backoff << " p0:" << p0_ << "\n";
 
