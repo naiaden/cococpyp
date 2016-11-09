@@ -185,10 +185,14 @@ void EntropyCounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* pattern
 			Pattern context = pattern.size() == 1 ? Pattern() : Pattern(pattern, 0, n-1);
 			if(context != previousPrefix)
 			{
-				double entropySum = 0;
+				double entropySum = 0; // maybe this isn't a great idea?
 				for(auto count : added_patterns)
 				{
 					double mle = 1.0*count/sum;
+					if(!std::isnormal(mle))
+					{
+						mle = CoCoInitialiser::epsilon;
+					}
 					entropySum += mle * log(mle);
 				}
 
