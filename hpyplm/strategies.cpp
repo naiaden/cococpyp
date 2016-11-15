@@ -443,6 +443,7 @@ double LimitedNaiveBackoffStrategy::prob(const Pattern& focus, const Pattern& co
 	{
 		Debug::getInstance() << DebugLevel::PATTERN << "+++ Processing [" << context.tostring(cci.classDecoder) << "] " << focus.tostring(cci.classDecoder) << std::endl;
 		lp = log2(lm.probLimitedNaive(focus, context, lm, patternCounts, contextCounts, contextValues, limitedCounts, &cci));
+		// lp is soms nan?
 		fS = focus.tostring(cci.classDecoder);
 		Debug::getInstance() << DebugLevel::PATTERN << "--- logprob = " << lp << std::endl;
 

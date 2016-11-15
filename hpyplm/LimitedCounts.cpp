@@ -135,6 +135,8 @@ void LimitedCountsCache::initialise()
 				}
 			}
 
+			// P is nan if prob is nan -> fix that first
+
 			li.nobackoff = nobackoff;
 			li.backoff = numberOfFocusWords - nobackoff;
 			li.P = P;
