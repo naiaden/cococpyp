@@ -14,6 +14,7 @@
 
 #include "LimitedCounts.h"
 
+#include "CoCoInitialiser.h"
 #include "Debug.h"
 
 Pattern& PatternCache::getPattern()
@@ -367,13 +368,15 @@ double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 
 	if(prob_ > 0.9999)
 	{
-		Debug::getInstance() << DebugLevel::ALL << "PROBALITY > 0.9999 NORMALISED TO 1-" << CoCoInitialiser::epsilon << "\n";
+		Debug::getInstance() << DebugLevel::ALL << "PROBALITY > 0.9999 NORMALISED TO 1-0.0000000000000001\n";
+//		Debug::getInstance() << DebugLevel::ALL << "PROBALITY > 0.9999 NORMALISED TO 1-" << CoCoInitialiser::epsilon << "\n";
 		return 1-CoCoInitialiser::epsilon; //
 	}
 
 	if(prob_ < 0.0000000001)
 	{
-		Debug::getInstance() << DebugLevel::ALL << "PROBALITY 0.0000000001 NORMALISED TO " << CoCoInitialiser::epsilon << "\n";
+		Debug::getInstance() << DebugLevel::ALL << "PROBALITY 0.0000000001 NORMALISED TO 0.0000000000000001\n";
+//		Debug::getInstance() << DebugLevel::ALL << "PROBALITY 0.0000000001 NORMALISED TO " << CoCoInitialiser::epsilon << "\n";
 		return CoCoInitialiser::epsilon; //
 	}
 	return prob_;
