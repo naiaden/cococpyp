@@ -156,7 +156,7 @@ double P_XBXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{
-				p0_ = 0.000000000000000001;
+				p0_ = CoCoInitialiser::epsilon;
 			}
 
 			prob_ = helper(p, p0_, 0.0);
@@ -193,7 +193,7 @@ double P_AXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{
-				p0_ = 0.000000000000000001;
+				p0_ = CoCoInitialiser::epsilon;
 			}
 
 			prob_ = helper(p, p0_, 0.0);
@@ -230,7 +230,7 @@ double P_XBCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{
-				p0_ = 0.000000000000000001;
+				p0_ = CoCoInitialiser::epsilon;
 			}
 
 			prob_ = helper(p, p0_, 0.0);
@@ -269,7 +269,7 @@ double P_AXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{
-				p0_ = 0.000000000000000001;
+				p0_ = CoCoInitialiser::epsilon;
 			}
 
 			prob_ = helper(p, p0_, 0.0);
@@ -305,7 +305,7 @@ double P_ABXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{
-				p0_ = 0.000000000000000001;
+				p0_ = CoCoInitialiser::epsilon;
 			}
 
 			prob_ = helper(p, p0_, 0.0);
@@ -341,7 +341,7 @@ double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 			p0_ = (1.0 - li.P) / li.nobackoff;
 			if(!std::isnormal(p0_))
 			{
-				p0_ = 0.000000000000000001;
+				p0_ = CoCoInitialiser::epsilon;
 			}
 
 			prob_ = helper(p, p0_, 0.0);
@@ -363,6 +363,19 @@ double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	}
 
 	Debug::getInstance() << DebugLevel::SUBPATTERN << "AABBCCDD\t --> P" << prob_ << "\tW" << weight_ << "\n";
+
+
+	if(prob_ > 0.9999)
+	{
+		Debug::getInstance() << DebugLevel::ALL << "PROBALITY > 0.9999 NORMALISED TO 1-" << CoCoInitialiser::epsilon << "\n";
+		return 1-CoCoInitialiser::epsilon; //
+	}
+
+	if(prob_ < 0.0000000001)
+	{
+		Debug::getInstance() << DebugLevel::ALL << "PROBALITY 0.0000000001 NORMALISED TO " << CoCoInitialiser::epsilon << "\n";
+		return CoCoInitialiser::epsilon; //
+	}
 	return prob_;
 }
 

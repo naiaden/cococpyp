@@ -88,7 +88,12 @@ void MLECounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCoun
 
 			if(contextCount > 0)
 			{
-				mleCounts[pattern] = 1.0 * patternCounts->get(pattern) / contextCount;
+				double v = 1.0 * patternCounts->get(pattern) / contextCount;
+//				if(v > 0.99)
+//				{
+//					mleCounts[pattern] = 0.99; //
+//				}
+				mleCounts[pattern] = v;
 			} else
 			{
 				mleCounts[pattern] = CoCoInitialiser::epsilon;
