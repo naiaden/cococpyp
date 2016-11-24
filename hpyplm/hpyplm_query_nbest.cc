@@ -47,6 +47,8 @@
 
 #include "Debug.h"
 
+#include "NbestList.h"
+
 #include <iomanip>
 
 using date::operator<<;
@@ -203,6 +205,8 @@ int main(int argc, char** argv) {
 //
 			std::ifstream file(inputFileName);
 			std::string retrievedString;
+			int currentRank = 0;
+			NbestList nbl;
 			while(std::getline(file, retrievedString))                              // lines
 			{
 
@@ -237,13 +241,13 @@ int main(int argc, char** argv) {
 				std::cout << sentenceString << std::endl;
 				std::cout << "\n\n";
 
-
-
+				NBestItem nbi(sentenceString, currentRank, acousticModelScore, languageModelScore, numberOfWords);
+				nbl.add(nbi);
 
 //				backoffStrategies.nextLine();
 //				tsp.nextSentence();
-//				std::vector<std::string> words = wsSplit(retrievedString);
-//	//            std::cout << "  Next line with " << words.size() << " words\n";
+				std::vector<std::string> words = wsSplit(retrievedString);
+				Debug::getInstance() << DebugLevel::ALL << "  Next line with " << words.size() << " words\n";
 //
 //				if(words.size() >= po.n) // kORDER
 //				{
