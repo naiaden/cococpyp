@@ -92,12 +92,19 @@ struct SNCBWCoCoInitialiser : public CoCoInitialiser
         std::cout << "Entering SNCBWCCI" << std::endl;
         po = &_spo;
 
+        std::cout << "Initialising SNCBWCCI" << std::endl;
+
         initialise(_trainPatternModel, onlyClassEncoder);
+
+        std::cout << "Done initialising SNCBWCCI" << std::endl;
 
         if(_extendEncoding)
         {
+        	std::cout << "Extending encoding" << std::endl;
             extendEncoding(_spo.testInputFiles);
+            std::cout << "Done extending SNCBWCCI" << std::endl;
         }
+        std::cout << "Exiting SNCBWCCI" << std::endl;
     }
     
     void extendEncoding(std::vector<std::string> inputFiles)
@@ -105,9 +112,12 @@ struct SNCBWCoCoInitialiser : public CoCoInitialiser
         //if(!qpo) { std::cerr << "FIX YOUR POINTERS" << std::endl; }
 
         std::string gOCFN = dynamic_cast<SNCBWProgramOptions*>(po)->generalOutputCorpusFileName;
+        std::cout << "gOFCN: " << gOCFN << std::endl;
 
+        std::cout << "Reading input files" << std::endl;
         for(auto i : inputFiles)
         {
+        	std::cout << ":: " << i << std::endl;
             classEncoder.encodefile(i, gOCFN, 1 ,1, 0, 1);
         }
         std::cout << "Done extending the class encoder" << std::endl;

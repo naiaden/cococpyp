@@ -64,39 +64,39 @@ int main(int argc, char** argv) {
 
 	SNCBWCommandLineOptions qclo = SNCBWCommandLineOptions(argc, argv);
 
-//	Debug::getInstance() << DebugLevel::ALL << "Loaded QCLO" << std::endl;
-//    SNCBWProgramOptions po = SNCBWProgramOptions(qclo, std::stoi(_kORDER));
-//    Debug::getInstance() << DebugLevel::ALL << "Loaded PO" << std::endl;
-//    PatternModelOptions pmo = DefaultPatternModelOptions(false, kORDER).patternModelOptions;
-//    Debug::getInstance() << DebugLevel::ALL << "Loaded PMO" << std::endl;
-//
-//    SNCBWCoCoInitialiser cci(po, pmo, true);
-//    Debug::getInstance() << DebugLevel::ALL << "Loaded CCI" << std::endl;
-//
-//
-//    std::string moutputFile(po.generalBaseOutputName + ".output");
-//    my_ostream mout(moutputFile);
-//
-//    mout << "Initialisation done at " << std::chrono::system_clock::now() << std::endl;
+	Debug::getInstance() << DebugLevel::ALL << "Loaded QCLO" << std::endl;
+    SNCBWProgramOptions po = SNCBWProgramOptions(qclo, std::stoi(_kORDER));
+    Debug::getInstance() << DebugLevel::ALL << "Loaded PO" << std::endl;
+    PatternModelOptions pmo = DefaultPatternModelOptions(false, kORDER).patternModelOptions;
+    Debug::getInstance() << DebugLevel::ALL << "Loaded PMO" << std::endl;
+
+    SNCBWCoCoInitialiser cci(po, pmo, true);
+    Debug::getInstance() << DebugLevel::ALL << "Loaded CCI" << std::endl;
 
 
-//    std::ifstream ifs(po.trainSerialisedFileName, std::ios::binary);
-//    if(!ifs.good()) {
-//        std::cerr << "Something went wrong whilst reading the model: " << po.trainSerialisedFileName << std::endl;
-//    }
-//    boost::archive::binary_iarchive ia(ifs);
-//
-//    cpyp::PYPLM<kORDER> lm;
-//    ia & lm;
-//    mout << "Loaded serialised model" << std::endl;
-//
-///////////////////////////////////////////////////
-//
-//    PatternSet<uint64_t> allWords = cci.trainPatternModel.extractset(1,1);
-//    mout << "Extracted all words" << std::endl;
-//
-//    mout << "Preparation done at " << std::chrono::system_clock::now() << std::endl;
-//
+    std::string moutputFile(po.generalBaseOutputName + ".output");
+    my_ostream mout(moutputFile);
+
+    mout << "Initialisation done at " << std::chrono::system_clock::now() << std::endl;
+
+
+    std::ifstream ifs(po.trainSerialisedFileName, std::ios::binary);
+    if(!ifs.good()) {
+        std::cerr << "Something went wrong whilst reading the model: " << po.trainSerialisedFileName << std::endl;
+    }
+    boost::archive::binary_iarchive ia(ifs);
+
+    cpyp::PYPLM<kORDER> lm;
+    ia & lm;
+    mout << "Loaded serialised model" << std::endl;
+
+/////////////////////////////////////////////////
+
+    PatternSet<uint64_t> allWords = cci.trainPatternModel.extractset(1,1);
+    mout << "Extracted all words" << std::endl;
+
+    mout << "Preparation done at " << std::chrono::system_clock::now() << std::endl;
+
 //
 //    QueryTimeStatsPrinter tsp(&mout);
 //    tsp.start();
@@ -186,6 +186,11 @@ int main(int argc, char** argv) {
 //
     std::cout << std::endl;
 
+
+    NgramBackoffStrategy NBOS(po, cci, lm);
+
+
+
     Debug::getInstance() << DebugLevel::SUBPATTERN << "YOOOOOO PRINTING THIS SHIT\n";
 //
 //    if(qclo.backoffMethod.size())
@@ -235,9 +240,9 @@ int main(int argc, char** argv) {
 
 				std::getline(linestream, sentenceString);
 
-				std::cout << acousticModelScore << "\t" << acousticModelScore*2 << std::endl;
-				std::cout << languageModelScore << "\t" << languageModelScore*2 << std::endl;
-				std::cout << numberOfWords << "\t" << numberOfWords*2 << std::endl;
+				std::cout << "AS: " << acousticModelScore << std::endl;
+				std::cout << "LS: " << languageModelScore << std::endl;
+				std::cout << "#W: " << numberOfWords << std::endl;
 				std::cout << sentenceString << std::endl;
 				std::cout << "\n\n";
 
@@ -246,43 +251,86 @@ int main(int argc, char** argv) {
 
 //				backoffStrategies.nextLine();
 //				tsp.nextSentence();
-				std::vector<std::string> words = wsSplit(retrievedString);
+				std::vector<std::string> words = wsSplit(sentenceString);
 				Debug::getInstance() << DebugLevel::ALL << "  Next line with " << words.size() << " words\n";
 //
-//				if(words.size() >= po.n) // kORDER
-//				{
+				double lprob = 0.0;
+				int numberOfUsedPatterns = 0;
+
+				if(words.size() >= po.n) // kORDER
+				{
 //	//            	std::cout << "  Working\n";
-//				   for(int i = (kORDER - 1); i < words.size(); ++i)                 // ngrams
-//				   {
-//						std::stringstream contextStream;
-//						contextStream << words[i-(kORDER-1)];
+				   for(int i = (kORDER - 1); i < words.size(); ++i)                 // ngrams
+				   {
+						std::stringstream contextStream;
+						contextStream << words[i-(kORDER-1)];
+
+						for(int ii = 1; ii < kORDER - 1; ++ii)
+						{
+							contextStream << " " << words[i-(kORDER-1)+ii];
+						}
+
+
+						try {
+
+							Pattern context = cci.classEncoder.buildpattern(contextStream.str());
+							Pattern focus = cci.classEncoder.buildpattern(words[i]);
+
+							std::string top = "\n\tC[" + context.tostring(cci.classDecoder) + "] F[" + focus.tostring(cci.classDecoder) + "]\n";
+							Debug::getInstance() << DebugLevel::PATTERN << top;
+
+
+
+							std::string focusString = "";
+							if(!allWords.has(focus)) // empty if oov
+							{
+								focusString = words[i];
+							}
+
+//							std::cout << " --> " <<  NBOS.prob(focus, context, focusString) << std::endl;
+
+							lprob += NBOS.prob(focus, context, focusString);
+							numberOfUsedPatterns++;
+
+						} catch (const UnknownTokenError &e) {
+						}
+
+//						try {
 //
-//						for(int ii = 1; ii < kORDER - 1; ++ii)
-//						{
-//							contextStream << " " << words[i-(kORDER-1)+ii];
+//								std::cout << "\t+F:" << cci.classEncoder.buildpattern(words[i], false, false).tostring(cci.classDecoder) << std::endl;
+//						} catch (const UnknownTokenError &e) {
+//								std::cout << "\t-F:" << words[i] << std::endl;
 //						}
-//
+
+
+
 //						Pattern context = cci.classEncoder.buildpattern(contextStream.str());
 //						Pattern focus = cci.classEncoder.buildpattern(words[i]);
-//
+
+//						std::cout << "[" << contextStream.str() << "] " << words[i] << std::endl;
+
 //						std::string top = "\n\tC[" + context.tostring(cci.classDecoder) + "] F[" + focus.tostring(cci.classDecoder) + "]\n";
 //						Debug::getInstance() << DebugLevel::PATTERN << top;
-////						Debug::getInstance() << DebugLevel::SUBPATTERN << "YOOOOOO PRINTING THIS SHIT\n";
-//
+//						Debug::getInstance() << DebugLevel::SUBPATTERN << "YOOOOOO PRINTING THIS SHIT\n";
+
 //						double lp = 0.0;
-//						std::string focusString = "";
-//						//if(focus.size() > 0 && )
+						std::string focusString = "";
+						//if(focus.size() > 0 && )
 //						if(!allWords.has(focus)) // empty if oov
 //						{
 //							focusString = words[i];
 //						}
 //
+
+//						std::cout << " --> " <<  NBOS.prob(focus, context, focusString) << std::endl;
+
 //
 //						tsp.printTimeStats(!focusString.empty());
 //						backoffStrategies.prob(focus, context, focusString);
 //	//                    std::cout << "  calculated prob\n\n";
-//				   }
-//				}
+				   }
+				}
+				std::cout << "lProb is " << lprob << " with " << numberOfUsedPatterns << " contributions" << std::endl;
 			}
 //			tsp.done();
 //			backoffStrategies.printFileResults();
