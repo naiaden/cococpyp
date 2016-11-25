@@ -240,13 +240,8 @@ int main(int argc, char** argv) {
 
 				std::getline(linestream, sentenceString);
 
-				std::cout << "AS: " << acousticModelScore << std::endl;
-				std::cout << "LS: " << languageModelScore << std::endl;
-				std::cout << "#W: " << numberOfWords << std::endl;
-				std::cout << sentenceString << std::endl;
-				std::cout << "\n\n";
-
-				NBestItem nbi(sentenceString, currentRank, acousticModelScore, languageModelScore, numberOfWords);
+				NBestItem nbi(sentenceString, ++currentRank, acousticModelScore, languageModelScore, numberOfWords);
+//				std::cout << nbi.toString() << std::endl;
 				nbl.add(nbi);
 
 //				backoffStrategies.nextLine();
@@ -270,16 +265,12 @@ int main(int argc, char** argv) {
 							contextStream << " " << words[i-(kORDER-1)+ii];
 						}
 
-
 						try {
-
 							Pattern context = cci.classEncoder.buildpattern(contextStream.str());
 							Pattern focus = cci.classEncoder.buildpattern(words[i]);
 
 							std::string top = "\n\tC[" + context.tostring(cci.classDecoder) + "] F[" + focus.tostring(cci.classDecoder) + "]\n";
 							Debug::getInstance() << DebugLevel::PATTERN << top;
-
-
 
 							std::string focusString = "";
 							if(!allWords.has(focus)) // empty if oov
@@ -287,42 +278,13 @@ int main(int argc, char** argv) {
 								focusString = words[i];
 							}
 
-//							std::cout << " --> " <<  NBOS.prob(focus, context, focusString) << std::endl;
-
 							lprob += NBOS.prob(focus, context, focusString);
 							numberOfUsedPatterns++;
 
 						} catch (const UnknownTokenError &e) {
 						}
 
-//						try {
-//
-//								std::cout << "\t+F:" << cci.classEncoder.buildpattern(words[i], false, false).tostring(cci.classDecoder) << std::endl;
-//						} catch (const UnknownTokenError &e) {
-//								std::cout << "\t-F:" << words[i] << std::endl;
-//						}
 
-
-
-//						Pattern context = cci.classEncoder.buildpattern(contextStream.str());
-//						Pattern focus = cci.classEncoder.buildpattern(words[i]);
-
-//						std::cout << "[" << contextStream.str() << "] " << words[i] << std::endl;
-
-//						std::string top = "\n\tC[" + context.tostring(cci.classDecoder) + "] F[" + focus.tostring(cci.classDecoder) + "]\n";
-//						Debug::getInstance() << DebugLevel::PATTERN << top;
-//						Debug::getInstance() << DebugLevel::SUBPATTERN << "YOOOOOO PRINTING THIS SHIT\n";
-
-//						double lp = 0.0;
-						std::string focusString = "";
-						//if(focus.size() > 0 && )
-//						if(!allWords.has(focus)) // empty if oov
-//						{
-//							focusString = words[i];
-//						}
-//
-
-//						std::cout << " --> " <<  NBOS.prob(focus, context, focusString) << std::endl;
 
 //
 //						tsp.printTimeStats(!focusString.empty());
@@ -330,11 +292,18 @@ int main(int argc, char** argv) {
 //	//                    std::cout << "  calculated prob\n\n";
 				   }
 				}
-				std::cout << "lProb is " << lprob << " with " << numberOfUsedPatterns << " contributions" << std::endl;
+//				std::cout << "lProb is " << lprob << " with " << numberOfUsedPatterns << " contributions" << std::endl;
+				nbi.setRescore(lprob);
+
 			}
+
+			nbl.determineNewRanks();
+//			nbl.print();
+
 //			tsp.done();
 //			backoffStrategies.printFileResults();
 		}
+
 //		backoffStrategies.done();
 //		std::cout << "\n\n" << std::endl;
 //		backoffStrategies.printResults();
