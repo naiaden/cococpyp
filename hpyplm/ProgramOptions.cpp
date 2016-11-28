@@ -116,6 +116,7 @@
         outputRunName = clp.get<std::string>("testmodel");
         testInputDirectory = clp.get<std::string>("testinput");
         testInputFile = clp.get<std::string>("testinputfile");
+        testInputFiles = clp.rest();
         outputDirectory = clp.get<std::string>("testoutput");
         countFileBase = clp.get<std::string>("countfile");
 
@@ -228,6 +229,7 @@
     SNCBWProgramOptions::SNCBWProgramOptions(SNCBWCommandLineOptions& _clo, int _n) : ProgramOptions(_clo)
     {
         n = _n;
+        testInputFiles = _clo.testInputFiles;
         if(!_clo.testInputDirectory.empty())
         {
             boost::filesystem::path foreground_dir(_clo.testInputDirectory);
@@ -245,7 +247,10 @@
 //            {
 //                std::cerr << "Did you use -f instead of -F? No input files for testing found." << std::endl;
 //            }
-            testInputFiles.push_back(_clo.testInputFile);
+        	if(!_clo.testInputFile.empty())
+        	{
+        		testInputFiles.push_back(_clo.testInputFile);
+        	}
         }
         for(auto f: testInputFiles)
         {

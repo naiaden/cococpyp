@@ -196,10 +196,10 @@ int main(int argc, char** argv) {
 //    if(qclo.backoffMethod.size())
 //    {
 //
-//		for(std::string inputFileName : po.testInputFiles)                          // files
-		std::vector<std::string> justSomeFiles;
-		justSomeFiles.push_back("/esat/spchtemp/scratch/jpeleman/lm/head_map/asr/comp-c/vl/fv701011/sri/fv701011_medthr256_kni4/nbest_fullvocab/fv701011.0.X:0:56004.50000-best.txt");
-    	for(std::string inputFileName : justSomeFiles)                          // files
+		for(std::string inputFileName : po.testInputFiles)                          // files
+//		std::vector<std::string> justSomeFiles;
+//		justSomeFiles.push_back("/esat/spchtemp/scratch/jpeleman/lm/head_map/asr/comp-c/vl/fv701011/sri/fv701011_medthr256_kni4/nbest_fullvocab/fv701011.0.X:0:56004.50000-best.txt");
+//    	for(std::string inputFileName : justSomeFiles)                          // files
 		{
 			std::cout << "> " << inputFileName << std::endl;
 //
@@ -240,12 +240,9 @@ int main(int argc, char** argv) {
 
 				std::getline(linestream, sentenceString);
 
-				NBestItem nbi(sentenceString, ++currentRank, acousticModelScore, languageModelScore, numberOfWords);
-//				std::cout << nbi.toString() << std::endl;
+				NBestItem* nbi = new NBestItem(sentenceString, ++currentRank, acousticModelScore, languageModelScore, numberOfWords);
 				nbl.add(nbi);
 
-//				backoffStrategies.nextLine();
-//				tsp.nextSentence();
 				std::vector<std::string> words = wsSplit(sentenceString);
 				Debug::getInstance() << DebugLevel::ALL << "  Next line with " << words.size() << " words\n";
 //
@@ -254,7 +251,6 @@ int main(int argc, char** argv) {
 
 				if(words.size() >= po.n) // kORDER
 				{
-//	//            	std::cout << "  Working\n";
 				   for(int i = (kORDER - 1); i < words.size(); ++i)                 // ngrams
 				   {
 						std::stringstream contextStream;
@@ -283,25 +279,13 @@ int main(int argc, char** argv) {
 
 						} catch (const UnknownTokenError &e) {
 						}
-
-
-
-//
-//						tsp.printTimeStats(!focusString.empty());
-//						backoffStrategies.prob(focus, context, focusString);
-//	//                    std::cout << "  calculated prob\n\n";
 				   }
 				}
-//				std::cout << "lProb is " << lprob << " with " << numberOfUsedPatterns << " contributions" << std::endl;
-				nbi.setRescore(lprob);
-
+				nbi->setRescore(lprob);
 			}
 
 			nbl.determineNewRanks();
-//			nbl.print();
-
-//			tsp.done();
-//			backoffStrategies.printFileResults();
+			nbl.printToFile(inputFileName, qclo.outputDirectory);
 		}
 
 //		backoffStrategies.done();

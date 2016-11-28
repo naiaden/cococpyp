@@ -61,6 +61,7 @@ struct SNCBWCommandLineOptions : public CommandLineOptions
 {
     std::string testInputDirectory;
     std::string testInputFile;
+    std::vector<std::string> testInputFiles;
 
     std::string outputDirectory;
     std::string outputRunName;
