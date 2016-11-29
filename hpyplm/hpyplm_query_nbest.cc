@@ -196,25 +196,19 @@ int main(int argc, char** argv) {
 //    if(qclo.backoffMethod.size())
 //    {
 //
+    	std::cout << std::endl;
+
+    	int fItr = 0;
 		for(std::string inputFileName : po.testInputFiles)                          // files
-//		std::vector<std::string> justSomeFiles;
-//		justSomeFiles.push_back("/esat/spchtemp/scratch/jpeleman/lm/head_map/asr/comp-c/vl/fv701011/sri/fv701011_medthr256_kni4/nbest_fullvocab/fv701011.0.X:0:56004.50000-best.txt");
-//    	for(std::string inputFileName : justSomeFiles)                          // files
 		{
-			std::cout << "> " << inputFileName << std::endl;
-//
-//			backoffStrategies.nextFile();
-//			tsp.nextFile();
-//
-//	//        std::cout << "  Next file" << std::endl;
-//
+			std::cout << std::fixed << "\r" << fItr++ << "/" << po.testInputFiles.size()-1 << ": " << inputFileName << std::flush;
+
 			std::ifstream file(inputFileName);
 			std::string retrievedString;
 			int currentRank = 0;
 			NbestList nbl;
 			while(std::getline(file, retrievedString))                              // lines
 			{
-
 
 				std::stringstream   linestream(retrievedString);
 

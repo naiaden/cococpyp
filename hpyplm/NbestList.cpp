@@ -98,7 +98,7 @@ std::string FileRenamer::rename(const std::string& original, const std::string& 
 			std::stringstream ss;
 			ss << outputDir << words[8] << "_" << words[10] << "_" << words[14];
 
-			std::cout << "Renaming " << original << " to " << ss.str() << std::endl;
+//			std::cout << "Renaming " << original << " to " << ss.str() << std::endl;
 			return ss.str();
 }
 
@@ -127,9 +127,9 @@ void NbestList::print(bool fileFormat)
 
 void NbestList::printToFile(const std::string& originalFileName, const std::string& directory)
 {
-	std::cout << "Processing " << originalFileName << std::endl;
+//	std::cout << "Processing " << originalFileName << std::endl;
 	std::string newName = fr.rename(originalFileName, directory);
-	std::cout << "  into " << newName << std::endl;
+//	std::cout << "  into " << newName << std::endl;
 
 	std::ofstream myfile;
 	  myfile.open (newName);
