@@ -16,6 +16,7 @@
 
 #include "CoCoInitialiser.h"
 #include "Debug.h"
+#include "LimitedTracker.h"
 
 Pattern& PatternCache::getPattern()
 {
@@ -31,6 +32,8 @@ double PatternCache::getWeight(const std::unordered_map<Pattern, cpyp::crp<Patte
 
 double PatternCache::getProb(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 {
+	registerHit();
+
 	if(!computed)
 		compute(p);
 	return prob_;
@@ -66,6 +69,8 @@ double P_XXXX::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	{
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     A priori probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
+
+		LimitedTracker::getInstance().registerHit(PatternPattern::xxxx);
 	}
 	return prob_;
 }
@@ -105,6 +110,8 @@ double P_XXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	{
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "    Unigram probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
+
+		LimitedTracker::getInstance().registerHit(PatternPattern::xxxd);
 	}
 	return prob_;
 }
@@ -138,6 +145,8 @@ double P_XXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	{
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "   Bigram probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
+
+		LimitedTracker::getInstance().registerHit(PatternPattern::xxcd);
 	}
 	return prob_;
 }
@@ -175,6 +184,8 @@ double P_XBXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	{
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "  xbxd probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
+
+		LimitedTracker::getInstance().registerHit(PatternPattern::xbxd);
 	}
 	return prob_;
 }
@@ -212,6 +223,8 @@ double P_AXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	{
 		Debug::getInstance() << DebugLevel::SUBPATTERN << " axxd probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
+
+		LimitedTracker::getInstance().registerHit(PatternPattern::axxd);
 	}
 	return prob_;
 }
@@ -251,6 +264,8 @@ double P_XBCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	{
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "  xbcd probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
+
+		LimitedTracker::getInstance().registerHit(PatternPattern::xbcd);
 	}
 	return prob_;
 }
@@ -287,6 +302,9 @@ double P_AXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		weight_ = parent->cv->get(pattern);
 		computed = true;
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
+	} else
+	{
+		LimitedTracker::getInstance().registerHit(PatternPattern::axcd);
 	}
 	return prob_;
 }
@@ -322,6 +340,9 @@ double P_ABXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		weight_ = parent->cv->get(pattern);
 		computed = true;
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
+	} else
+	{
+		LimitedTracker::getInstance().registerHit(PatternPattern::abxd);
 	}
 	return prob_;
 }
@@ -363,6 +384,8 @@ double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		computed = true;
 	}
 
+	LimitedTracker::getInstance().registerHit(PatternPattern::abcd);
+
 	Debug::getInstance() << DebugLevel::SUBPATTERN << "AABBCCDD\t --> P" << prob_ << "\tW" << weight_ << "\n";
 
 
@@ -382,4 +405,12 @@ double P_ABCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	return prob_;
 }
 
-
+void P_XXXX::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::xxxx); }
+void P_XXXD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::xxxd); }
+void P_XXCD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::xxcd); }
+void P_XBXD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::xbxd); }
+void P_XBCD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::xbcd); }
+void P_AXXD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::axxd); }
+void P_AXCD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::axcd); }
+void P_ABXD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::abxd); }
+void P_ABCD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::abcd); }

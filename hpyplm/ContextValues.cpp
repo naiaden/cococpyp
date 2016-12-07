@@ -136,9 +136,11 @@ EntropyCounts::EntropyCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCo
 }
 
 
-double EntropyCounts::get(const Pattern& context,
+double EntropyCounts::get(const Pattern& context1,
 		CoCoInitialiser * const cci) const
 {
+	Pattern context = (kORDER==1) ? Pattern() : Pattern(context1, 0, kORDER-1);
+
 	if (context == cci->classEncoder.buildpattern("{*}", false, false))
 	{
 		return emptyEntropy;

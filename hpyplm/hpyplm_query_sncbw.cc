@@ -47,6 +47,8 @@
 
 #include "Debug.h"
 
+#include "LimitedTracker.h"
+
 #include <iomanip>
 
 using date::operator<<;
@@ -253,6 +255,7 @@ int main(int argc, char** argv) {
     	mout << "No backoff strategy was given." << std::endl;
     }
 
+    LimitedTracker::getInstance().print();
 
     delete mleLimitedCounts;
     delete entropyLimitedCounts;

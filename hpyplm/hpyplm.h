@@ -112,6 +112,8 @@ template<unsigned N> struct PYPLM {
 
 			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts, cci);
 
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "\\/=============\n\n";
+
 			plnCache.xxxx->compute(p);
 			plnCache.xxxd->compute(backoff.backoff.backoff.p);
 			plnCache.xxcd->compute(backoff.backoff.p);
@@ -120,8 +122,12 @@ template<unsigned N> struct PYPLM {
 			plnCache.xbcd->compute(backoff.p);
 			plnCache.axcd->compute(p);
 			plnCache.abxd->compute(p);
-			return plnCache.abcd->compute(p);
 
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "  =============\n\n";
+//			return plnCache.abcd->compute(p);
+			double rv = plnCache.abcd->compute(p);
+			Debug::getInstance() << DebugLevel::SUBPATTERN << "/\\=============\n\n";
+			return rv;
 
 
 //			return plnCache.abcd->compute();
