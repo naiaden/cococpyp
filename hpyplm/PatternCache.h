@@ -51,6 +51,7 @@ class LimitedCountsCache;
 			double helper(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p, double p0, double S);
 
 			virtual void registerHit() {};
+			virtual void registerWeight() {};
 		};
 
 		class P_XXXX : public PatternCache
@@ -63,6 +64,7 @@ class LimitedCountsCache;
 
 			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 			void registerHit();
+			void registerWeight();
 		};
 
 		class P_XXXD : public PatternCache
@@ -75,6 +77,7 @@ class LimitedCountsCache;
 
 			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 			void registerHit();
+			void registerWeight();
 		};
 
 		class P_XXCD : public PatternCache
@@ -87,6 +90,7 @@ class LimitedCountsCache;
 
 			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 			void registerHit();
+			void registerWeight();
 		};
 
 		class P_XBXD : public PatternCache
@@ -99,6 +103,7 @@ class LimitedCountsCache;
 
 			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 			void registerHit();
+			void registerWeight();
 		};
 
 		class P_AXXD : public PatternCache
@@ -111,6 +116,7 @@ class LimitedCountsCache;
 
 			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 			void registerHit();
+			void registerWeight();
 		};
 
 		class P_XBCD : public PatternCache
@@ -123,6 +129,7 @@ class LimitedCountsCache;
 
 			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 			void registerHit();
+			void registerWeight();
 		};
 
 		class P_AXCD : public PatternCache
@@ -135,6 +142,7 @@ class LimitedCountsCache;
 
 			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 			void registerHit();
+			void registerWeight();
 		};
 
 		class P_ABXD : public PatternCache
@@ -147,6 +155,7 @@ class LimitedCountsCache;
 
 			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 			void registerHit();
+			void registerWeight();
 		};
 
 		class P_ABCD : public PatternCache
@@ -159,6 +168,7 @@ class LimitedCountsCache;
 
 			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 			void registerHit();
+			void registerWeight();
 		};
 
 

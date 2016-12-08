@@ -25,8 +25,13 @@ Pattern& PatternCache::getPattern()
 
 double PatternCache::getWeight(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 {
+//	registerHit();
+
 	if(!computed)
 		compute(p);
+
+	registerWeight();
+
 	return weight_;
 }
 
@@ -401,3 +406,13 @@ void P_AXXD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPa
 void P_AXCD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::axcd); }
 void P_ABXD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::abxd); }
 void P_ABCD::registerHit() { LimitedTracker::getInstance().registerHit(PatternPattern::abcd); }
+
+void P_XXXX::registerWeight() { LimitedTracker::getInstance().registerWeight(PatternPattern::xxxx, weight_);  }
+void P_XXXD::registerWeight() { LimitedTracker::getInstance().registerWeight(PatternPattern::xxxd, weight_); }
+void P_XXCD::registerWeight() { LimitedTracker::getInstance().registerWeight(PatternPattern::xxcd, weight_); }
+void P_XBXD::registerWeight() { LimitedTracker::getInstance().registerWeight(PatternPattern::xbxd, weight_); }
+void P_XBCD::registerWeight() { LimitedTracker::getInstance().registerWeight(PatternPattern::xbcd, weight_); }
+void P_AXXD::registerWeight() { LimitedTracker::getInstance().registerWeight(PatternPattern::axxd, weight_); }
+void P_AXCD::registerWeight() { LimitedTracker::getInstance().registerWeight(PatternPattern::axcd, weight_); }
+void P_ABXD::registerWeight() { LimitedTracker::getInstance().registerWeight(PatternPattern::abxd, weight_); }
+void P_ABCD::registerWeight() { LimitedTracker::getInstance().registerWeight(PatternPattern::abcd, weight_); }

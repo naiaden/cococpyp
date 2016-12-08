@@ -7,11 +7,15 @@
 
 #include "LimitedTracker.h"
 #include <iostream>
+#include <numeric>
+
 
 long int LimitedTracker::registerHit(PatternPattern pp)
 {
 	hits[pp]++;
 }
+
+
 
 std::string ppToString(PatternPattern pp)
 {
@@ -39,14 +43,25 @@ std::string ppToString(PatternPattern pp)
 
 }
 
+double LimitedTracker::registerWeight(PatternPattern pp, double weight)
+{
+	weights[pp].push_back(weight);
+}
+
 void LimitedTracker::reset()
 {
 	hits.clear();
 }
 
-void LimitedTracker::print()
+void LimitedTracker::print(/*const std::string& file*/)
 {
- for (const auto& kv : hits) {
-	 std::cout << ppToString(kv.first) << " has " << kv.second << " hits" << std::endl;
+	std::cout << "HITS:" << std::endl;
+	for (const auto& kv : hits) {
+		std::cout << "\t" << ppToString(kv.first) << " has " << kv.second << " hits" << std::endl;
+	}
+
+	std::cout << "WEIGHTS:" << std::endl;
+	for (const auto& kv : weights) {
+		std::cout << "\t" << ppToString(kv.first) << ": " << accumulate( kv.second.begin(), kv.second.end(), 0.0)/kv.second.size() << std::endl;
 	}
 }
