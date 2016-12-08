@@ -69,8 +69,6 @@ double P_XXXX::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 	{
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     A priori probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
-
-		LimitedTracker::getInstance().registerHit(PatternPattern::xxxx);
 	}
 	return prob_;
 }
@@ -111,7 +109,6 @@ double P_XXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "    Unigram probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 
-		LimitedTracker::getInstance().registerHit(PatternPattern::xxxd);
 	}
 	return prob_;
 }
@@ -146,7 +143,6 @@ double P_XXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "   Bigram probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 
-		LimitedTracker::getInstance().registerHit(PatternPattern::xxcd);
 	}
 	return prob_;
 }
@@ -185,7 +181,6 @@ double P_XBXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "  xbxd probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 
-		LimitedTracker::getInstance().registerHit(PatternPattern::xbxd);
 	}
 	return prob_;
 }
@@ -224,7 +219,6 @@ double P_AXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		Debug::getInstance() << DebugLevel::SUBPATTERN << " axxd probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 
-		LimitedTracker::getInstance().registerHit(PatternPattern::axxd);
 	}
 	return prob_;
 }
@@ -265,7 +259,6 @@ double P_XBCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "  xbcd probability already computed.\n";
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 
-		LimitedTracker::getInstance().registerHit(PatternPattern::xbcd);
 	}
 	return prob_;
 }
@@ -302,9 +295,6 @@ double P_AXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		weight_ = parent->cv->get(pattern);
 		computed = true;
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
-	} else
-	{
-		LimitedTracker::getInstance().registerHit(PatternPattern::axcd);
 	}
 	return prob_;
 }
@@ -340,9 +330,6 @@ double P_ABXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		weight_ = parent->cv->get(pattern);
 		computed = true;
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
-	} else
-	{
-		LimitedTracker::getInstance().registerHit(PatternPattern::abxd);
 	}
 	return prob_;
 }
