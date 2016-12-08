@@ -39,11 +39,14 @@ std::string ppToString(PatternPattern pp)
 
 }
 
+void LimitedTracker::reset()
+{
+	hits.clear();
+}
+
 void LimitedTracker::print()
 {
  for (const auto& kv : hits) {
-//		std::cout << ErrorTypes[kv.first] << " has " << kv.second << " hits" << std::endl;
 	 std::cout << ppToString(kv.first) << " has " << kv.second << " hits" << std::endl;
-//		std::cout << kv.second << " hits" << std::endl;
 	}
 }

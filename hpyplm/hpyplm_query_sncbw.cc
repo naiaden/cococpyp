@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
     MLECounts* mleCounts = nullptr;
     if(backoffIn(Backoff::MLE, qclo.backoffMethod))
     {
-    	mleCounts = new MLECounts(cci, &patternCounts);
+    	mleCounts = new MLECounts(cci, &patternCounts, true);
     	Debug::getInstance() << DebugLevel::ALL << "###: " << mleCounts->name() << std::endl;
 
 		if(backoffIn(Backoff::FULLMLE, qclo.backoffMethod))
@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
     EntropyCounts* entropyCounts = nullptr;
 	if(backoffIn(Backoff::ENT, qclo.backoffMethod))
 	{
-		entropyCounts = new EntropyCounts(cci, &patternCounts);
+		entropyCounts = new EntropyCounts(cci, &patternCounts, true);
 
 		if(backoffIn(Backoff::FULLENT, qclo.backoffMethod))
 		{
@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
 	UniformCounts* uniformCounts = nullptr;
 	if(backoffIn(Backoff::UNI, qclo.backoffMethod))
 	{
-		uniformCounts = new UniformCounts(cci);
+		uniformCounts = new UniformCounts(cci, true);
 
 		if(backoffIn(Backoff::FULLUNI, qclo.backoffMethod))
 		{
@@ -256,6 +256,26 @@ int main(int argc, char** argv) {
     }
 
     LimitedTracker::getInstance().print();
+
+    if(uniformCounts)
+    {
+    	std::string ecPV(po.generalBaseOutputName + ".provideduniformweights");
+    	    my_ostream ecPVs(ecPV);
+    	for(double val: uniformCounts->getProvidedValues())
+    	{
+    		ecPVs << val << std::endl;
+    	}
+    }
+
+    if(uniformCounts)
+	{
+		std::string ecPV(po.generalBaseOutputName + ".providedentropyweights");
+			my_ostream ecPVs(ecPV);
+		for(double val: uniformCounts->getProvidedValues())
+		{
+			ecPVs << val << std::endl;
+		}
+	}
 
     delete mleLimitedCounts;
     delete entropyLimitedCounts;

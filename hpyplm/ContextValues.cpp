@@ -23,12 +23,15 @@ std::string UniformCounts::name() const
 	return "uniform";
 }
 
-UniformCounts::UniformCounts(SNCBWCoCoInitialiser& cci)
+UniformCounts::UniformCounts(SNCBWCoCoInitialiser& cci, bool trackValues)// : provideValues(trackValues)
 {
+	 provideValues = trackValues;
 }
 
-double UniformCounts::get(const Pattern& pattern, CoCoInitialiser * const cci) const
+double UniformCounts::get(const Pattern& pattern, CoCoInitialiser * const cci)
 {
+	if(provideValues) providedValues.push_back(1.0);
+
 	return 1.0;
 }
 
@@ -45,8 +48,9 @@ std::string MLECounts::name() const
 	return "mle";
 }
 
-MLECounts::MLECounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts)
+MLECounts::MLECounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, bool trackValues)// : provideValues(trackValues)
 {
+	 provideValues = trackValues;
 	initialise(cci, patternCounts);
 }
 
@@ -103,17 +107,24 @@ void MLECounts::initialise(SNCBWCoCoInitialiser& cci, PatternCounts* patternCoun
 	Debug::getInstance() << DebugLevel::ALL << "### MLE Counts size: " << mleCounts.size() << std::endl;
 }
 
-double MLECounts::get(const Pattern& pattern, CoCoInitialiser * const cci) const
+double MLECounts::get(const Pattern& pattern, CoCoInitialiser * const cci)
 {
-	std::unordered_map<Pattern, double>::const_iterator iter = mleCounts.find(pattern);
+	double rv = 0.0;
+
+	Pattern context = (kORDER==1) ? Pattern() : Pattern(pattern, 0, kORDER-1);
+
+	std::unordered_map<Pattern, double>::const_iterator iter = mleCounts.find(context);
 	if ( iter != mleCounts.end() )
 	{
-		return iter->second;
+
+		rv =  iter->second;
 	} else
 	{
-		return CoCoInitialiser::epsilon;//iter->second;
+		rv = CoCoInitialiser::epsilon;//iter->second;
 	}
 
+	if(provideValues) providedValues.push_back(rv);
+	return rv;
 }
 
 
@@ -129,26 +140,27 @@ std::string EntropyCounts::name() const
 	return "entropy";
 }
 
-EntropyCounts::EntropyCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts)
+EntropyCounts::EntropyCounts(SNCBWCoCoInitialiser& cci, PatternCounts* patternCounts, bool trackValues)// : provideValues(trackValues)
 {
+	 provideValues = trackValues;
 	initialise(cci, patternCounts);
 	emptyEntropy = get(Pattern());
 }
 
 
-double EntropyCounts::get(const Pattern& context1,
-		CoCoInitialiser * const cci) const
+double EntropyCounts::get(const Pattern& context,
+		CoCoInitialiser * const cci)
 {
-	Pattern context = (kORDER==1) ? Pattern() : Pattern(context1, 0, kORDER-1);
+	double rv = 0.0;
 
 	if (context == cci->classEncoder.buildpattern("{*}", false, false))
 	{
-		return emptyEntropy;
+		rv =  emptyEntropy;
 	}
 
 	if (context == Pattern())
 	{
-		return emptyEntropy;
+		rv =  emptyEntropy;
 	}
 
 	std::unordered_map<Pattern, double>::const_iterator iter = entropyCounts.find(context);
@@ -156,17 +168,20 @@ double EntropyCounts::get(const Pattern& context1,
 	if (iter != entropyCounts.end())
 	{
 		//double rv = 1.0 + std::abs(1.0 / (1.0 - iter->second) - 2);
-		double rv = 1.0 + std::abs(1.0 / (iter->second - 0.75));
+		double trv = 1.0 + std::abs(1.0 / (iter->second - 0.75));
 		// is iter->second normal? if it's 1, then it's 1.0/0.0 -> boom
-		if(!std::isnormal(rv))
+		if(!std::isnormal(trv))
 		{
-			return emptyEntropy;
+			rv =  emptyEntropy;
 		}
-		return rv;
+		rv =  trv;
 	} else
 	{
-		return emptyEntropy;
+		rv =  emptyEntropy;
 	}
+
+	if(provideValues) providedValues.push_back(rv);
+	return rv;
 }
 
 

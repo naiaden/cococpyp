@@ -27,10 +27,14 @@ public:
 	void operator=(LimitedTracker const&) = delete;
 
 	long int registerHit(PatternPattern pp);
+
+	void reset();
 private:
 	LimitedTracker() {};
 
 	std::map<PatternPattern, long int> hits;
 };
+
+//class EntropyTracker {
 
 #endif /* HPYPLM_LIMITEDTRACKER_H_ */
