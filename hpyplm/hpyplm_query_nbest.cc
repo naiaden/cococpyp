@@ -201,7 +201,8 @@ int main(int argc, char** argv) {
     	int fItr = 0;
 		for(std::string inputFileName : po.testInputFiles)                          // files
 		{
-			std::cout << std::fixed << "\r" << fItr++ << "/" << po.testInputFiles.size()-1 << ": " << inputFileName << std::flush;
+//			std::cout << std::fixed << "\r" << fItr++ << "/" << po.testInputFiles.size()-1 << ": " << inputFileName << std::flush;
+			std::cout << std::fixed << fItr++ << "/" << po.testInputFiles.size()-1 << ": " << inputFileName << std::endl;
 
 			std::ifstream file(inputFileName);
 			std::string retrievedString;
@@ -280,6 +281,8 @@ int main(int argc, char** argv) {
 
 			nbl.determineNewRanks();
 			nbl.printToFile(inputFileName, qclo.outputDirectory);
+
+			LimitedTracker::getInstance().print();
 		}
 
 //		backoffStrategies.done();

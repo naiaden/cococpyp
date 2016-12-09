@@ -122,10 +122,11 @@ class LimitedCountsCache;
 		class P_XBCD : public PatternCache
 		{
 		public:
-			P_XBCD(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug = false) : PatternCache(parent, f,c, debug)
-			{
-				context = Pattern(c, 1, 2);
-			}
+			P_XBCD(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug = false);// : PatternCache(parent, f,c, debug)
+//			{
+//				context = Pattern(c, 1, 2);
+//				std::cout << "XBCD!!!!!!!!!!!!!!!! " << parent->pc->get(context) << std::endl;
+//			}
 
 			double compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p);
 			void registerHit();

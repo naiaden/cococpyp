@@ -112,6 +112,9 @@ template<unsigned N> struct PYPLM {
 
 			PLNCache plnCache(w, context, _patternCounts, contextCounts, contextValues, limitedCounts, cci);
 
+			std::cout << "PLN!!!!!!!!!!!!!!!! " << _patternCounts->get(context) << std::endl;
+
+
 			Debug::getInstance() << DebugLevel::SUBPATTERN << "\\/=============\n\n";
 
 			plnCache.xxxx->compute(p);

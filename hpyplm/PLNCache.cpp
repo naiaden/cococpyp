@@ -9,7 +9,7 @@
 
 #include "PatternCache.h"
 //#include "CoCoInitialiser.h"
-//#include "PatternCounts.h"
+#include "PatternCounts.h"
 //
 //#include "hpyplm.h"
 
@@ -20,7 +20,7 @@ PLNCache::PLNCache(const Pattern& w, const Pattern& context, PatternCounts* pc, 
 	abcd = new P_ABCD(this, w, context);
 	abxd = new P_ABXD(this, w, context);
 	axcd = new P_AXCD(this, w, context);
-	xbcd = new P_XBCD(this, w, context);
+	xbcd = new P_XBCD(this, w, context); std::cout << "PLNC!!!!!!!!!!!!!!!! " << pc->get(context) << std::endl;
 
 	axxd = new P_AXXD(this, w, context);
 	xbxd = new P_XBXD(this, w, context);

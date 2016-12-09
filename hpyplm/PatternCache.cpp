@@ -23,6 +23,12 @@ Pattern& PatternCache::getPattern()
 	return pattern;
 }
 
+P_XBCD::P_XBCD(PLNCache* parent, const Pattern& f, const Pattern& c, bool debug) : PatternCache(parent, f,c, debug)
+{
+	context = Pattern(c, 1, 2);
+	std::cout << "XBCD!!!!!!!!!!!!!!!! " << parent->pc->get(context) << std::endl;
+}
+
 double PatternCache::getWeight(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 {
 //	registerHit();
@@ -31,6 +37,7 @@ double PatternCache::getWeight(const std::unordered_map<Pattern, cpyp::crp<Patte
 		compute(p);
 
 	registerWeight();
+//	std::cout << "\t" << weight_ << std::endl;
 
 	return weight_;
 }
@@ -68,6 +75,7 @@ double P_XXXX::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 		prob_ = 1.0 / parent->lc->numberOfFocusWords;//(li.nobackoff + li.backoff);
 
 		weight_ = 1.0;//parent->cv->get(pattern);
+		std::cout << "XXXXXXXXXXXXXXXXXXXXXXXxxxx " << parent->cv->get(pattern) << std::endl;
 		computed = true;
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	} else
@@ -106,7 +114,9 @@ double P_XXXD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 
 			prob_ = helper(p, p0_, 1.0);
 		}
+		std::cout << "XXXD WEIGHT: " << weight_ << " >" << parent->cv->name() << std::endl;
 		weight_ = parent->cv->get(pattern);
+		std::cout << "XXXD WEIGHT: " << weight_ << "(" << parent->cv->get(pattern) << ")"<<  std::endl;
 		computed = true;
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	} else
@@ -122,7 +132,6 @@ double P_XXCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 {
 	if(!computed)
 	{
-		weight_ = parent->cc->get(pattern);
 		prob_ = 0.0;
 		p0_ = 1.0;
 		if(parent->pc->get(pattern, nullptr))
@@ -232,9 +241,13 @@ double P_XBCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 {
 	if(!computed)
 	{
+		std::cout << "1 XBCD WEIGHT: " << weight_ << " >" << parent->cv->name() << std::endl;
 		weight_ = parent->cc->get(pattern);
+		std::cout << "1 XBCD WEIGHT: " << weight_ << "(" << parent->cv->get(pattern) << ")"<<  std::endl;
 		prob_ = 0.0;
 		p0_ = 1.0;
+
+		std::cout << "3 XBCD COUNT: " << parent->pc->get(pattern, nullptr) << std::endl;
 		if(parent->pc->get(pattern, nullptr))
 		{
 			Debug::getInstance() << DebugLevel::SUBPATTERN << "  Compute xbcd prob and stop backoff.\n";
@@ -256,7 +269,10 @@ double P_XBCD::compute(const std::unordered_map<Pattern, cpyp::crp<Pattern>>& p)
 
 			prob_ = helper(p, p0_, 0.0);
 		}
+		std::cout << "2 XBCD WEIGHT: " << weight_ << " >" << parent->cv->name() << std::endl;
 		weight_ = parent->cv->get(pattern);
+		std::cout << "2 XBCD WEIGHT: " << weight_ << "(" << parent->cv->get(pattern) << ")"<<  std::endl;
+
 		computed = true;
 		Debug::getInstance() << DebugLevel::SUBPATTERN << "     --> P" << prob_ << "\tW" << weight_ << "\n";
 	} else

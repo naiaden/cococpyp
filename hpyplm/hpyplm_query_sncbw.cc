@@ -161,7 +161,37 @@ int main(int argc, char** argv) {
 
 			backoffStrategies.addBackoffStrategy(new LimitedNaiveBackoffStrategy(po, cci, lm, &patternCounts, &contextCounts, entropyCounts, entropyLimitedCounts));
 		}
+
+		std::cout << "HQS: in accordance with the: " << std::endl;
+		std::string s_chot = "in accordance with the";
+		Pattern chot = cci.classEncoder.buildpattern(s_chot);
+		Pattern chot_context = Pattern(chot, 0, 3);
+		Pattern chot_scontext = Pattern(chot, 1, 2);
+		Pattern ot = Pattern(chot, 2, 2);
+		Pattern t = Pattern(chot, 3, 1);
+		std::cout << "Pattern to string: " << chot.tostring(cci.classDecoder) << std::endl;
+		std::cout << "Context to string: " << chot_context.tostring(cci.classDecoder) << std::endl;
+		std::cout << "sContext to string: " << chot_scontext.tostring(cci.classDecoder) << std::endl;
+
+		std::cout << "Pattern frequency: " << patternCounts.get(chot, &cci) << std::endl;
+		std::cout << "Context frequency: " << patternCounts.get(chot_context, &cci) << std::endl;
+		std::cout << "sContext frequency: " << patternCounts.get(chot_scontext, &cci) << std::endl;
+
+		std::cout << "Context entropy: " << entropyCounts->get(chot_context) << std::endl;
+		std::cout << "sContext entropy: " << entropyCounts->get(chot_scontext) << std::endl;
+
+		std::cout << "ot to string: " << ot.tostring(cci.classDecoder) << std::endl;
+		std::cout << "Pattern frequency: " << patternCounts.get(ot, &cci) << std::endl;
+		std::cout << "Context entropy: " << entropyCounts->get(ot) << std::endl;
+
+		std::cout << "t to string: " << t.tostring(cci.classDecoder) << std::endl;
+		std::cout << "Pattern frequency: " << patternCounts.get(t, &cci) << std::endl;
+		std::cout << "Context entropy: " << entropyCounts->get(t) << std::endl;
+
+		std::cout << "Empty entropy: " << entropyCounts->get(Pattern()) << std::endl;
 	}
+
+//	return 1;
 
 	UniformCounts* uniformCounts = nullptr;
 	if(backoffIn(Backoff::UNI, qclo.backoffMethod))

@@ -159,9 +159,11 @@ double EntropyCounts::get(const Pattern& context,
 		//double rv = 1.0 + std::abs(1.0 / (1.0 - iter->second) - 2);
 		double rv = 1.0 + std::abs(1.0 / (iter->second - 0.75));
 		// is iter->second normal? if it's 1, then it's 1.0/0.0 -> boom
+		std::cout << /*iter->first.tostring(cci->classDecoder) <<*/ " RV: " << rv << std::endl;
 		if(!std::isnormal(rv))
 		{
-			return emptyEntropy;
+			std::cout << " ----- not normal" << std::endl;
+			rv = emptyEntropy;
 		}
 		return rv;
 	} else

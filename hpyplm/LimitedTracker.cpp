@@ -51,6 +51,7 @@ double LimitedTracker::registerWeight(PatternPattern pp, double weight)
 void LimitedTracker::reset()
 {
 	hits.clear();
+	weights.clear();
 }
 
 void LimitedTracker::print(/*const std::string& file*/)
